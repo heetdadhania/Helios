@@ -1,0 +1,15 @@
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+pydantic[email]>=2.7.0
+pydantic-settings>=2.2.0
+email-validator>=2.0.0
+sqlalchemy>=2.0.30
+passlib[bcrypt]>=1.7.4
+bcrypt==4.0.1
+pyjwt[crypto]>=2.8.0
+databricks-sql-connector>=3.1.0
+pyarrow>=14.0.0
+cryptography>=42.0.0
+python-dotenv>=1.0.1
+python-multipart>=0.0.9
+openpyxl>=3.1.2

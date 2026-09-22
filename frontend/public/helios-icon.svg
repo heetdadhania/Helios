@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none">
+  <defs>
+    <linearGradient id="heliosGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" />
+      <stop offset="100%" stop-color="#10B981" />
+    </linearGradient>
+  </defs>
+  <!-- Central core -->
+  <circle cx="16" cy="16" r="5" fill="url(#heliosGrad)" />
+  <!-- Radiating sun rays -->
+  <line x1="16" y1="3" x2="16" y2="7" stroke="url(#heliosGrad)" stroke-width="2.5" stroke-linecap="round" />
+  <line x1="16" y1="25" x2="16" y2="29" stroke="url(#heliosGrad)" stroke-width="2.5" stroke-linecap="round" />
+  <line x1="3" y1="16" x2="7" y2="16" stroke="url(#heliosGrad)" stroke-width="2.5" stroke-linecap="round" />
+  <line x1="25" y1="16" x2="29" y2="16" stroke="url(#heliosGrad)" stroke-width="2.5" stroke-linecap="round" />
+  <!-- Diagonal rays -->
+  <line x1="6.8" y1="6.8" x2="9.6" y2="9.6" stroke="url(#heliosGrad)" stroke-width="2" stroke-linecap="round" />
+  <line x1="22.4" y1="22.4" x2="25.2" y2="25.2" stroke="url(#heliosGrad)" stroke-width="2" stroke-linecap="round" />
+  <line x1="6.8" y1="25.2" x2="9.6" y2="22.4" stroke="url(#heliosGrad)" stroke-width="2" stroke-linecap="round" />
+  <line x1="22.4" y1="9.6" x2="25.2" y2="6.8" stroke="url(#heliosGrad)" stroke-width="2" stroke-linecap="round" />
+</svg>
