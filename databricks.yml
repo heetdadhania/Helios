@@ -1,0 +1,31 @@
+bundle:
+  name: helios
+
+include:
+  - resources/*.yml
+  - resources/**/*.yml
+
+variables:
+  catalog:
+    description: "Databricks Unity Catalog name"
+    default: "helios"
+  warehouse_id:
+    description: "SQL Warehouse ID for executing stored procedures and notifications"
+    default: "helios-sql-warehouse"
+  cluster_id:
+    description: "Compute cluster identifier for running Python medallion tasks"
+    default: "helios-lakeflow-compute"
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-helios-dev.azuredatabricks.net
+      root_path: /Workspace/Shared/helios/bundles/${bundle.name}/${bundle.target}
+
+  prod:
+    mode: production
+    workspace:
+      host: https://adb-helios-prod.azuredatabricks.net
+      root_path: /Workspace/Shared/helios/bundles/${bundle.name}/${bundle.target}

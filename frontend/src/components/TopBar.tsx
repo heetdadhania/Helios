@@ -1,6 +1,7 @@
 import React from 'react';
-import { Bell, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
+import { NotificationBell } from './shared/NotificationBell';
 import { useAuth } from '@/hooks/useAuth';
 
 interface TopBarProps {
@@ -34,15 +35,8 @@ export const TopBar: React.FC<TopBarProps> = ({ title }) => {
           />
         </div>
 
-        {/* Notification Bell with unread dot */}
-        <button
-          type="button"
-          className="relative p-2 rounded-control text-helios-text-secondary-light dark:text-helios-text-secondary-dark hover:text-helios-text-primary-light dark:hover:text-helios-text-primary-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-          aria-label="Notifications"
-        >
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-helios-accent-blue ring-2 ring-helios-sidebar-light dark:ring-helios-sidebar-dark" />
-        </button>
+        {/* Notification Bell with unread badge and dropdown */}
+        <NotificationBell />
 
         {/* Theme Toggle */}
         <ThemeToggle />

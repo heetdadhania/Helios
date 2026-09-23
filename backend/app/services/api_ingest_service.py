@@ -105,6 +105,18 @@ class ApiIngestService:
             status="ingested",
         )
 
+        try:
+            from app.services.notification_service import NotificationService
+            NotificationService.notify_upload_received(
+                tenant_id=tenant_id,
+                batch_id=batch_id,
+                user_id=None,
+                source_type="api_push",
+                cursor=upload_repo.cursor,
+            )
+        except Exception as notif_err:
+            logger.warning("Failed to dispatch api_push notification: %s", notif_err)
+
         logger.info(
             "API Ingestion accepted for tenant %d: %d records, batch %s",
             tenant_id,

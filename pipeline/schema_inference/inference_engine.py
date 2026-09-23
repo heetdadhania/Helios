@@ -326,3 +326,58 @@ def infer_schema_for_batch(
                 owned_conn.close()
             except Exception:
                 pass
+
+
+def run_schema_inference_task(batch_id: str, tenant_id: int, catalog: str = "helios") -> Dict[str, Any]:
+    """Task runner query sample records from Bronze table and running schema inference."""
+    active_cursor, owned_conn = _acquire_cursor_context(None, catalog)
+    try:
+        records: List[Dict[str, Any]] = []
+        try:
+            query = f"SELECT raw_payload FROM `{catalog}`.`bronze`.`raw_transactions` WHERE batch_id = :batch_id LIMIT 100"
+            active_cursor.execute(query, {"batch_id": batch_id})
+            rows = active_cursor.fetchall()
+            if rows:
+                for r in rows:
+                    raw = r[0]
+                    if isinstance(raw, str):
+                        try:
+                            records.append(json.loads(raw))
+                        except Exception:
+                            pass
+                    elif isinstance(raw, dict):
+                        records.append(raw)
+        except Exception:
+            pass
+
+        return infer_schema_for_batch(
+            batch_id=batch_id,
+            tenant_id=tenant_id,
+            records=records,
+            catalog=catalog,
+            cursor=active_cursor,
+        )
+    finally:
+        if owned_conn is not None:
+            try:
+                active_cursor.close()
+                owned_conn.close()
+            except Exception:
+                pass
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Helios Schema Inference Task (Module 7)")
+    parser.add_argument("--tenant-id", type=int, required=True, help="Tenant ID")
+    parser.add_argument("--batch-id", type=str, required=True, help="Batch ID")
+    parser.add_argument("--catalog", type=str, default="helios", help="Databricks Unity Catalog name")
+    args = parser.parse_args()
+
+    run_schema_inference_task(
+        batch_id=args.batch_id,
+        tenant_id=args.tenant_id,
+        catalog=args.catalog,
+    )
+

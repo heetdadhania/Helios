@@ -55,18 +55,8 @@ def decode_access_token(token: str) -> Dict[str, Any]:
     return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
 
 
-def get_fernet_cipher() -> Fernet:
-    """Initialize Fernet symmetric cipher using CREDENTIAL_ENCRYPTION_KEY."""
-    return Fernet(settings.CREDENTIAL_ENCRYPTION_KEY.encode())
-
-
-def encrypt_credential(plain_text: str) -> str:
-    """Encrypt a plaintext secret (connector tokens, secret references) using Fernet."""
-    cipher = get_fernet_cipher()
-    return cipher.encrypt(plain_text.encode("utf-8")).decode("utf-8")
-
-
-def decrypt_credential(cipher_text: str) -> str:
-    """Decrypt a Fernet-encrypted secret string."""
-    cipher = get_fernet_cipher()
-    return cipher.decrypt(cipher_text.encode("utf-8")).decode("utf-8")
+from app.core.secrets_manager import (
+    decrypt_field as decrypt_credential,
+    encrypt_field as encrypt_credential,
+    get_fernet_cipher,
+)

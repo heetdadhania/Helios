@@ -1,11 +1,12 @@
 import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
-from fastapi import FastAPI, status
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from app.api.v1.api import api_router
 from app.core.config import settings
+from app.core.exceptions import HeliosException
 
 logging.basicConfig(
     level=logging.INFO,
@@ -74,13 +75,43 @@ def create_application() -> FastAPI:
     from app.api.dashboard import router as dashboard_router
     app.include_router(dashboard_router, prefix="/api/dashboard", tags=["Dashboard"])
 
+    # Include Pipeline Health & Recovery Router (/api/pipeline)
+    from app.api.pipeline_health import router as pipeline_health_router
+    app.include_router(pipeline_health_router, prefix="/api/pipeline", tags=["Pipeline Health"])
+
+    # Include Dashboard Data Export Router (/api/export)
+    from app.api.export import router as export_router
+    app.include_router(export_router, prefix="/api/export", tags=["Export"])
+
+    # Include Notifications Router (/api/notifications)
+    from app.api.notifications import router as notifications_router
+    app.include_router(notifications_router, prefix="/api/notifications", tags=["Notifications"])
+
     # Include Versioned API Routers
     app.include_router(api_router, prefix=settings.API_V1_STR)
 
-    @app.get("/", include_in_schema=False)
-    def root_redirect() -> RedirectResponse:
-        """Redirect root requests to interactive Swagger documentation."""
-        return RedirectResponse(url="/docs", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+    # Register Global Exception Handlers
+    @app.exception_handler(HeliosException)
+    async def helios_exception_handler(request: Request, exc: HeliosException) -> JSONResponse:
+        """Global handler transforming Helios domain exceptions into standardized JSON responses."""
+        logger.warning(
+            "Helios [%s] error on %s %s: %s (status: %d)",
+            exc.__class__.__name__,
+            request.method,
+            request.url.path,
+            exc.message,
+            exc.status_code,
+        )
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "success": False,
+                "message": exc.message,
+                "detail": exc.message,
+                "details": exc.details,
+                "error_type": exc.__class__.__name__,
+            },
+        )
 
     return app
 

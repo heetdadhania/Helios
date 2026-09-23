@@ -1,6 +1,7 @@
 import React from 'react';
 import { KPICard } from '@/components/KPICard';
 import { LineChartCard } from '@/components/LineChartCard';
+import { ExportButton } from '@/components/client/ExportButton';
 import { KPIMetric, ChartDataPoint } from '@/types/data';
 
 const clientMetrics: KPIMetric[] = [
@@ -65,6 +66,7 @@ export const DashboardPage: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <ExportButton />
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-helios-accent-teal/10 text-helios-accent-teal border border-helios-accent-teal/20">
             <span className="w-1.5 h-1.5 rounded-full bg-helios-accent-teal animate-ping" />
             Live Sync Active

@@ -5,7 +5,7 @@ import logging
 import uuid
 from contextlib import contextmanager
 from datetime import datetime, timezone
-from typing import Any, Dict, Generator, List, Optional, Tuple
+from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 
 import mysql.connector
 import psycopg2
@@ -14,6 +14,13 @@ from databricks.sdk import WorkspaceClient
 from fastapi import HTTPException, status
 
 from app.core.config import settings
+from app.core.secrets_manager import (
+    decode_secret_value,
+    get_databricks_workspace_client,
+    retrieve_db_credential,
+    sanitize_error_message,
+    store_db_credential,
+)
 from app.repositories.db_connection_repository import DbConnectionRepository
 from app.repositories.upload_repository import UploadRepository
 from app.schemas.db_connection import (
@@ -25,31 +32,6 @@ from app.schemas.upload import UploadResponse
 from app.services.upload_service import UploadService
 
 logger = logging.getLogger("helios.db_connection")
-
-
-def sanitize_error_message(exc: Exception, secret: str) -> str:
-    """Remove raw credentials from exception strings to prevent leakage."""
-    msg = str(exc)
-    if secret and secret in msg:
-        msg = msg.replace(secret, "******")
-    return msg
-
-
-def decode_secret_value(raw_val: str) -> str:
-    """Decode Databricks Secrets base64 string or return plain string."""
-    try:
-        decoded_bytes = base64.b64decode(raw_val.encode("utf-8"), validate=True)
-        return decoded_bytes.decode("utf-8")
-    except Exception:
-        return raw_val
-
-
-def get_databricks_workspace_client() -> WorkspaceClient:
-    """Instantiate Databricks SDK WorkspaceClient using app settings."""
-    return WorkspaceClient(
-        host=settings.DATABRICKS_SERVER_HOSTNAME,
-        token=settings.DATABRICKS_TOKEN,
-    )
 
 
 class DbConnectionService:
@@ -159,19 +141,15 @@ class DbConnectionService:
         tenant_id: int,
         password: str,
         client: Optional[WorkspaceClient] = None,
+        connection_id: Optional[Union[int, str]] = None,
     ) -> str:
         """Send raw password to Databricks Secrets and return scope:key reference."""
-        scope = f"helios_tenant_{tenant_id}"
-        key = f"conn_{uuid.uuid4().hex[:16]}"
-        ws = client or get_databricks_workspace_client()
-
-        try:
-            ws.secrets.create_scope(scope=scope)
-        except Exception:
-            pass  # Scope already exists or created by admin
-
-        ws.secrets.put_secret(scope=scope, key=key, string_value=password)
-        return f"{scope}:{key}"
+        return store_db_credential(
+            tenant_id=tenant_id,
+            connection_id=connection_id,
+            password=password,
+            client=client,
+        )
 
     @classmethod
     def save_connection(
@@ -182,8 +160,9 @@ class DbConnectionService:
         secrets_client: Optional[WorkspaceClient] = None,
     ) -> DbConnectionOut:
         """Save connection metadata in platform.db_connections and credential in Databricks Secrets."""
-        credential_ref = cls._store_credential_in_secrets(
+        credential_ref = store_db_credential(
             tenant_id=tenant_id,
+            connection_id=None,
             password=conn_in.password,
             client=secrets_client,
         )
@@ -220,16 +199,7 @@ class DbConnectionService:
         client: Optional[WorkspaceClient] = None,
     ) -> str:
         """Fetch password ephemerally from Databricks Secrets. Never caches value."""
-        if ":" not in credential_ref:
-            raise ValueError("Malformed Databricks secret reference. Expected format 'scope:key'.")
-
-        scope, key = credential_ref.split(":", 1)
-        ws = client or get_databricks_workspace_client()
-        resp = ws.secrets.get_secret(scope=scope, key=key)
-        if not resp or not resp.value:
-            raise RuntimeError(f"Databricks secret '{credential_ref}' not found or empty.")
-
-        return decode_secret_value(resp.value)
+        return retrieve_db_credential(secret_key_ref=credential_ref, client=client)
 
     @staticmethod
     def _build_select_query(db_type: str, table_or_query: str) -> str:
@@ -348,6 +318,18 @@ class DbConnectionService:
             stage="received",
             status="ingested",
         )
+
+        try:
+            from app.services.notification_service import NotificationService
+            NotificationService.notify_upload_received(
+                tenant_id=tenant_id,
+                batch_id=batch_id,
+                user_id=user_id,
+                source_type="db_connection",
+                cursor=upload_repo.cursor,
+            )
+        except Exception as notif_err:
+            logger.warning("Failed to dispatch db_sync notification: %s", notif_err)
 
         repo.update_last_synced(connection_id=connection_id, tenant_id=tenant_id)
 

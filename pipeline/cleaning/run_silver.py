@@ -318,3 +318,20 @@ def run_silver_pipeline(
                 owned_conn.close()
             except Exception:
                 pass
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Helios Silver Cleaning Task (Module 9)")
+    parser.add_argument("--tenant-id", type=int, required=False, default=None, help="Tenant ID")
+    parser.add_argument("--batch-id", type=str, required=True, help="Batch ID")
+    parser.add_argument("--catalog", type=str, default="helios", help="Databricks Unity Catalog name")
+    args = parser.parse_args()
+
+    run_silver_pipeline(
+        batch_id=args.batch_id,
+        tenant_id=args.tenant_id,
+        catalog=args.catalog,
+    )
+

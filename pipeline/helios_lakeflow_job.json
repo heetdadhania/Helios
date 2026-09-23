@@ -1,0 +1,168 @@
+{
+  "name": "[Helios] Medallion Lakeflow Pipeline",
+  "description": "Automated Medallion architecture Lakeflow Job orchestrating Bronze Ingestion (Module 6), Schema Inference (Module 7), Silver Cleaning (Module 9), Gold Dimensions/Facts (Module 10), and Platform Notifications. Features a manual gate awaiting Admin confirmation (Module 8) and repair-run support for stage retries (Module 12).",
+  "parameters": [
+    {
+      "name": "tenant_id",
+      "default": "1"
+    },
+    {
+      "name": "batch_id",
+      "default": ""
+    },
+    {
+      "name": "source_type",
+      "default": "upload"
+    },
+    {
+      "name": "file_path",
+      "default": ""
+    },
+    {
+      "name": "catalog",
+      "default": "helios"
+    }
+  ],
+  "max_concurrent_runs": 20,
+  "format": "MULTI_TASK",
+  "tasks": [
+    {
+      "task_key": "ingest_bronze",
+      "description": "Runs Module 6 raw ingestion logic. Reads raw CSV, Excel, DB replica, or streaming payloads and persists immutable raw records into bronze Delta tables.",
+      "spark_python_task": {
+        "python_file": "/Workspace/Shared/helios/pipeline/ingestion/run_bronze.py",
+        "parameters": [
+          "--tenant-id",
+          "{{job.parameters.tenant_id}}",
+          "--batch-id",
+          "{{job.parameters.batch_id}}",
+          "--source-type",
+          "{{job.parameters.source_type}}",
+          "--file-path",
+          "{{job.parameters.file_path}}",
+          "--catalog",
+          "{{job.parameters.catalog}}"
+        ]
+      },
+      "max_retries": 3,
+      "min_retry_interval_millis": 10000,
+      "retry_on_timeout": false,
+      "timeout_seconds": 3600
+    },
+    {
+      "task_key": "run_schema_inference",
+      "depends_on": [
+        {
+          "task_key": "ingest_bronze"
+        }
+      ],
+      "description": "Runs Module 7 schema inference engine. Analyzes Bronze column signatures, detects types, scores similarity against templates, persists in inferred_schema, and sets status to 'awaiting_confirmation'.",
+      "spark_python_task": {
+        "python_file": "/Workspace/Shared/helios/pipeline/schema_inference/inference_engine.py",
+        "parameters": [
+          "--tenant-id",
+          "{{job.parameters.tenant_id}}",
+          "--batch-id",
+          "{{job.parameters.batch_id}}",
+          "--catalog",
+          "{{job.parameters.catalog}}"
+        ]
+      },
+      "max_retries": 2,
+      "min_retry_interval_millis": 10000,
+      "retry_on_timeout": false,
+      "timeout_seconds": 1800
+    },
+    {
+      "task_key": "run_silver_cleaning",
+      "description": "Runs Module 9 Silver cleaning pipeline post-confirmation. Performs currency normalization, date standardization, deduplication, and null handling. Quarantined records logged to meta.data_quality_log.",
+      "spark_python_task": {
+        "python_file": "/Workspace/Shared/helios/pipeline/cleaning/run_silver.py",
+        "parameters": [
+          "--tenant-id",
+          "{{job.parameters.tenant_id}}",
+          "--batch-id",
+          "{{job.parameters.batch_id}}",
+          "--catalog",
+          "{{job.parameters.catalog}}"
+        ]
+      },
+      "max_retries": 3,
+      "min_retry_interval_millis": 15000,
+      "retry_on_timeout": false,
+      "timeout_seconds": 3600
+    },
+    {
+      "task_key": "run_gold_transformation",
+      "depends_on": [
+        {
+          "task_key": "run_silver_cleaning"
+        }
+      ],
+      "description": "Executes Module 10 master orchestration procedure helios.gold.sp_run_gold_pipeline to populate dimensions, fact tables, and rollups.",
+      "sql_task": {
+        "warehouse_id": "helios-sql-warehouse",
+        "statement": "CALL helios.gold.sp_run_gold_pipeline(CAST(:tenant_id AS BIGINT), :batch_id);",
+        "parameters": {
+          "tenant_id": "{{job.parameters.tenant_id}}",
+          "batch_id": "{{job.parameters.batch_id}}"
+        }
+      },
+      "max_retries": 2,
+      "min_retry_interval_millis": 15000,
+      "retry_on_timeout": false,
+      "timeout_seconds": 3600
+    },
+    {
+      "task_key": "send_completion_notification",
+      "depends_on": [
+        {
+          "task_key": "run_gold_transformation"
+        }
+      ],
+      "description": "Dispatches a completion notification into platform.notification_log alerting SMB Owners that their dashboard is ready to view.",
+      "sql_task": {
+        "warehouse_id": "helios-sql-warehouse",
+        "statement": "INSERT INTO helios.platform.notification_log (tenant_id, user_id, message, type, is_read, created_at) VALUES (CAST(:tenant_id AS BIGINT), NULL, 'Your dashboard is ready to view', 'pipeline_success', false, current_timestamp());",
+        "parameters": {
+          "tenant_id": "{{job.parameters.tenant_id}}",
+          "batch_id": "{{job.parameters.batch_id}}"
+        }
+      },
+      "timeout_seconds": 600
+    },
+    {
+      "task_key": "log_pipeline_failure_alert",
+      "depends_on": [
+        {
+          "task_key": "ingest_bronze"
+        },
+        {
+          "task_key": "run_schema_inference"
+        },
+        {
+          "task_key": "run_silver_cleaning"
+        },
+        {
+          "task_key": "run_gold_transformation"
+        }
+      ],
+      "run_if": "AT_LEAST_ONE_FAILED",
+      "description": "Executes if any upstream task fails. Records an error alert in platform.notification_log and preserves exact failing stage in meta.etl_audit_log.",
+      "sql_task": {
+        "warehouse_id": "helios-sql-warehouse",
+        "statement": "INSERT INTO helios.platform.notification_log (tenant_id, user_id, message, type, is_read, created_at) VALUES (CAST(:tenant_id AS BIGINT), NULL, CONCAT('Pipeline failure encountered for batch ', :batch_id, '. Downstream execution was halted. Review Pipeline Health in the Admin Portal for diagnostics.'), 'error', false, current_timestamp());",
+        "parameters": {
+          "tenant_id": "{{job.parameters.tenant_id}}",
+          "batch_id": "{{job.parameters.batch_id}}"
+        }
+      },
+      "timeout_seconds": 600
+    }
+  ],
+  "tags": {
+    "Platform": "Helios",
+    "Environment": "Production",
+    "Architecture": "Medallion-Lakeflow"
+  }
+}

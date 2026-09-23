@@ -1,10 +1,11 @@
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, UploadCloud, DownloadCloud, Database, Key } from 'lucide-react';
+import { LayoutDashboard, UploadCloud, DownloadCloud, Database, Key, Layers } from 'lucide-react';
 import { Sidebar, NavItem } from '@/components/Sidebar';
 import { TopBar } from '@/components/TopBar';
 
 const clientNavItems: NavItem[] = [
+  { label: 'Data Sources', to: '/client/select-source', icon: Layers },
   { label: 'Dashboard', to: '/client/dashboard', icon: LayoutDashboard },
   { label: 'Upload Data', to: '/client/upload', icon: UploadCloud },
   { label: 'Connect Database', to: '/client/connect-db', icon: Database },
@@ -13,6 +14,8 @@ const clientNavItems: NavItem[] = [
 ];
 
 const titleMap: Record<string, string> = {
+  '/client/select-source': 'Data Ingestion Sources',
+  '/client/data-sources': 'Data Ingestion Sources',
   '/client/dashboard': 'Analytics Overview',
   '/client/upload': 'Upload Data Files',
   '/client/connect-db': 'Connect Database Ingestion',

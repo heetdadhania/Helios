@@ -1,0 +1,243 @@
+# =============================================================================
+# Helios Databricks Lakeflow Job Configuration (Asset Bundle Resource)
+# =============================================================================
+# Orchestrates Modules 6 (Bronze), 7 (Inference), 8 (Manual Gate), 9 (Silver),
+# 10 (Gold), and Platform Notifications in Unity Catalog without Airflow.
+# =============================================================================
+
+resources:
+  jobs:
+    helios_medallion_lakeflow_pipeline:
+      name: "[Helios] Medallion Lakeflow Pipeline"
+      description: >
+        Production Lakeflow Job executing multi-stage Medallion ETL for Helios.
+        Features external API triggering, parameters for tenant isolation,
+        native task retries, a manual confirmation gate awaiting Admin approval (Module 8),
+        automated downstream halting on failure, Databricks Repair Run integration
+        (Module 12), and failure visibility in both meta.etl_audit_log and platform.notification_log.
+
+      # Parameters passed to the Job at runtime via Databricks Jobs API run-now
+      parameters:
+        - name: tenant_id
+          default: "1"
+        - name: batch_id
+          default: ""
+        - name: source_type
+          default: "upload"
+        - name: file_path
+          default: ""
+        - name: catalog
+          default: "${var.catalog}"
+
+      # Trigger: Triggered externally via Databricks Jobs API /api/2.1/jobs/run-now
+      # (Called from Upload/DB-Sync/API-Push endpoints in Modules 3, 4, 5).
+      # No cron or fixed schedule configured.
+      
+      max_concurrent_runs: 20
+      format: MULTI_TASK
+
+      # Default compute definition for Lakeflow serverless / job compute
+      job_clusters:
+        - job_cluster_key: helios_etl_cluster
+          new_cluster:
+            spark_version: "14.3.x-scala2.12"
+            spark_conf:
+              "spark.databricks.delta.preview.enabled": "true"
+              "spark.sql.execution.arrow.pyspark.enabled": "true"
+            custom_tags:
+              Platform: "Helios"
+              Workload: "LakeflowETL"
+            autoscale:
+              min_workers: 1
+              max_workers: 4
+
+      tasks:
+        # =====================================================================
+        # TASK 1: Ingest Bronze (Module 6)
+        # =====================================================================
+        - task_key: ingest_bronze
+          description: >
+            Executes Module 6 raw ingestion logic. Reads raw CSV, Excel, DB replica,
+            or streaming payloads and persists immutable raw records into bronze Delta tables
+            with start/completion metrics logged to meta.etl_audit_log.
+          job_cluster_key: helios_etl_cluster
+          spark_python_task:
+            python_file: "pipeline/ingestion/run_bronze.py"
+            parameters:
+              - "--tenant-id"
+              - "{{job.parameters.tenant_id}}"
+              - "--batch-id"
+              - "{{job.parameters.batch_id}}"
+              - "--source-type"
+              - "{{job.parameters.source_type}}"
+              - "--file-path"
+              - "{{job.parameters.file_path}}"
+              - "--catalog"
+              - "{{job.parameters.catalog}}"
+          max_retries: 3
+          min_retry_interval_millis: 10000
+          retry_on_timeout: false
+          timeout_seconds: 3600
+
+        # =====================================================================
+        # TASK 2: Run Schema Inference (Module 7)
+        # =====================================================================
+        - task_key: run_schema_inference
+          depends_on:
+            - task_key: ingest_bronze
+          description: >
+            Executes Module 7 schema inference engine. Analyzes Bronze column signatures,
+            detects field types, scores similarity against template definitions, persists
+            mappings in platform.inferred_schema, and sets platform.pipeline_status
+            status to 'awaiting_confirmation'.
+          job_cluster_key: helios_etl_cluster
+          spark_python_task:
+            python_file: "pipeline/schema_inference/inference_engine.py"
+            parameters:
+              - "--tenant-id"
+              - "{{job.parameters.tenant_id}}"
+              - "--batch-id"
+              - "{{job.parameters.batch_id}}"
+              - "--catalog"
+              - "{{job.parameters.catalog}}"
+          max_retries: 2
+          min_retry_interval_millis: 10000
+          retry_on_timeout: false
+          timeout_seconds: 1800
+
+        # =====================================================================
+        # MANUAL GATE ARCHITECTURE (Module 8 Pause Point)
+        # =====================================================================
+        # At the completion of Task 2 (run_schema_inference), the pipeline enters
+        # a manual review pause point. platform.pipeline_status reflects:
+        #   stage = 'schema_inference', status = 'awaiting_confirmation'
+        # Downstream tasks are decoupled and do NOT trigger automatically.
+        # Once an Admin/Team Member reviews the preview in the Helios Portal and clicks
+        # "Confirm Schema", Module 8's POST /api/uploads/{batch_id}/confirm endpoint
+        # invokes the Databricks Jobs API to trigger Task 4 (run_silver_cleaning)
+        # passing the batch_id, tenant_id, and verified column mapping.
+        # =====================================================================
+
+        # =====================================================================
+        # TASK 4: Run Silver Cleaning (Module 9 - Post Confirmation)
+        # =====================================================================
+        - task_key: run_silver_cleaning
+          description: >
+            Executes Module 9 Silver cleaning pipeline post-confirmation. Performs
+            currency symbol parsing and numeric conversion, ISO date standardization,
+            deduplication against existing Silver primary keys, and null handling.
+            Valid rows are written to silver.* Delta tables; invalid rows are quarantined
+            into meta.data_quality_log.
+          job_cluster_key: helios_etl_cluster
+          spark_python_task:
+            python_file: "pipeline/cleaning/run_silver.py"
+            parameters:
+              - "--tenant-id"
+              - "{{job.parameters.tenant_id}}"
+              - "--batch-id"
+              - "{{job.parameters.batch_id}}"
+              - "--catalog"
+              - "{{job.parameters.catalog}}"
+          max_retries: 3
+          min_retry_interval_millis: 15000
+          retry_on_timeout: false
+          timeout_seconds: 3600
+
+        # =====================================================================
+        # TASK 5: Run Gold Transformation (Module 10)
+        # =====================================================================
+        - task_key: run_gold_transformation
+          depends_on:
+            - task_key: run_silver_cleaning
+          description: >
+            Executes Module 10 master orchestration procedure helios.gold.sp_run_gold_pipeline.
+            Populates conformed dimensions (dim_date, dim_product, dim_customer, dim_shipping_mode,
+            dim_delivery_status), fact tables (fact_orders, fact_shipments), and refreshes
+            pre-aggregated rollups in fact_orders_daily_summary with full audit tracking.
+          sql_task:
+            warehouse_id: "${var.warehouse_id}"
+            statement: >
+              CALL helios.gold.sp_run_gold_pipeline(
+                CAST(:tenant_id AS BIGINT),
+                :batch_id
+              );
+            parameters:
+              tenant_id: "{{job.parameters.tenant_id}}"
+              batch_id: "{{job.parameters.batch_id}}"
+          max_retries: 2
+          min_retry_interval_millis: 15000
+          retry_on_timeout: false
+          timeout_seconds: 3600
+
+        # =====================================================================
+        # TASK 6: Send Completion Notification
+        # =====================================================================
+        - task_key: send_completion_notification
+          depends_on:
+            - task_key: run_gold_transformation
+          description: >
+            Dispatches a completion notification into platform.notification_log
+            alerting SMB Owners that their dashboard is ready to view.
+          sql_task:
+            warehouse_id: "${var.warehouse_id}"
+            statement: >
+              INSERT INTO helios.platform.notification_log (
+                tenant_id,
+                user_id,
+                message,
+                type,
+                is_read,
+                created_at
+              )
+              VALUES (
+                CAST(:tenant_id AS BIGINT),
+                NULL,
+                'Your dashboard is ready to view',
+                'pipeline_success',
+                false,
+                current_timestamp()
+              );
+            parameters:
+              tenant_id: "{{job.parameters.tenant_id}}"
+              batch_id: "{{job.parameters.batch_id}}"
+          timeout_seconds: 600
+
+        # =====================================================================
+        # ERROR HANDLING & AUDIT VISIBILITY: Task Failure Handler
+        # =====================================================================
+        - task_key: log_pipeline_failure_alert
+          depends_on:
+            - task_key: ingest_bronze
+            - task_key: run_schema_inference
+            - task_key: run_silver_cleaning
+            - task_key: run_gold_transformation
+          run_if: "AT_LEAST_ONE_FAILED"
+          description: >
+            Executes if any upstream task fails. Records an error alert in
+            platform.notification_log. Note that each individual task script/procedure
+            also independently records the exact failing stage (bronze_ingest,
+            schema_inference, silver_clean, or gold_transform) in meta.etl_audit_log
+            and platform.pipeline_status.
+          sql_task:
+            warehouse_id: "${var.warehouse_id}"
+            statement: >
+              INSERT INTO helios.platform.notification_log (
+                tenant_id,
+                user_id,
+                message,
+                type,
+                is_read,
+                created_at
+              )
+              VALUES (
+                CAST(:tenant_id AS BIGINT),
+                NULL,
+                CONCAT('Pipeline failure encountered for batch ', :batch_id, '. Downstream execution was halted. Review Pipeline Health in the Admin Portal for error traces and repair-run options.'),
+                'error',
+                false,
+                current_timestamp()
+              );
+            parameters:
+              tenant_id: "{{job.parameters.tenant_id}}"
+              batch_id: "{{job.parameters.batch_id}}"
+          timeout_seconds: 600

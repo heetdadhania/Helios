@@ -240,3 +240,24 @@ def run_bronze_ingestion(
                 owned_conn.close()
             except Exception:
                 pass
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Helios Bronze Ingestion Task (Module 6)")
+    parser.add_argument("--tenant-id", type=int, required=True, help="Tenant ID")
+    parser.add_argument("--batch-id", type=str, required=True, help="Batch ID")
+    parser.add_argument("--source-type", type=str, default="upload", help="Source type (upload, db_connection, api_push)")
+    parser.add_argument("--file-path", type=str, default="", help="Source file or path in cloud storage/volume")
+    parser.add_argument("--catalog", type=str, default="helios", help="Databricks Unity Catalog name")
+    args = parser.parse_args()
+
+    run_bronze_ingestion(
+        source=args.file_path,
+        batch_id=args.batch_id,
+        tenant_id=args.tenant_id,
+        source_type=args.source_type,
+        catalog=args.catalog,
+    )
+

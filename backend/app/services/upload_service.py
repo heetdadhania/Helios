@@ -213,6 +213,18 @@ class UploadService:
             status="ingested",
         )
 
+        try:
+            from app.services.notification_service import NotificationService
+            NotificationService.notify_upload_received(
+                tenant_id=current_user.tenant_id,
+                batch_id=batch_id,
+                user_id=current_user.id,
+                source_type="upload",
+                cursor=repo.cursor,
+            )
+        except Exception as notif_err:
+            logger.warning("Failed to dispatch upload_received notification: %s", notif_err)
+
         return UploadResponse(
             upload_id=int(upload_record["upload_id"]),
             batch_id=batch_id,

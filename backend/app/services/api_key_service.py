@@ -1,13 +1,15 @@
-import hashlib
-import hmac
-import secrets
 from datetime import datetime, timezone
 from typing import Optional
 
+from app.core.api_key_security import (
+    API_KEY_PREFIX,
+    generate_api_key as core_generate_api_key,
+    hash_api_key as core_hash_api_key,
+    mask_api_key as core_mask_api_key,
+    verify_api_key as core_verify_api_key,
+)
 from app.repositories.api_key_repository import ApiKeyRepository
 from app.schemas.api_ingest import ApiKeyGeneratedOut, ApiKeyOut
-
-API_KEY_PREFIX = "helios_live_"
 
 
 class ApiKeyService:
@@ -16,28 +18,22 @@ class ApiKeyService:
     @staticmethod
     def generate_api_key() -> str:
         """Generate a cryptographically secure random API key with standard prefix."""
-        random_suffix = secrets.token_urlsafe(32)
-        return f"{API_KEY_PREFIX}{random_suffix}"
+        return core_generate_api_key(prefix=API_KEY_PREFIX)
 
     @staticmethod
     def hash_api_key(raw_key: str) -> str:
         """Compute one-way SHA-256 cryptographic hash of raw API key for secure persistence."""
-        return hashlib.sha256(raw_key.strip().encode("utf-8")).hexdigest()
+        return core_hash_api_key(raw_key)
 
     @staticmethod
     def mask_api_key(raw_key: str) -> str:
         """Create a masked string displaying only the prefix and the final 4 characters."""
-        cleaned = raw_key.strip()
-        if len(cleaned) <= 12:
-            return f"{API_KEY_PREFIX}••••"
-        suffix = cleaned[-4:]
-        return f"{API_KEY_PREFIX}••••{suffix}"
+        return core_mask_api_key(raw_key, prefix=API_KEY_PREFIX)
 
     @classmethod
     def verify_api_key(cls, raw_key: str, stored_hash: str) -> bool:
         """Perform constant-time cryptographic verification of raw API key against stored hash."""
-        computed_hash = cls.hash_api_key(raw_key)
-        return hmac.compare_digest(computed_hash, stored_hash)
+        return core_verify_api_key(raw_key, stored_hash)
 
     @classmethod
     def get_tenant_api_key(

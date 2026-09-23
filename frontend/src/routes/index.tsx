@@ -6,16 +6,18 @@ import { ProtectedRoute } from './ProtectedRoute';
 
 // Pages
 import { Login } from '@/pages/Login';
-import { DashboardPage } from '@/pages/client/DashboardPage';
+import { Dashboard } from '@/pages/client/Dashboard';
+import { DataSourceSelect } from '@/pages/client/DataSourceSelect';
 import { UploadDataPage } from '@/pages/client/UploadDataPage';
 import { ConnectDatabase } from '@/pages/client/ConnectDatabase';
 import { ApiAccess } from '@/pages/client/ApiAccess';
 import { ExportDataPage } from '@/pages/client/ExportDataPage';
-import { PendingUploadsPage } from '@/pages/admin/PendingUploadsPage';
-import { PipelineHealthPage } from '@/pages/admin/PipelineHealthPage';
-import { DataQualityPage } from '@/pages/admin/DataQualityPage';
-import { TenantsPage } from '@/pages/admin/TenantsPage';
-import { TeamPage } from '@/pages/admin/TeamPage';
+import { PendingUploads } from '@/pages/admin/PendingUploads';
+import { ConfirmSchema } from '@/pages/admin/ConfirmSchema';
+import { PipelineHealth } from '@/pages/admin/PipelineHealth';
+import { DataQualityLog } from '@/pages/admin/DataQualityLog';
+import { Tenants } from '@/pages/admin/Tenants';
+import { TeamMembers } from '@/pages/admin/TeamMembers';
 import { useAuth } from '@/hooks/useAuth';
 
 const RootRedirect: React.FC = () => {
@@ -23,7 +25,7 @@ const RootRedirect: React.FC = () => {
   if (isLoading) return null;
   if (!isAuthenticated || !user) return <Navigate to="/login" replace />;
   return user.role === 'smb_owner' ? (
-    <Navigate to="/client/dashboard" replace />
+    <Navigate to="/client/select-source" replace />
   ) : (
     <Navigate to="/admin/uploads" replace />
   );
@@ -41,8 +43,10 @@ export const AppRoutes: React.FC = () => {
       {/* Client Portal Route Group (SMB Owners & Admins) */}
       <Route element={<ProtectedRoute allowedRoles={['smb_owner', 'admin']} />}>
         <Route path="/client" element={<ClientLayout />}>
-          <Route index element={<Navigate to="/client/dashboard" replace />} />
-          <Route path="dashboard" element={<DashboardPage />} />
+          <Route index element={<Navigate to="/client/select-source" replace />} />
+          <Route path="select-source" element={<DataSourceSelect />} />
+          <Route path="data-sources" element={<DataSourceSelect />} />
+          <Route path="dashboard" element={<Dashboard />} />
           <Route path="upload" element={<UploadDataPage />} />
           <Route path="connect-db" element={<ConnectDatabase />} />
           <Route path="connect-database" element={<ConnectDatabase />} />
@@ -56,12 +60,13 @@ export const AppRoutes: React.FC = () => {
       <Route element={<ProtectedRoute allowedRoles={['team_member', 'admin']} />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="/admin/uploads" replace />} />
-          <Route path="uploads" element={<PendingUploadsPage />} />
-          <Route path="pending-uploads" element={<PendingUploadsPage />} />
-          <Route path="pipeline-health" element={<PipelineHealthPage />} />
-          <Route path="data-quality" element={<DataQualityPage />} />
-          <Route path="tenants" element={<TenantsPage />} />
-          <Route path="team" element={<TeamPage />} />
+          <Route path="uploads" element={<PendingUploads />} />
+          <Route path="pending-uploads" element={<PendingUploads />} />
+          <Route path="confirm-schema/:batchId" element={<ConfirmSchema />} />
+          <Route path="pipeline-health" element={<PipelineHealth />} />
+          <Route path="data-quality" element={<DataQualityLog />} />
+          <Route path="tenants" element={<Tenants />} />
+          <Route path="team" element={<TeamMembers />} />
         </Route>
       </Route>
 
