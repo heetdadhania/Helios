@@ -8,6 +8,8 @@ import { ProtectedRoute } from './ProtectedRoute';
 import { Login } from '@/pages/Login';
 import { DashboardPage } from '@/pages/client/DashboardPage';
 import { UploadDataPage } from '@/pages/client/UploadDataPage';
+import { ConnectDatabase } from '@/pages/client/ConnectDatabase';
+import { ApiAccess } from '@/pages/client/ApiAccess';
 import { ExportDataPage } from '@/pages/client/ExportDataPage';
 import { PendingUploadsPage } from '@/pages/admin/PendingUploadsPage';
 import { PipelineHealthPage } from '@/pages/admin/PipelineHealthPage';
@@ -42,6 +44,10 @@ export const AppRoutes: React.FC = () => {
           <Route index element={<Navigate to="/client/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="upload" element={<UploadDataPage />} />
+          <Route path="connect-db" element={<ConnectDatabase />} />
+          <Route path="connect-database" element={<ConnectDatabase />} />
+          <Route path="api-access" element={<ApiAccess />} />
+          <Route path="api-keys" element={<ApiAccess />} />
           <Route path="export" element={<ExportDataPage />} />
         </Route>
       </Route>

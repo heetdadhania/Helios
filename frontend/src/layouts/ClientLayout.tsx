@@ -1,18 +1,24 @@
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, UploadCloud, DownloadCloud } from 'lucide-react';
+import { LayoutDashboard, UploadCloud, DownloadCloud, Database, Key } from 'lucide-react';
 import { Sidebar, NavItem } from '@/components/Sidebar';
 import { TopBar } from '@/components/TopBar';
 
 const clientNavItems: NavItem[] = [
   { label: 'Dashboard', to: '/client/dashboard', icon: LayoutDashboard },
-  { label: 'Upload / Connect Data', to: '/client/upload', icon: UploadCloud },
+  { label: 'Upload Data', to: '/client/upload', icon: UploadCloud },
+  { label: 'Connect Database', to: '/client/connect-db', icon: Database },
+  { label: 'API Access', to: '/client/api-access', icon: Key },
   { label: 'Export Datasets', to: '/client/export', icon: DownloadCloud },
 ];
 
 const titleMap: Record<string, string> = {
   '/client/dashboard': 'Analytics Overview',
-  '/client/upload': 'Connect & Ingest Data',
+  '/client/upload': 'Upload Data Files',
+  '/client/connect-db': 'Connect Database Ingestion',
+  '/client/connect-database': 'Connect Database Ingestion',
+  '/client/api-access': 'Programmatic API Access',
+  '/client/api-keys': 'Programmatic API Access',
   '/client/export': 'Export Datasets',
 };
 

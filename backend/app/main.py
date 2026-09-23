@@ -50,9 +50,29 @@ def create_application() -> FastAPI:
     from app.api.auth import router as auth_router
     app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
 
+    # Include Ingestion Uploads Confirmation Router (/api/uploads/pending, /api/uploads/{batch_id}/preview, /api/uploads/{batch_id}/confirm)
+    from app.api.confirmations import router as confirmations_router
+    app.include_router(confirmations_router, prefix="/api/uploads", tags=["Confirmations"])
+
     # Include Ingestion Uploads Router (/api/uploads)
     from app.api.uploads import router as uploads_router
     app.include_router(uploads_router, prefix="/api/uploads", tags=["Uploads"])
+
+    # Include Database Connections Ingestion Router (/api/db-connections)
+    from app.api.db_connections import router as db_connections_router
+    app.include_router(db_connections_router, prefix="/api/db-connections", tags=["Database Connections"])
+
+    # Include API Push Ingestion Router (/api/ingest)
+    from app.api.api_ingest import router as api_ingest_router
+    app.include_router(api_ingest_router, prefix="/api/ingest", tags=["API Ingestion"])
+
+    # Include API Keys Management Router (/api/api-keys)
+    from app.api.api_keys import router as api_keys_router
+    app.include_router(api_keys_router, prefix="/api/api-keys", tags=["API Keys"])
+
+    # Include Customer Analytics Dashboard Router (/api/dashboard)
+    from app.api.dashboard import router as dashboard_router
+    app.include_router(dashboard_router, prefix="/api/dashboard", tags=["Dashboard"])
 
     # Include Versioned API Routers
     app.include_router(api_router, prefix=settings.API_V1_STR)

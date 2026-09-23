@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UploadCloud, CheckCircle2, FileText, Database, ArrowRight } from 'lucide-react';
 
 export const UploadDataPage: React.FC = () => {
+  const navigate = useNavigate();
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [uploadState, setUploadState] = useState<'idle' | 'analyzing' | 'ready'>('idle');
 
@@ -157,7 +159,12 @@ export const UploadDataPage: React.FC = () => {
                 <div className="text-[11px] text-helios-text-secondary-light dark:text-helios-text-secondary-dark">Standby</div>
               </div>
             </div>
-            <button className="text-xs text-helios-accent-blue hover:underline">Connect</button>
+            <button
+              onClick={() => navigate('/client/connect-db')}
+              className="text-xs font-semibold text-helios-accent-blue hover:underline"
+            >
+              Connect
+            </button>
           </div>
         </div>
       </div>

@@ -10,6 +10,38 @@ from app.schemas.dataset import (
     DataCleanRequest,
     DataCleanResponse,
 )
+from app.schemas.db_connection import (
+    DbConnectionBase,
+    DbConnectionCreate,
+    DbConnectionOut,
+    DbConnectionSyncResponse,
+    DbConnectionTestResult,
+)
+from app.schemas.api_ingest import (
+    ApiIngestPayload,
+    ApiIngestResponse,
+    ApiKeyOut,
+    ApiKeyGeneratedOut,
+)
+
+from app.schemas.confirmation import (
+    PendingUploadOut,
+    SchemaPreviewOut,
+    ConfirmRequest,
+    ConfirmResponse,
+)
+from app.schemas.dashboard import (
+    RevenueTrendPoint,
+    RevenueTrendResponse,
+    TopProductItem,
+    TopProductsResponse,
+    DeliveryRiskBreakdownItem,
+    LateDeliveryRiskResponse,
+    DiscountProfitBand,
+    DiscountVsProfitResponse,
+    ShippingModeComparisonItem,
+    ShippingModeComparisonResponse,
+)
 
 __all__ = [
     "Token",
@@ -28,4 +60,27 @@ __all__ = [
     "DatasetResponse",
     "DataCleanRequest",
     "DataCleanResponse",
+    "DbConnectionBase",
+    "DbConnectionCreate",
+    "DbConnectionOut",
+    "DbConnectionSyncResponse",
+    "DbConnectionTestResult",
+    "ApiIngestPayload",
+    "ApiIngestResponse",
+    "ApiKeyOut",
+    "ApiKeyGeneratedOut",
+    "PendingUploadOut",
+    "SchemaPreviewOut",
+    "ConfirmRequest",
+    "ConfirmResponse",
+    "RevenueTrendPoint",
+    "RevenueTrendResponse",
+    "TopProductItem",
+    "TopProductsResponse",
+    "DeliveryRiskBreakdownItem",
+    "LateDeliveryRiskResponse",
+    "DiscountProfitBand",
+    "DiscountVsProfitResponse",
+    "ShippingModeComparisonItem",
+    "ShippingModeComparisonResponse",
 ]
