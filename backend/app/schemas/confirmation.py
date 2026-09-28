@@ -36,6 +36,10 @@ class SchemaPreviewOut(BaseModel):
         default_factory=list,
         description="Sample records from Bronze layer for preview",
     )
+    internal_notes: Optional[str] = Field(
+        default=None,
+        description="Optional internal notes recorded during schema confirmation",
+    )
 
     model_config = {"from_attributes": True}
 
@@ -51,6 +55,10 @@ class ConfirmRequest(BaseModel):
         default=None,
         description="Optional reviewer-modified column mapping dictionary overriding inferred mappings",
     )
+    internal_notes: Optional[str] = Field(
+        default=None,
+        description="Optional internal reviewer notes or audit comments recorded during confirmation",
+    )
 
 
 class ConfirmResponse(BaseModel):
@@ -60,3 +68,14 @@ class ConfirmResponse(BaseModel):
     status: str = Field("silver_running", description="New pipeline status")
     confirmed_template: str = Field(..., description="Confirmed template name")
     message: str = Field(..., description="Human-readable confirmation message")
+
+
+class CompletenessResponse(BaseModel):
+    """Data completeness indicator metrics for an ingestion batch after Silver cleaning."""
+
+    total_rows: int = Field(..., description="Total rows ingested into Bronze for this batch")
+    accepted_rows: int = Field(..., description="Rows successfully written to the Silver clean table")
+    rejected_rows: int = Field(..., description="Rows rejected during Silver validation and logged in meta.data_quality_log")
+    completeness_percentage: float = Field(..., description="Completeness percentage: (accepted_rows / total_rows) * 100")
+
+    model_config = {"from_attributes": True}

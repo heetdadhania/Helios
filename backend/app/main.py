@@ -87,6 +87,14 @@ def create_application() -> FastAPI:
     from app.api.notifications import router as notifications_router
     app.include_router(notifications_router, prefix="/api/notifications", tags=["Notifications"])
 
+    # Include Data Submission History Router (/api/history)
+    from app.api.history import router as history_router
+    app.include_router(history_router, prefix="/api/history", tags=["History"])
+
+    # Include Support Messages Router (/api/support)
+    from app.api.support import router as support_router
+    app.include_router(support_router, prefix="/api/support", tags=["Support"])
+
     # Include Versioned API Routers
     app.include_router(api_router, prefix=settings.API_V1_STR)
 

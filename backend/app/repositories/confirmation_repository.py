@@ -13,7 +13,7 @@ logger = logging.getLogger("helios.repositories.confirmation")
 
 
 class ConfirmationRepository:
-    """Repository handling database operations for schema review, preview, and confirmation."""
+    """Repository handling database operations for schema review, preview, confirmation, and completeness."""
 
     def __init__(self, cursor: Cursor, catalog: Optional[str] = None):
         self.cursor = cursor
@@ -24,6 +24,9 @@ class ConfirmationRepository:
         self.team_table = f"`{self.catalog}`.`platform`.`team_assignments`"
         self.raw_orders_table = f"`{self.catalog}`.`bronze`.`raw_orders`"
         self.raw_shipping_table = f"`{self.catalog}`.`bronze`.`raw_shipping`"
+        self.clean_orders_table = f"`{self.catalog}`.`silver`.`orders_clean`"
+        self.clean_shipping_table = f"`{self.catalog}`.`silver`.`shipping_clean`"
+        self.dq_log_table = f"`{self.catalog}`.`meta`.`data_quality_log`"
 
     def get_pending(self, user_id: int, user_role: str) -> List[Dict[str, Any]]:
         """
@@ -104,6 +107,7 @@ class ConfirmationRepository:
                 inf.detected_template,
                 inf.confidence_score,
                 inf.column_mapping_json,
+                inf.internal_notes,
                 pu.source_type
             FROM {self.pipeline_table} ps
             LEFT JOIN {self.inferred_table} inf ON ps.batch_id = inf.batch_id
@@ -143,7 +147,7 @@ class ConfirmationRepository:
         return samples, detected_source
 
     def get_preview(self, batch_id: str) -> Optional[Dict[str, Any]]:
-        """Consolidate schema mapping, confidence, source type, and sample rows for preview."""
+        """Consolidate schema mapping, confidence, source type, internal notes, and sample rows for preview."""
         meta = self.get_batch_metadata(batch_id)
         if not meta:
             return None
@@ -167,6 +171,7 @@ class ConfirmationRepository:
             "source_type": source_type,
             "column_mapping": mapping,
             "sample_rows": samples,
+            "internal_notes": meta.get("internal_notes"),
         }
 
     def save_confirmation(
@@ -175,28 +180,36 @@ class ConfirmationRepository:
         confirmed_template: str,
         column_mapping: Dict[str, Any],
         confirmed_by: int,
+        internal_notes: Optional[str] = None,
     ) -> None:
         """
-        Record schema confirmation, persist updated mapping, and transition to Silver running.
+        Record schema confirmation, persist updated mapping, internal notes (if provided),
+        and transition pipeline to Silver running.
         """
         # 1. Update inferred_schema table
+        update_cols = [
+            "detected_template = :confirmed_template",
+            "column_mapping_json = :column_mapping_json",
+            "confirmed_by = :confirmed_by",
+            "confirmed_at = current_timestamp()",
+        ]
+        params: Dict[str, Any] = {
+            "batch_id": batch_id,
+            "confirmed_template": confirmed_template,
+            "column_mapping_json": json.dumps(column_mapping),
+            "confirmed_by": confirmed_by,
+        }
+
+        if internal_notes is not None:
+            update_cols.append("internal_notes = :internal_notes")
+            params["internal_notes"] = internal_notes
+
         update_schema_q = f"""
             UPDATE {self.inferred_table}
-            SET detected_template = :confirmed_template,
-                column_mapping_json = :column_mapping_json,
-                confirmed_by = :confirmed_by,
-                confirmed_at = current_timestamp()
+            SET {", ".join(update_cols)}
             WHERE batch_id = :batch_id
         """
-        self.cursor.execute(
-            update_schema_q,
-            {
-                "batch_id": batch_id,
-                "confirmed_template": confirmed_template,
-                "column_mapping_json": json.dumps(column_mapping),
-                "confirmed_by": confirmed_by,
-            },
-        )
+        self.cursor.execute(update_schema_q, params)
 
         # 2. Update pipeline_status to silver_running
         update_status_q = f"""
@@ -220,3 +233,61 @@ class ConfirmationRepository:
             self.cursor.execute(update_upload_q, {"batch_id": batch_id})
         except Exception as exc:
             logger.warning("Could not update pending_uploads status for batch %s: %s", batch_id, exc)
+
+    def get_completeness_metrics(
+        self,
+        batch_id: str,
+        template_name: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Calculate total Bronze rows, accepted rows in Silver clean tables,
+        rejected rows logged in meta.data_quality_log, and completeness percentage.
+        Computed on-demand from existing bronze/silver/meta.data_quality_log tables.
+        """
+        # 1. Total rows ingested into Bronze
+        orders_bronze_q = f"SELECT count(*) FROM {self.raw_orders_table} WHERE batch_id = :batch_id"
+        self.cursor.execute(orders_bronze_q, {"batch_id": batch_id})
+        orders_bronze_res = self.cursor.fetchone()
+        orders_bronze_count = int(orders_bronze_res[0]) if orders_bronze_res and orders_bronze_res[0] is not None else 0
+
+        shipping_bronze_q = f"SELECT count(*) FROM {self.raw_shipping_table} WHERE batch_id = :batch_id"
+        self.cursor.execute(shipping_bronze_q, {"batch_id": batch_id})
+        shipping_bronze_res = self.cursor.fetchone()
+        shipping_bronze_count = int(shipping_bronze_res[0]) if shipping_bronze_res and shipping_bronze_res[0] is not None else 0
+
+        bronze_count = orders_bronze_count + shipping_bronze_count
+
+        # 2. Rows successfully written to Silver clean tables
+        orders_silver_q = f"SELECT count(*) FROM {self.clean_orders_table} WHERE batch_id = :batch_id"
+        self.cursor.execute(orders_silver_q, {"batch_id": batch_id})
+        orders_silver_res = self.cursor.fetchone()
+        orders_silver_count = int(orders_silver_res[0]) if orders_silver_res and orders_silver_res[0] is not None else 0
+
+        shipping_silver_q = f"SELECT count(*) FROM {self.clean_shipping_table} WHERE batch_id = :batch_id"
+        self.cursor.execute(shipping_silver_q, {"batch_id": batch_id})
+        shipping_silver_res = self.cursor.fetchone()
+        shipping_silver_count = int(shipping_silver_res[0]) if shipping_silver_res and shipping_silver_res[0] is not None else 0
+
+        accepted_rows = orders_silver_count + shipping_silver_count
+
+        # 3. Rejected rows logged in meta.data_quality_log
+        rejections_q = f"SELECT count(*) FROM {self.dq_log_table} WHERE batch_id = :batch_id"
+        self.cursor.execute(rejections_q, {"batch_id": batch_id})
+        rejections_res = self.cursor.fetchone()
+        rejected_rows = int(rejections_res[0]) if rejections_res and rejections_res[0] is not None else 0
+
+        # Determine total rows: bronze_count with fallback to accepted + rejected if bronze was truncated
+        total_rows = bronze_count
+        if total_rows == 0 and (accepted_rows + rejected_rows) > 0:
+            total_rows = accepted_rows + rejected_rows
+
+        completeness_percentage = (
+            round((accepted_rows / total_rows) * 100.0, 2) if total_rows > 0 else 0.0
+        )
+
+        return {
+            "total_rows": total_rows,
+            "accepted_rows": accepted_rows,
+            "rejected_rows": rejected_rows,
+            "completeness_percentage": completeness_percentage,
+        }

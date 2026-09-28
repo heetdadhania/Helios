@@ -18,7 +18,7 @@ class RevenueTrendPoint(BaseModel):
 class RevenueTrendResponse(BaseModel):
     """Revenue trend time-series response."""
 
-    days: int = Field(..., description="Requested trend time window in calendar days")
+    days: Optional[int] = Field(None, description="Requested trend time window in calendar days (None if all-time)")
     total_revenue: float = Field(..., description="Cumulative revenue across the period")
     total_orders: int = Field(..., description="Cumulative distinct orders")
     points: List[RevenueTrendPoint] = Field(default_factory=list, description="Ordered daily metric series")
@@ -42,6 +42,7 @@ class TopProductsResponse(BaseModel):
     """Ranked top products response."""
 
     limit: int = Field(..., description="Result count limit applied")
+    days: Optional[int] = Field(None, description="Requested trend time window in calendar days")
     products: List[TopProductItem] = Field(default_factory=list, description="Ranked list of top-selling products")
 
 
@@ -65,6 +66,7 @@ class LateDeliveryRiskResponse(BaseModel):
     on_time_shipments: int = Field(..., description="Total deliveries meeting or beating SLA")
     late_rate_pct: float = Field(..., description="Overall tenant late delivery percentage")
     avg_shipping_days: float = Field(..., description="Mean transit duration in calendar days")
+    days: Optional[int] = Field(None, description="Requested trend time window in calendar days")
     status_breakdown: List[DeliveryRiskBreakdownItem] = Field(
         default_factory=list,
         description="Fulfillment metrics segmented by delivery status",
@@ -90,6 +92,7 @@ class DiscountVsProfitResponse(BaseModel):
 
     overall_profit_margin_pct: float = Field(..., description="Overall portfolio gross margin percentage")
     overall_discount_rate_pct: float = Field(..., description="Aggregate discount as percentage of gross sales")
+    days: Optional[int] = Field(None, description="Requested trend time window in calendar days")
     bands: List[DiscountProfitBand] = Field(default_factory=list, description="Performance metrics by discount tier")
 
 
@@ -110,6 +113,7 @@ class ShippingModeComparisonItem(BaseModel):
 class ShippingModeComparisonResponse(BaseModel):
     """Comparative logistics channels response."""
 
+    days: Optional[int] = Field(None, description="Requested trend time window in calendar days")
     modes: List[ShippingModeComparisonItem] = Field(
         default_factory=list,
         description="Performance comparison across all shipping modes",

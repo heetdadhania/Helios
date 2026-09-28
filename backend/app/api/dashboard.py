@@ -29,7 +29,7 @@ router = APIRouter()
     description="Retrieve pre-aggregated daily revenue, order volume, and average order value for authenticated tenant.",
 )
 def get_revenue_trend(
-    days: int = Query(30, ge=1, le=365, description="Lookback window in days"),
+    days: Optional[int] = Query(None, ge=1, le=365, description="Lookback window in calendar days (all-time if omitted)"),
     current_user: UserOut = Depends(require_role("smb_owner")),
     cursor: Cursor = Depends(get_db_cursor),
 ) -> RevenueTrendResponse:
@@ -49,6 +49,7 @@ def get_revenue_trend(
 )
 def get_top_products(
     limit: int = Query(10, ge=1, le=100, description="Maximum products to return"),
+    days: Optional[int] = Query(None, ge=1, le=365, description="Lookback window in calendar days (all-time if omitted)"),
     current_user: UserOut = Depends(require_role("smb_owner")),
     cursor: Cursor = Depends(get_db_cursor),
 ) -> TopProductsResponse:
@@ -56,7 +57,7 @@ def get_top_products(
     Return ranked top products for the authenticated SMB Owner's tenant.
     """
     repo = DashboardRepository(cursor)
-    return DashboardService.get_top_products(current_user=current_user, limit=limit, repo=repo)
+    return DashboardService.get_top_products(current_user=current_user, limit=limit, repo=repo, days=days)
 
 
 @router.get(
@@ -67,6 +68,7 @@ def get_top_products(
     description="Retrieve shipment volume, late delivery rate, and status breakdown.",
 )
 def get_late_delivery_risk(
+    days: Optional[int] = Query(None, ge=1, le=365, description="Lookback window in calendar days (all-time if omitted)"),
     current_user: UserOut = Depends(require_role("smb_owner")),
     cursor: Cursor = Depends(get_db_cursor),
 ) -> LateDeliveryRiskResponse:
@@ -74,7 +76,7 @@ def get_late_delivery_risk(
     Return delivery risk metrics and SLA performance for the authenticated tenant.
     """
     repo = DashboardRepository(cursor)
-    return DashboardService.get_late_delivery_risk(current_user=current_user, repo=repo)
+    return DashboardService.get_late_delivery_risk(current_user=current_user, repo=repo, days=days)
 
 
 @router.get(
@@ -85,6 +87,7 @@ def get_late_delivery_risk(
     description="Evaluate profit margin and discount sensitivity across tiered discount brackets.",
 )
 def get_discount_vs_profit(
+    days: Optional[int] = Query(None, ge=1, le=365, description="Lookback window in calendar days (all-time if omitted)"),
     current_user: UserOut = Depends(require_role("smb_owner")),
     cursor: Cursor = Depends(get_db_cursor),
 ) -> DiscountVsProfitResponse:
@@ -92,7 +95,7 @@ def get_discount_vs_profit(
     Return gross margin analysis across discount tiers for the authenticated tenant.
     """
     repo = DashboardRepository(cursor)
-    return DashboardService.get_discount_vs_profit(current_user=current_user, repo=repo)
+    return DashboardService.get_discount_vs_profit(current_user=current_user, repo=repo, days=days)
 
 
 @router.get(
@@ -103,6 +106,7 @@ def get_discount_vs_profit(
     description="Compare transit speed, shipment volume, and on-time fulfillment rates across carriers.",
 )
 def get_shipping_mode_comparison(
+    days: Optional[int] = Query(None, ge=1, le=365, description="Lookback window in calendar days (all-time if omitted)"),
     current_user: UserOut = Depends(require_role("smb_owner")),
     cursor: Cursor = Depends(get_db_cursor),
 ) -> ShippingModeComparisonResponse:
@@ -110,4 +114,4 @@ def get_shipping_mode_comparison(
     Return comparative fulfillment performance by carrier mode for the authenticated tenant.
     """
     repo = DashboardRepository(cursor)
-    return DashboardService.get_shipping_mode_comparison(current_user=current_user, repo=repo)
+    return DashboardService.get_shipping_mode_comparison(current_user=current_user, repo=repo, days=days)

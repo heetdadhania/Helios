@@ -29,6 +29,7 @@ from app.schemas.confirmation import (
     SchemaPreviewOut,
     ConfirmRequest,
     ConfirmResponse,
+    CompletenessResponse,
 )
 from app.schemas.dashboard import (
     RevenueTrendPoint,
@@ -56,6 +57,11 @@ from app.schemas.export import (
     ExportFormat,
     ExportRequest,
     ReportType,
+)
+from app.schemas.history import (
+    SmbHistoryOut,
+    TeamHistoryOut,
+    AdminHistoryOut,
 )
 from app.schemas.notification import (
     NotificationBase,
@@ -95,6 +101,7 @@ __all__ = [
     "SchemaPreviewOut",
     "ConfirmRequest",
     "ConfirmResponse",
+    "CompletenessResponse",
     "RevenueTrendPoint",
     "RevenueTrendResponse",
     "TopProductItem",
@@ -116,4 +123,7 @@ __all__ = [
     "ExportFormat",
     "ExportRequest",
     "ReportType",
+    "SmbHistoryOut",
+    "TeamHistoryOut",
+    "AdminHistoryOut",
 ]

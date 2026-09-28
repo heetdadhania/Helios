@@ -158,8 +158,17 @@ class DbConnectionService:
         tenant_id: int,
         repo: DbConnectionRepository,
         secrets_client: Optional[WorkspaceClient] = None,
+        created_by: Optional[int] = None,
     ) -> DbConnectionOut:
         """Save connection metadata in platform.db_connections and credential in Databricks Secrets."""
+        logger.info(
+            "Saving DB connection for tenant %s (type=%s, host=%s) created_by=%s",
+            tenant_id,
+            conn_in.db_type,
+            conn_in.host,
+            created_by,
+        )
+
         credential_ref = store_db_credential(
             tenant_id=tenant_id,
             connection_id=None,
@@ -167,17 +176,31 @@ class DbConnectionService:
             client=secrets_client,
         )
 
-        record = repo.create(
-            tenant_id=tenant_id,
-            db_type=conn_in.db_type,
-            host=conn_in.host,
-            port=conn_in.port,
-            database_name=conn_in.database_name,
-            username=conn_in.username,
-            encrypted_credential_ref=credential_ref,
-            table_or_query=conn_in.table_or_query,
-            is_active=conn_in.is_active,
-        )
+        try:
+            record = repo.create(
+                tenant_id=tenant_id,
+                db_type=conn_in.db_type,
+                host=conn_in.host,
+                port=conn_in.port,
+                database_name=conn_in.database_name,
+                username=conn_in.username,
+                encrypted_credential_ref=credential_ref,
+                table_or_query=conn_in.table_or_query,
+                is_active=conn_in.is_active,
+                created_by=created_by,
+            )
+        except TypeError:
+            record = repo.create(
+                tenant_id=tenant_id,
+                db_type=conn_in.db_type,
+                host=conn_in.host,
+                port=conn_in.port,
+                database_name=conn_in.database_name,
+                username=conn_in.username,
+                encrypted_credential_ref=credential_ref,
+                table_or_query=conn_in.table_or_query,
+                is_active=conn_in.is_active,
+            )
 
         return DbConnectionOut(
             connection_id=int(record["connection_id"]),
@@ -256,12 +279,21 @@ class DbConnectionService:
         cls,
         connection_id: int,
         tenant_id: int,
-        user_id: Optional[int],
-        repo: DbConnectionRepository,
-        upload_repo: UploadRepository,
+        user_id: Optional[int] = None,
+        repo: DbConnectionRepository = None,  # type: ignore
+        upload_repo: UploadRepository = None,  # type: ignore
         secrets_client: Optional[WorkspaceClient] = None,
+        uploaded_by: Optional[int] = None,
     ) -> UploadResponse:
         """Fetch password ephemerally, pull table/query rows, and ingest into Bronze."""
+        initiator_id = user_id if user_id is not None else uploaded_by
+        logger.info(
+            "Initiating DB sync for connection %s, tenant %s by user %s",
+            connection_id,
+            tenant_id,
+            initiator_id,
+        )
+
         conn_record = repo.get_by_id(connection_id=connection_id, tenant_id=tenant_id)
         if not conn_record:
             raise HTTPException(
@@ -307,7 +339,7 @@ class DbConnectionService:
             source_type="db_connection",
             file_name=file_name,
             file_path=volume_path,
-            uploaded_by=user_id,
+            uploaded_by=initiator_id,
             status="pending",
         )
 
@@ -324,7 +356,7 @@ class DbConnectionService:
             NotificationService.notify_upload_received(
                 tenant_id=tenant_id,
                 batch_id=batch_id,
-                user_id=user_id,
+                user_id=initiator_id,
                 source_type="db_connection",
                 cursor=upload_repo.cursor,
             )

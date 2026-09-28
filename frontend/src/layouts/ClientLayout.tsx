@@ -1,14 +1,13 @@
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, UploadCloud, DownloadCloud, Database, Key, Layers } from 'lucide-react';
+import { LayoutDashboard, DownloadCloud, Key, Layers, History } from 'lucide-react';
 import { Sidebar, NavItem } from '@/components/Sidebar';
 import { TopBar } from '@/components/TopBar';
 
 const clientNavItems: NavItem[] = [
   { label: 'Data Sources', to: '/client/select-source', icon: Layers },
   { label: 'Dashboard', to: '/client/dashboard', icon: LayoutDashboard },
-  { label: 'Upload Data', to: '/client/upload', icon: UploadCloud },
-  { label: 'Connect Database', to: '/client/connect-db', icon: Database },
+  { label: 'Submission History', to: '/client/history', icon: History },
   { label: 'API Access', to: '/client/api-access', icon: Key },
   { label: 'Export Datasets', to: '/client/export', icon: DownloadCloud },
 ];
@@ -17,9 +16,8 @@ const titleMap: Record<string, string> = {
   '/client/select-source': 'Data Ingestion Sources',
   '/client/data-sources': 'Data Ingestion Sources',
   '/client/dashboard': 'Analytics Overview',
-  '/client/upload': 'Upload Data Files',
-  '/client/connect-db': 'Connect Database Ingestion',
-  '/client/connect-database': 'Connect Database Ingestion',
+  '/client/history': 'Submission History',
+  '/client/submission-history': 'Submission History',
   '/client/api-access': 'Programmatic API Access',
   '/client/api-keys': 'Programmatic API Access',
   '/client/export': 'Export Datasets',

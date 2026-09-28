@@ -2,6 +2,7 @@ import React from 'react';
 import { Search } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { NotificationBell } from './shared/NotificationBell';
+import { ContactSupportButton } from './client/ContactSupportButton';
 import { useAuth } from '@/hooks/useAuth';
 
 interface TopBarProps {
@@ -25,6 +26,9 @@ export const TopBar: React.FC<TopBarProps> = ({ title }) => {
 
       {/* Right Controls */}
       <div className="flex items-center gap-3">
+        {/* Contact Support for SMB Owner */}
+        {user?.role === 'smb_owner' && <ContactSupportButton variant="navbar" />}
+
         {/* Search Input */}
         <div className="relative hidden md:block">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-helios-text-secondary-light dark:text-helios-text-secondary-dark" />

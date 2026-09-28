@@ -30,12 +30,22 @@ export interface SchemaPreview {
   suggested_silver_table: string;
   column_mappings: ColumnMapping[];
   sample_rows: Record<string, any>[];
+  internal_notes?: string | null;
 }
 
 export interface ConfirmSchemaPayload {
   column_mappings: Record<string, string>;
   silver_table?: string;
   notes?: string;
+  internal_notes?: string;
+  confirmed_template?: string;
+}
+
+export interface BatchCompleteness {
+  total_rows: number;
+  accepted_rows: number;
+  rejected_rows: number;
+  completeness_percentage: number;
 }
 
 export interface ConfirmSchemaResponse {

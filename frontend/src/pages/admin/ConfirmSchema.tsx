@@ -12,8 +12,11 @@ import {
   ShieldCheck,
   Loader2,
   Info,
+  FileText,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
-import { SchemaPreview, SourceType } from '@/types/admin';
+import { BatchCompleteness, DataQualityLogItem, SchemaPreview, SourceType } from '@/types/admin';
 import { adminService } from '@/services/adminService';
 
 export const ConfirmSchema: React.FC = () => {
@@ -24,6 +27,9 @@ export const ConfirmSchema: React.FC = () => {
   const [columnOverrides, setColumnOverrides] = useState<Record<string, string>>({});
   const [silverTable, setSilverTable] = useState<string>('silver.fact_orders');
   const [notes, setNotes] = useState<string>('');
+  const [completeness, setCompleteness] = useState<BatchCompleteness | null>(null);
+  const [rejectionLogs, setRejectionLogs] = useState<DataQualityLogItem[]>([]);
+  const [showRejections, setShowRejections] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isConfirming, setIsConfirming] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,18 +37,42 @@ export const ConfirmSchema: React.FC = () => {
 
   useEffect(() => {
     if (!batchId) return;
-    const fetchPreview = async () => {
+    const loadBatchDetails = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const data = await adminService.getPreview(batchId);
-        setPreview(data);
-        setSilverTable(data.suggested_silver_table || 'silver.fact_orders');
+        const [previewData, completenessData, dqLogs] = await Promise.all([
+          adminService.getPreview(batchId),
+          adminService.getCompleteness(batchId).catch(() => null),
+          adminService.getDataQualityLogs().catch(() => []),
+        ]);
+
+        setPreview(previewData);
+        setSilverTable(previewData.suggested_silver_table || 'silver.fact_orders');
         const initialOverrides: Record<string, string> = {};
-        data.column_mappings.forEach((mapping) => {
+        previewData.column_mappings.forEach((mapping) => {
           initialOverrides[mapping.source_column] = mapping.target_column;
         });
         setColumnOverrides(initialOverrides);
+
+        if (completenessData) {
+          setCompleteness(completenessData);
+        }
+
+        // Filter Data Quality logs for this batch
+        const matchedBatchLogs = dqLogs.filter(
+          (log) => log.batch_id === batchId || log.batch_id.toLowerCase().includes(batchId.toLowerCase())
+        );
+
+        if (matchedBatchLogs.length > 0) {
+          setRejectionLogs(matchedBatchLogs);
+        } else if (completenessData && completenessData.rejected_rows > 0) {
+          // Fallback to logs associated with same tenant or generic demo records
+          const tenantLogs = dqLogs.filter((log) => String(log.tenant_id) === String(previewData.tenant_id));
+          setRejectionLogs(tenantLogs.length > 0 ? tenantLogs : dqLogs.slice(0, completenessData.rejected_rows));
+        } else {
+          setRejectionLogs([]);
+        }
       } catch (err: any) {
         setError(err.message || 'Failed to load schema preview.');
       } finally {
@@ -50,7 +80,7 @@ export const ConfirmSchema: React.FC = () => {
       }
     };
 
-    fetchPreview();
+    loadBatchDetails();
   }, [batchId]);
 
   const handleTargetChange = (sourceCol: string, targetCol: string) => {
@@ -69,6 +99,8 @@ export const ConfirmSchema: React.FC = () => {
         column_mappings: columnOverrides,
         silver_table: silverTable,
         notes: notes || undefined,
+        internal_notes: notes || undefined,
+        confirmed_template: preview?.inferred_template || 'template_orders',
       });
       setSuccessResult({ runId: res.silver_job_run_id });
     } catch (err: any) {
@@ -296,69 +328,213 @@ export const ConfirmSchema: React.FC = () => {
         </div>
       </div>
 
-      {/* Sample Bronze Rows Preview */}
-      {preview?.sample_rows && preview.sample_rows.length > 0 && (
-        <div className="rounded-2xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm overflow-hidden">
-          <div className="p-4 border-b border-helios-border-light dark:border-helios-border-dark flex items-center justify-between">
-            <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
-              <Info className="w-4 h-4 text-slate-400" />
-              <span>Bronze Sample Rows Preview</span>
-            </h3>
-            <span className="text-xs text-slate-400">First {preview.sample_rows.length} rows</span>
-          </div>
+      {/* Data Completeness Indicator & Sample Bronze Rows Preview */}
+      <div className="space-y-4">
+        {/* Data Completeness Indicator Banner */}
+        {completeness && (
+          <div className="p-4 rounded-2xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs font-mono shrink-0 ${
+                  completeness.completeness_percentage >= 90
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                    : completeness.completeness_percentage >= 70
+                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                }`}
+              >
+                {Math.round(completeness.completeness_percentage)}%
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                    Data Completeness Indicator
+                  </span>
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      completeness.completeness_percentage >= 90
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                        : completeness.completeness_percentage >= 70
+                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                        : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                    }`}
+                  >
+                    {completeness.completeness_percentage}% Quality
+                  </span>
+                </div>
+                <div className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark mt-0.5">
+                  <span>{completeness.completeness_percentage}% of rows accepted</span>
+                  <span className="mx-2 text-slate-300 dark:text-slate-600">—</span>
+                  <span className={completeness.rejected_rows > 0 ? 'text-rose-500 dark:text-rose-400' : 'text-slate-400'}>
+                    {completeness.rejected_rows} row{completeness.rejected_rows === 1 ? '' : 's'} rejected
+                  </span>
+                </div>
+              </div>
+            </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-mono">
-              <thead>
-                <tr className="border-b border-helios-border-light dark:border-helios-border-dark text-slate-400 bg-black/[0.02] dark:bg-white/[0.02]">
-                  {Object.keys(preview.sample_rows[0]).map((key) => (
-                    <th key={key} className="py-2 px-3 font-semibold text-[11px] whitespace-nowrap">
-                      {key}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark text-slate-600 dark:text-slate-300">
-                {preview.sample_rows.map((row, idx) => (
-                  <tr key={idx} className="hover:bg-black/5 dark:hover:bg-white/5">
-                    {Object.values(row).map((val: any, colIdx) => (
-                      <td key={colIdx} className="py-2 px-3 whitespace-nowrap text-[11px]">
-                        {String(val)}
-                      </td>
+            <div className="flex items-center gap-4">
+              <div className="text-xs text-slate-400 text-right hidden sm:block">
+                <div>
+                  Total Ingested:{' '}
+                  <span className="font-mono font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark">
+                    {completeness.total_rows.toLocaleString()}
+                  </span>
+                </div>
+                <div>
+                  Silver Clean:{' '}
+                  <span className="font-mono font-semibold text-emerald-600 dark:text-emerald-400">
+                    {completeness.accepted_rows.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              {completeness.rejected_rows > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowRejections((prev) => !prev)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 border border-rose-500/20 transition-all cursor-pointer"
+                >
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>
+                    {showRejections ? 'Hide rejection reasons' : `View rejection reasons (${completeness.rejected_rows})`}
+                  </span>
+                  {showRejections ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Expandable Rejection Reasons Panel from Data Quality Log */}
+        {showRejections && (
+          <div className="rounded-2xl bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/20 p-4 space-y-3 transition-all animate-fadeIn">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-500" />
+                <h4 className="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">
+                  Data Quality Log Rejections for Batch {batchId}
+                </h4>
+              </div>
+              <span className="text-[11px] text-slate-400 font-mono">
+                {rejectionLogs.length} logged record{rejectionLogs.length === 1 ? '' : 's'}
+              </span>
+            </div>
+
+            {rejectionLogs.length > 0 ? (
+              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                {rejectionLogs.map((log, idx) => (
+                  <div
+                    key={log.id || idx}
+                    className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-rose-500/10 dark:border-rose-500/20 shadow-xs flex flex-col sm:flex-row sm:items-start justify-between gap-2"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        {log.error_category && (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                            {log.error_category}
+                          </span>
+                        )}
+                        <span className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300">
+                          {log.table_name || 'silver.orders_clean'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-rose-700 dark:text-rose-300 font-mono break-all">
+                        {log.rejection_reason}
+                      </p>
+                    </div>
+                    {log.timestamp && (
+                      <span className="text-[10px] text-slate-400 shrink-0 font-mono">
+                        {new Date(log.timestamp).toLocaleTimeString()}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400 py-2">
+                {completeness?.rejected_rows} row(s) flagged during Silver cleaning checks. Detailed row-level failure traces are recorded in meta.data_quality_log.
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Sample Bronze Rows Preview Table */}
+        {preview?.sample_rows && preview.sample_rows.length > 0 && (
+          <div className="rounded-2xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-helios-border-light dark:border-helios-border-dark flex items-center justify-between">
+              <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
+                <Info className="w-4 h-4 text-slate-400" />
+                <span>Bronze Sample Rows Preview</span>
+              </h3>
+              <span className="text-xs text-slate-400">First {preview.sample_rows.length} rows</span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs font-mono">
+                <thead>
+                  <tr className="border-b border-helios-border-light dark:border-helios-border-dark text-slate-400 bg-black/[0.02] dark:bg-white/[0.02]">
+                    {Object.keys(preview.sample_rows[0]).map((key) => (
+                      <th key={key} className="py-2 px-3 font-semibold text-[11px] whitespace-nowrap">
+                        {key}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark text-slate-600 dark:text-slate-300">
+                  {preview.sample_rows.map((row, idx) => (
+                    <tr key={idx} className="hover:bg-black/5 dark:hover:bg-white/5">
+                      {Object.values(row).map((val: any, colIdx) => (
+                        <td key={colIdx} className="py-2 px-3 whitespace-nowrap text-[11px]">
+                          {String(val)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Confirmation Action Section */}
+      {/* Confirmation Action Section with Internal Notes */}
       <div className="p-6 rounded-2xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm space-y-4">
         <div>
+          {/* Read-only Previous Internal Note Context */}
+          {preview?.internal_notes && (
+            <div className="mb-3 p-3.5 rounded-xl bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/20 space-y-1">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400">
+                <FileText className="w-3.5 h-3.5" />
+                <span>Previous Internal Note</span>
+              </div>
+              <p className="text-xs text-helios-text-primary-light dark:text-helios-text-primary-dark whitespace-pre-wrap leading-relaxed font-sans">
+                {preview.internal_notes}
+              </p>
+            </div>
+          )}
+
           <label className="block text-xs font-semibold text-slate-400 mb-1">
-            Audit / Confirmation Notes (Optional)
+            Internal Notes
           </label>
-          <input
-            type="text"
-            placeholder="e.g. Verified order_date timestamp format with merchant ERP team"
+          <textarea
+            rows={3}
+            placeholder="Add internal notes, reviewer observations, or instructions for other team members and admins..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="w-full px-3 py-2 text-xs rounded-xl bg-black/5 dark:bg-white/5 border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+            className="w-full px-3 py-2 text-xs rounded-xl bg-black/5 dark:bg-white/5 border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue resize-y"
           />
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
           <p className="text-xs text-slate-400">
-            Confirming this schema records an immutable audit log and dispatches the Databricks Silver cleaning job.
+            Confirming this schema records an immutable audit log, stores internal reviewer notes, and dispatches the Databricks Silver cleaning job.
           </p>
 
           <button
             type="button"
             onClick={handleConfirm}
             disabled={isConfirming}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold bg-helios-accent-blue hover:bg-blue-600 text-white shadow-md transition-all disabled:opacity-50"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold bg-helios-accent-blue hover:bg-blue-600 text-white shadow-md transition-all disabled:opacity-50 cursor-pointer"
           >
             {isConfirming ? (
               <>

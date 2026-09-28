@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS helios.platform.inferred_schema (
   detected_template STRING COMMENT 'Identified standard schema pattern (shopify_orders, stripe_charges, custom)',
   column_mapping_json STRING NOT NULL COMMENT 'JSON string describing source-to-silver column mapping definitions and inferred types',
   confidence_score DOUBLE COMMENT 'Model or heuristic confidence rating (0.0 to 1.0) for schema classification',
+  internal_notes STRING COMMENT 'Optional internal reviewer notes recorded during schema confirmation',
   confirmed_by BIGINT COMMENT 'Foreign key to platform.users who reviewed and approved the inferred schema',
   confirmed_at TIMESTAMP COMMENT 'Timestamp when mapping was confirmed by user or automated rule',
   created_at TIMESTAMP NOT NULL DEFAULT current_timestamp() COMMENT 'Timestamp when schema inference was executed',

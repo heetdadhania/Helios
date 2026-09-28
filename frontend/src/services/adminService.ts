@@ -1,6 +1,7 @@
 import api from './api';
 import {
   AssignTenantPayload,
+  BatchCompleteness,
   ConfirmSchemaPayload,
   ConfirmSchemaResponse,
   CreateTeamMemberPayload,
@@ -76,6 +77,7 @@ const mockPreviews: Record<string, SchemaPreview> = {
       { order_id: 1002, customer_id: 912, order_date: '2026-09-01T11:22:15', product_id: 402, quantity: 1, order_amount: 89.00, promo_discount: 0.00, delivery_status: 'Shipped' },
       { order_id: 1003, customer_id: 544, order_date: '2026-09-01T12:05:40', product_id: 403, quantity: 4, order_amount: 320.00, promo_discount: 25.00, delivery_status: 'Delivered' },
     ],
+    internal_notes: 'Initial automated inference completed with 98.4% confidence score. Validated standard ecommerce orders template.',
   },
 };
 
@@ -259,7 +261,12 @@ export const adminService = {
     try {
       const response = await api.post<ConfirmSchemaResponse>(
         `/uploads/${batchId}/confirm`,
-        payload
+        {
+          confirmed_template: payload.confirmed_template || 'template_orders',
+          corrected_mapping: payload.column_mappings,
+          internal_notes: payload.internal_notes || payload.notes,
+          ...payload,
+        }
       );
       return response.data;
     } catch {
@@ -268,6 +275,23 @@ export const adminService = {
         silver_job_run_id: `run-silver-${Date.now()}`,
         status: 'silver_triggered',
         confirmed_at: new Date().toISOString(),
+      };
+    }
+  },
+
+  /**
+   * Module 9: Fetch data completeness indicator for a batch after Silver stage.
+   */
+  async getCompleteness(batchId: string): Promise<BatchCompleteness> {
+    try {
+      const response = await api.get<BatchCompleteness>(`/uploads/${batchId}/completeness`);
+      return response.data;
+    } catch {
+      return {
+        total_rows: 100,
+        accepted_rows: 94,
+        rejected_rows: 6,
+        completeness_percentage: 94.0,
       };
     }
   },

@@ -9,6 +9,7 @@ from app.repositories.db_connection_repository import DbConnectionRepository
 from app.repositories.api_key_repository import ApiKeyRepository
 from app.repositories.confirmation_repository import ConfirmationRepository
 from app.repositories.dashboard_repository import DashboardRepository
+from app.repositories.history_repository import HistoryRepository
 
 __all__ = [
     "BaseRepository",
@@ -20,4 +21,5 @@ __all__ = [
     "ApiKeyRepository",
     "ConfirmationRepository",
     "DashboardRepository",
+    "HistoryRepository",
 ]

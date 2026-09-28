@@ -1,5 +1,6 @@
 import csv
 import io
+import logging
 import os
 import re
 import uuid
@@ -13,6 +14,8 @@ from fastapi import HTTPException, UploadFile, status
 from app.repositories.upload_repository import UploadRepository
 from app.schemas.auth import UserOut
 from app.schemas.upload import UploadResponse, UploadStatusOut
+
+logger = logging.getLogger("helios.upload")
 
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
 ALLOWED_EXTENSIONS = {".csv", ".xlsx"}
@@ -175,15 +178,26 @@ class UploadService:
         file: UploadFile,
         current_user: UserOut,
         repo: UploadRepository,
+        tenant_id: Optional[int] = None,
     ) -> UploadResponse:
         """
         Validate file, store in Unity Catalog Volume, generate batch UUID, and persist tracking rows.
+        Records the acting user (uploaded_by) for audit accountability trail.
         """
-        if current_user.tenant_id is None:
+        target_tenant_id = tenant_id if tenant_id is not None else current_user.tenant_id
+        if target_tenant_id is None:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="User account does not have an assigned tenant ID.",
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Target tenant ID is required.",
             )
+
+        logger.info(
+            "Processing upload for tenant %s by user %s (role=%s, file=%s)",
+            target_tenant_id,
+            current_user.id,
+            current_user.role,
+            file.filename,
+        )
 
         content = await file.read()
         cls.validate_file(file.filename, content)
@@ -191,13 +205,13 @@ class UploadService:
         batch_id = str(uuid.uuid4())
         volume_file_path = cls.save_file(
             content=content,
-            tenant_id=current_user.tenant_id,
+            tenant_id=target_tenant_id,
             batch_id=batch_id,
             original_filename=file.filename or "upload.data",
         )
 
         upload_record = repo.create_upload(
-            tenant_id=current_user.tenant_id,
+            tenant_id=target_tenant_id,
             source_type="upload",
             file_name=cls._sanitize_filename(file.filename or "upload.data"),
             file_path=volume_file_path,
@@ -207,7 +221,7 @@ class UploadService:
 
         repo.create_pipeline_status(
             batch_id=batch_id,
-            tenant_id=current_user.tenant_id,
+            tenant_id=target_tenant_id,
             upload_id=int(upload_record["upload_id"]),
             stage="received",
             status="ingested",
@@ -216,7 +230,7 @@ class UploadService:
         try:
             from app.services.notification_service import NotificationService
             NotificationService.notify_upload_received(
-                tenant_id=current_user.tenant_id,
+                tenant_id=target_tenant_id,
                 batch_id=batch_id,
                 user_id=current_user.id,
                 source_type="upload",
@@ -252,17 +266,19 @@ class UploadService:
         upload_id: int,
         current_user: UserOut,
         repo: UploadRepository,
+        tenant_id: Optional[int] = None,
     ) -> UploadStatusOut:
         """
         Retrieve simplified plain-language status for an SMB Owner.
         """
-        if current_user.tenant_id is None:
+        effective_tenant_id = tenant_id if tenant_id is not None else current_user.tenant_id
+        if effective_tenant_id is None:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="User account does not have an assigned tenant ID.",
             )
 
-        upload_record = repo.get_by_id(upload_id=upload_id, tenant_id=current_user.tenant_id)
+        upload_record = repo.get_by_id(upload_id=upload_id, tenant_id=effective_tenant_id)
         if not upload_record:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -271,7 +287,7 @@ class UploadService:
 
         pipeline_record = repo.get_pipeline_status_by_upload_id(
             upload_id=upload_id,
-            tenant_id=current_user.tenant_id,
+            tenant_id=effective_tenant_id,
         )
 
         if pipeline_record:

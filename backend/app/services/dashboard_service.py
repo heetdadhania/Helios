@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from fastapi import HTTPException, status
 
 from app.repositories.dashboard_repository import DashboardRepository
@@ -37,7 +37,7 @@ class DashboardService:
     def get_revenue_trend(
         cls,
         current_user: UserOut,
-        days: int,
+        days: Optional[int],
         repo: DashboardRepository,
     ) -> RevenueTrendResponse:
         """Fetch daily revenue roll-ups from fact_orders_daily_summary."""
@@ -80,10 +80,11 @@ class DashboardService:
         current_user: UserOut,
         limit: int,
         repo: DashboardRepository,
+        days: Optional[int] = None,
     ) -> TopProductsResponse:
         """Retrieve top revenue products from fact_orders and dim_product."""
         tenant_id = cls._validate_tenant(current_user)
-        raw_products = repo.get_top_products(tenant_id=tenant_id, limit=limit)
+        raw_products = repo.get_top_products(tenant_id=tenant_id, limit=limit, days=days)
 
         products = [
             TopProductItem(
@@ -97,17 +98,18 @@ class DashboardService:
             for p in raw_products
         ]
 
-        return TopProductsResponse(limit=limit, products=products)
+        return TopProductsResponse(limit=limit, days=days, products=products)
 
     @classmethod
     def get_late_delivery_risk(
         cls,
         current_user: UserOut,
         repo: DashboardRepository,
+        days: Optional[int] = None,
     ) -> LateDeliveryRiskResponse:
         """Calculate fulfillment SLA compliance and status breakdown."""
         tenant_id = cls._validate_tenant(current_user)
-        data = repo.get_late_delivery_risk(tenant_id=tenant_id)
+        data = repo.get_late_delivery_risk(tenant_id=tenant_id, days=days)
         overview = data.get("overview", {})
         breakdown_raw = data.get("breakdown", [])
 
@@ -133,6 +135,7 @@ class DashboardService:
             on_time_shipments=on_time,
             late_rate_pct=late_pct,
             avg_shipping_days=avg_days,
+            days=days,
             status_breakdown=status_breakdown,
         )
 
@@ -141,10 +144,11 @@ class DashboardService:
         cls,
         current_user: UserOut,
         repo: DashboardRepository,
+        days: Optional[int] = None,
     ) -> DiscountVsProfitResponse:
         """Analyze impact of discounts on gross margin across tiers."""
         tenant_id = cls._validate_tenant(current_user)
-        raw_bands = repo.get_discount_vs_profit(tenant_id=tenant_id)
+        raw_bands = repo.get_discount_vs_profit(tenant_id=tenant_id, days=days)
 
         bands: List[DiscountProfitBand] = []
         tot_rev = 0.0
@@ -180,6 +184,7 @@ class DashboardService:
         return DiscountVsProfitResponse(
             overall_profit_margin_pct=overall_margin,
             overall_discount_rate_pct=overall_disc_rate,
+            days=days,
             bands=bands,
         )
 
@@ -188,10 +193,11 @@ class DashboardService:
         cls,
         current_user: UserOut,
         repo: DashboardRepository,
+        days: Optional[int] = None,
     ) -> ShippingModeComparisonResponse:
         """Compare transit velocity and on-time rate by shipping mode."""
         tenant_id = cls._validate_tenant(current_user)
-        raw_modes = repo.get_shipping_mode_comparison(tenant_id=tenant_id)
+        raw_modes = repo.get_shipping_mode_comparison(tenant_id=tenant_id, days=days)
 
         modes = [
             ShippingModeComparisonItem(
@@ -205,4 +211,4 @@ class DashboardService:
             for m in raw_modes
         ]
 
-        return ShippingModeComparisonResponse(modes=modes)
+        return ShippingModeComparisonResponse(days=days, modes=modes)

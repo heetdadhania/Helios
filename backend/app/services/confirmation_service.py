@@ -6,6 +6,7 @@ from fastapi import HTTPException, status
 from app.repositories.confirmation_repository import ConfirmationRepository
 from app.schemas.auth import UserOut
 from app.schemas.confirmation import (
+    CompletenessResponse,
     ConfirmRequest,
     ConfirmResponse,
     PendingUploadOut,
@@ -41,7 +42,7 @@ def trigger_silver_stage(
 
 
 class ConfirmationService:
-    """Service orchestrating pending schema reviews, previews, and human confirmation."""
+    """Service orchestrating pending schema reviews, previews, human confirmation, and completeness."""
 
     @staticmethod
     def get_pending_uploads(
@@ -82,7 +83,7 @@ class ConfirmationService:
         repo: ConfirmationRepository,
     ) -> SchemaPreviewOut:
         """
-        Retrieve schema inference preview with sample rows for review.
+        Retrieve schema inference preview with sample rows and internal notes for review.
         Enforces tenant authorization for Team Members.
         """
         meta = repo.get_batch_metadata(batch_id)
@@ -116,8 +117,8 @@ class ConfirmationService:
         repo: ConfirmationRepository,
     ) -> ConfirmResponse:
         """
-        Confirm or correct schema mapping, persist approval to inferred_schema,
-        transition status to 'silver_running', and invoke Silver stage.
+        Confirm or correct schema mapping, persist approval and optional internal notes
+        to inferred_schema, transition status to 'silver_running', and invoke Silver stage.
         """
         meta = repo.get_batch_metadata(batch_id)
         if not meta:
@@ -153,12 +154,13 @@ class ConfirmationService:
         if request.corrected_mapping:
             final_mapping.update(request.corrected_mapping)
 
-        # Persist confirmation and transition status
+        # Persist confirmation, optional internal notes, and transition status
         repo.save_confirmation(
             batch_id=batch_id,
             confirmed_template=request.confirmed_template,
             column_mapping=final_mapping,
             confirmed_by=current_user.id,
+            internal_notes=request.internal_notes,
         )
 
         # Trigger Silver stage (Module 9)
@@ -175,3 +177,35 @@ class ConfirmationService:
             confirmed_template=request.confirmed_template,
             message=f"Batch '{batch_id}' successfully confirmed with template '{request.confirmed_template}'. Silver pipeline initiated.",
         )
+
+    @staticmethod
+    def get_completeness(
+        batch_id: str,
+        current_user: UserOut,
+        repo: ConfirmationRepository,
+    ) -> CompletenessResponse:
+        """
+        Calculate and return data completeness indicator for a batch:
+        (rows successfully written to the Silver clean table) / (total rows ingested into Bronze for that batch_id) as a percentage.
+        Enforces tenant authorization for Team Members.
+        """
+        meta = repo.get_batch_metadata(batch_id)
+        if not meta:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Batch '{batch_id}' was not found.",
+            )
+
+        tenant_id = int(meta["tenant_id"])
+        if not repo.check_user_tenant_access(current_user.id, current_user.role.value, tenant_id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: You are not authorized to view batches for this tenant.",
+            )
+
+        metrics = repo.get_completeness_metrics(
+            batch_id=batch_id,
+            template_name=meta.get("detected_template"),
+        )
+
+        return CompletenessResponse(**metrics)

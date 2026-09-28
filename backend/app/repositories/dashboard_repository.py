@@ -1,4 +1,5 @@
 import logging
+from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 try:
@@ -12,7 +13,16 @@ logger = logging.getLogger("helios.repositories.dashboard")
 
 
 class DashboardRepository:
-    """Repository handling all read queries against the Gold layer for customer dashboard charts."""
+    """
+    Repository handling all read queries against the Gold layer for customer dashboard charts.
+    
+    Lookback window filtering behavior:
+      - When `days` is specified (e.g., 7, 30), metrics are strictly filtered to the window
+        [anchor_date - (days - 1), anchor_date], where anchor_date is dynamically determined
+        as the most recent business date present in the tenant's data (MAX date_id).
+        If the table contains no data for the tenant, anchor_date falls back to the current UTC date.
+      - When `days` is None, all-time records are queried without any date boundary constraint.
+    """
 
     def __init__(self, cursor: Cursor, catalog: Optional[str] = None):
         self.cursor = cursor
@@ -25,11 +35,60 @@ class DashboardRepository:
         self.dim_shipping_mode_table = f"`{self.catalog}`.`gold`.`dim_shipping_mode`"
         self.dim_delivery_status_table = f"`{self.catalog}`.`gold`.`dim_delivery_status`"
 
-    def get_revenue_trend(self, tenant_id: int, days: int = 30) -> List[Dict[str, Any]]:
+    def _get_anchor_date(self, table: str, tenant_id: int, date_col: str = "date_id") -> date:
+        """
+        Determine the anchor date for the lookback window.
+        Uses the most recent date present in the tenant's data (MAX date_id).
+        Falls back to current UTC date if the table contains no data.
+        """
+        query = f"SELECT max({date_col}) FROM {table} WHERE tenant_id = :tenant_id"
+        self.cursor.execute(query, {"tenant_id": tenant_id})
+        row = self.cursor.fetchone()
+        if row and row[0] is not None:
+            val = row[0]
+            if isinstance(val, int) or (isinstance(val, str) and str(val).isdigit() and len(str(val)) == 8):
+                try:
+                    return datetime.strptime(str(val), "%Y%m%d").date()
+                except ValueError:
+                    pass
+            elif hasattr(val, "strftime"):
+                return val if isinstance(val, date) else val.date()
+        return datetime.now(timezone.utc).date()
+
+    def _calculate_date_bounds(
+        self,
+        table: str,
+        tenant_id: int,
+        days: Optional[int],
+        date_col: str = "date_id",
+    ) -> Optional[int]:
+        """
+        Calculate start date_id in YYYYMMDD format for the lookback window.
+        Returns None if days is None (all-time range).
+        """
+        if days is None:
+            return None
+        anchor = self._get_anchor_date(table, tenant_id, date_col)
+        start_date = anchor - timedelta(days=days - 1)
+        return int(start_date.strftime("%Y%m%d"))
+
+    def get_revenue_trend(self, tenant_id: int, days: Optional[int] = 30) -> List[Dict[str, Any]]:
         """
         Query pre-aggregated gold.fact_orders_daily_summary joined with dim_date
         strictly scoped to tenant_id for the given lookback window.
         """
+        start_date_id = self._calculate_date_bounds(self.daily_summary_table, tenant_id, days)
+
+        where_clauses = ["s.tenant_id = :tenant_id"]
+        params: Dict[str, Any] = {"tenant_id": tenant_id}
+        if days is not None:
+            params["days"] = days
+
+        if start_date_id is not None:
+            where_clauses.append("s.date_id >= :start_date_id")
+            params["start_date_id"] = start_date_id
+
+        where_sql = " AND ".join(where_clauses)
         query = f"""
             SELECT
                 coalesce(cast(d.full_date AS string), concat(substr(string(s.date_id), 1, 4), '-', substr(string(s.date_id), 5, 2), '-', substr(string(s.date_id), 7, 2))) AS date_str,
@@ -39,21 +98,36 @@ class DashboardRepository:
                 s.total_quantity
             FROM {self.daily_summary_table} s
             LEFT JOIN {self.dim_date_table} d ON s.date_id = d.date_id
-            WHERE s.tenant_id = :tenant_id
-            ORDER BY s.date_id DESC
-            LIMIT :days
+            WHERE {where_sql}
+            ORDER BY s.date_id ASC
         """
-        self.cursor.execute(query, {"tenant_id": tenant_id, "days": days})
+        self.cursor.execute(query, params)
         rows = self.cursor.fetchall() or []
         columns = [desc[0] for desc in self.cursor.description] if self.cursor.description else []
-        results = [dict(zip(columns, row)) for row in rows]
-        # Return in ascending chronological order for charts
-        return list(reversed(results))
+        return [dict(zip(columns, row)) for row in rows]
 
-    def get_top_products(self, tenant_id: int, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_top_products(
+        self,
+        tenant_id: int,
+        limit: int = 10,
+        days: Optional[int] = None,
+    ) -> List[Dict[str, Any]]:
         """
-        Query fact_orders and dim_product for top revenue products scoped to tenant_id.
+        Query fact_orders and dim_product for top revenue products scoped to tenant_id
+        within the requested lookback window (or all-time if days is None).
         """
+        start_date_id = self._calculate_date_bounds(self.fact_orders_table, tenant_id, days)
+
+        where_clauses = ["fo.tenant_id = :tenant_id"]
+        params: Dict[str, Any] = {"tenant_id": tenant_id, "limit": limit}
+        if days is not None:
+            params["days"] = days
+
+        if start_date_id is not None:
+            where_clauses.append("fo.date_id >= :start_date_id")
+            params["start_date_id"] = start_date_id
+
+        where_sql = " AND ".join(where_clauses)
         query = f"""
             SELECT
                 p.product_id,
@@ -66,20 +140,37 @@ class DashboardRepository:
             INNER JOIN {self.dim_product_table} p 
                ON fo.product_id = p.product_id
               AND fo.tenant_id = p.tenant_id
-            WHERE fo.tenant_id = :tenant_id
+            WHERE {where_sql}
             GROUP BY p.product_id, p.product_name, p.category
             ORDER BY total_revenue DESC
             LIMIT :limit
         """
-        self.cursor.execute(query, {"tenant_id": tenant_id, "limit": limit})
+        self.cursor.execute(query, params)
         rows = self.cursor.fetchall() or []
         columns = [desc[0] for desc in self.cursor.description] if self.cursor.description else []
         return [dict(zip(columns, row)) for row in rows]
 
-    def get_late_delivery_risk(self, tenant_id: int) -> Dict[str, Any]:
+    def get_late_delivery_risk(
+        self,
+        tenant_id: int,
+        days: Optional[int] = None,
+    ) -> Dict[str, Any]:
         """
-        Query fact_shipments and dim_delivery_status for overall late delivery rate and status breakdown.
+        Query fact_shipments and dim_delivery_status for overall late delivery rate and status breakdown
+        within the requested lookback window (or all-time if days is None).
         """
+        start_date_id = self._calculate_date_bounds(self.fact_shipments_table, tenant_id, days)
+
+        where_clauses_ov = ["tenant_id = :tenant_id"]
+        params: Dict[str, Any] = {"tenant_id": tenant_id}
+        if days is not None:
+            params["days"] = days
+
+        if start_date_id is not None:
+            where_clauses_ov.append("date_id >= :start_date_id")
+            params["start_date_id"] = start_date_id
+
+        where_sql_ov = " AND ".join(where_clauses_ov)
         overview_q = f"""
             SELECT
                 count(*) AS total_shipments,
@@ -87,12 +178,17 @@ class DashboardRepository:
                 sum(CASE WHEN NOT late_flag THEN 1 ELSE 0 END) AS on_time_shipments,
                 round(avg(coalesce(shipping_days, 0)), 2) AS avg_shipping_days
             FROM {self.fact_shipments_table}
-            WHERE tenant_id = :tenant_id
+            WHERE {where_sql_ov}
         """
-        self.cursor.execute(overview_q, {"tenant_id": tenant_id})
+        self.cursor.execute(overview_q, params)
         overview_row = self.cursor.fetchone()
         columns_ov = [desc[0] for desc in self.cursor.description] if self.cursor.description else []
         overview_data = dict(zip(columns_ov, overview_row)) if overview_row else {}
+
+        where_clauses_bd = ["fs.tenant_id = :tenant_id"]
+        if start_date_id is not None:
+            where_clauses_bd.append("fs.date_id >= :start_date_id")
+        where_sql_bd = " AND ".join(where_clauses_bd)
 
         breakdown_q = f"""
             SELECT
@@ -102,11 +198,11 @@ class DashboardRepository:
                 round(sum(CASE WHEN fs.late_flag THEN 1.0 ELSE 0.0 END) / count(*) * 100.0, 2) AS late_rate_pct
             FROM {self.fact_shipments_table} fs
             LEFT JOIN {self.dim_delivery_status_table} ds ON fs.delivery_status_id = ds.delivery_status_id
-            WHERE fs.tenant_id = :tenant_id
+            WHERE {where_sql_bd}
             GROUP BY ds.status_name
             ORDER BY total_shipments DESC
         """
-        self.cursor.execute(breakdown_q, {"tenant_id": tenant_id})
+        self.cursor.execute(breakdown_q, params)
         bd_rows = self.cursor.fetchall() or []
         columns_bd = [desc[0] for desc in self.cursor.description] if self.cursor.description else []
         breakdown_list = [dict(zip(columns_bd, r)) for r in bd_rows]
@@ -116,10 +212,27 @@ class DashboardRepository:
             "breakdown": breakdown_list,
         }
 
-    def get_discount_vs_profit(self, tenant_id: int) -> List[Dict[str, Any]]:
+    def get_discount_vs_profit(
+        self,
+        tenant_id: int,
+        days: Optional[int] = None,
+    ) -> List[Dict[str, Any]]:
         """
-        Query fact_orders to group sales and gross profit by discount bands.
+        Query fact_orders to group sales and gross profit by discount bands
+        within the requested lookback window (or all-time if days is None).
         """
+        start_date_id = self._calculate_date_bounds(self.fact_orders_table, tenant_id, days)
+
+        where_clauses = ["tenant_id = :tenant_id"]
+        params: Dict[str, Any] = {"tenant_id": tenant_id}
+        if days is not None:
+            params["days"] = days
+
+        if start_date_id is not None:
+            where_clauses.append("date_id >= :start_date_id")
+            params["start_date_id"] = start_date_id
+
+        where_sql = " AND ".join(where_clauses)
         query = f"""
             SELECT
                 CASE 
@@ -134,19 +247,36 @@ class DashboardRepository:
                 round(sum(coalesce(profit, 0.0)), 2) AS total_profit,
                 count(*) AS order_count
             FROM {self.fact_orders_table}
-            WHERE tenant_id = :tenant_id
+            WHERE {where_sql}
             GROUP BY 1
             ORDER BY 1
         """
-        self.cursor.execute(query, {"tenant_id": tenant_id})
+        self.cursor.execute(query, params)
         rows = self.cursor.fetchall() or []
         columns = [desc[0] for desc in self.cursor.description] if self.cursor.description else []
         return [dict(zip(columns, row)) for row in rows]
 
-    def get_shipping_mode_comparison(self, tenant_id: int) -> List[Dict[str, Any]]:
+    def get_shipping_mode_comparison(
+        self,
+        tenant_id: int,
+        days: Optional[int] = None,
+    ) -> List[Dict[str, Any]]:
         """
-        Query fact_shipments and dim_shipping_mode for volume and SLA performance across channels.
+        Query fact_shipments and dim_shipping_mode for volume and SLA performance across channels
+        within the requested lookback window (or all-time if days is None).
         """
+        start_date_id = self._calculate_date_bounds(self.fact_shipments_table, tenant_id, days)
+
+        where_clauses = ["fs.tenant_id = :tenant_id"]
+        params: Dict[str, Any] = {"tenant_id": tenant_id}
+        if days is not None:
+            params["days"] = days
+
+        if start_date_id is not None:
+            where_clauses.append("fs.date_id >= :start_date_id")
+            params["start_date_id"] = start_date_id
+
+        where_sql = " AND ".join(where_clauses)
         query = f"""
             SELECT
                 coalesce(sm.mode_name, 'Standard') AS mode_name,
@@ -157,11 +287,11 @@ class DashboardRepository:
                 round(sum(CASE WHEN NOT fs.late_flag THEN 1.0 ELSE 0.0 END) / count(*) * 100.0, 2) AS on_time_rate_pct
             FROM {self.fact_shipments_table} fs
             LEFT JOIN {self.dim_shipping_mode_table} sm ON fs.shipping_mode_id = sm.shipping_mode_id
-            WHERE fs.tenant_id = :tenant_id
+            WHERE {where_sql}
             GROUP BY sm.mode_name
             ORDER BY shipment_count DESC
         """
-        self.cursor.execute(query, {"tenant_id": tenant_id})
+        self.cursor.execute(query, params)
         rows = self.cursor.fetchall() or []
         columns = [desc[0] for desc in self.cursor.description] if self.cursor.description else []
         return [dict(zip(columns, row)) for row in rows]

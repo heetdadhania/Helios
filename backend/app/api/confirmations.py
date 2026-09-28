@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, List
 from fastapi import APIRouter, Depends, status
 
 try:
@@ -10,6 +10,7 @@ from app.core.dependencies import get_db_cursor, require_team_or_admin
 from app.repositories.confirmation_repository import ConfirmationRepository
 from app.schemas.auth import UserOut
 from app.schemas.confirmation import (
+    CompletenessResponse,
     ConfirmRequest,
     ConfirmResponse,
     PendingUploadOut,
@@ -43,7 +44,7 @@ def get_pending_uploads(
     response_model=SchemaPreviewOut,
     status_code=status.HTTP_200_OK,
     summary="Preview Inferred Schema and Sample Rows",
-    description="Inspect detected template, confidence score, source type, column mappings, and sample Bronze rows.",
+    description="Inspect detected template, confidence score, source type, column mappings, sample Bronze rows, and internal notes.",
 )
 def get_schema_preview(
     batch_id: str,
@@ -51,7 +52,7 @@ def get_schema_preview(
     cursor: Cursor = Depends(get_db_cursor),
 ) -> SchemaPreviewOut:
     """
-    Retrieve preview data for a specific pending batch.
+    Retrieve preview data and internal notes for a specific pending batch.
     """
     repo = ConfirmationRepository(cursor)
     return ConfirmationService.get_preview(batch_id=batch_id, current_user=current_user, repo=repo)
@@ -62,7 +63,7 @@ def get_schema_preview(
     response_model=ConfirmResponse,
     status_code=status.HTTP_200_OK,
     summary="Confirm or Correct Schema Mapping",
-    description="Approve schema mapping with optional corrections, record confirmation audit, and trigger Silver pipeline stage.",
+    description="Approve schema mapping with optional corrections and internal notes, record confirmation audit, and trigger Silver pipeline stage.",
 )
 def confirm_schema_mapping(
     batch_id: str,
@@ -71,7 +72,7 @@ def confirm_schema_mapping(
     cursor: Cursor = Depends(get_db_cursor),
 ) -> ConfirmResponse:
     """
-    Confirm inferred schema for a batch and trigger the Silver stage.
+    Confirm inferred schema for a batch, persist optional reviewer notes, and trigger the Silver stage.
     """
     repo = ConfirmationRepository(cursor)
     return ConfirmationService.confirm_mapping(
@@ -80,3 +81,22 @@ def confirm_schema_mapping(
         current_user=current_user,
         repo=repo,
     )
+
+
+@router.get(
+    "/{batch_id}/completeness",
+    response_model=CompletenessResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get Data Completeness Indicator",
+    description="Calculate and return the completeness indicator for a batch after Silver stage processing.",
+)
+def get_data_completeness(
+    batch_id: str,
+    current_user: UserOut = Depends(require_team_or_admin),
+    cursor: Cursor = Depends(get_db_cursor),
+) -> CompletenessResponse:
+    """
+    Calculate and return: (rows successfully written to Silver) / (total rows ingested into Bronze) as a percentage.
+    """
+    repo = ConfirmationRepository(cursor)
+    return ConfirmationService.get_completeness(batch_id=batch_id, current_user=current_user, repo=repo)

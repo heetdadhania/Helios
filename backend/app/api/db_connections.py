@@ -1,11 +1,13 @@
-from typing import Any, List
+from typing import Any, List, Optional
 try:
     from databricks.sql.client import Cursor
 except ImportError:
     Cursor = Any  # type: ignore
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel, Field
 
+from app.core.config import settings
 from app.core.dependencies import get_db_cursor, require_role
 from app.repositories.db_connection_repository import DbConnectionRepository
 from app.repositories.upload_repository import UploadRepository
@@ -21,18 +23,83 @@ from app.services.db_connection_service import DbConnectionService
 router = APIRouter()
 
 
+class DbConnectionCreateRequest(DbConnectionCreate):
+    """Payload to test or save a database connection, accepting an explicit target tenant_id."""
+
+    tenant_id: Optional[int] = Field(
+        None,
+        description="Target tenant ID on whose behalf the connection is configured",
+    )
+
+
+class DbConnectionSyncRequest(BaseModel):
+    """Optional payload to trigger database sync with explicit target tenant_id."""
+
+    tenant_id: Optional[int] = Field(
+        None,
+        description="Target tenant ID on whose behalf the connection is synced",
+    )
+
+
+def verify_team_member_tenant_access(
+    cursor: Cursor,
+    current_user: UserOut,
+    tenant_id: int,
+) -> None:
+    """
+    Verify caller has permission to perform operations on behalf of the tenant.
+    Admin bypasses this check.
+    Team Member must have an active assignment in platform.team_assignments.
+    """
+    user_role = (
+        current_user.role.value.lower()
+        if hasattr(current_user.role, "value")
+        else str(current_user.role).lower()
+    )
+    if user_role == "admin":
+        return
+
+    if user_role == "team_member":
+        catalog = getattr(settings, "DATABRICKS_CATALOG", "helios")
+        query = f"SELECT 1 FROM `{catalog}`.`platform`.`team_assignments` WHERE user_id = :user_id AND tenant_id = :tenant_id LIMIT 1"
+        cursor.execute(query, {"user_id": current_user.id, "tenant_id": tenant_id})
+        row = cursor.fetchone()
+        if not row:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied: Team member is not assigned to manage tenant {tenant_id}.",
+            )
+        return
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Access denied: Operation requires team_member or admin role.",
+    )
+
+
 @router.post(
     "/test",
     response_model=DbConnectionTestResult,
     status_code=status.HTTP_200_OK,
     summary="Test External Database Connection",
-    description="Verify connectivity, TLS negotiation, and credentials without persisting passwords.",
+    description="Verify connectivity, TLS negotiation, and credentials without persisting passwords. Operated by Team Member or Admin on behalf of a tenant.",
 )
 def test_connection(
-    conn_in: DbConnectionCreate,
-    current_user: UserOut = Depends(require_role("smb_owner")),
+    conn_in: DbConnectionCreateRequest,
+    tenant_id: Optional[int] = Query(None, description="Target tenant ID on whose behalf the test is performed"),
+    current_user: UserOut = Depends(require_role("team_member", "admin")),
+    cursor: Cursor = Depends(get_db_cursor),
 ) -> DbConnectionTestResult:
     """Test remote database connectivity using provided credentials and SELECT 1 query."""
+    target_tenant_id = tenant_id if tenant_id is not None else conn_in.tenant_id
+    if target_tenant_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="tenant_id is required in request body or query parameter.",
+        )
+
+    verify_team_member_tenant_access(cursor, current_user, target_tenant_id)
+
     return DbConnectionService.test_connection(
         db_type=conn_in.db_type,
         host=conn_in.host,
@@ -48,25 +115,30 @@ def test_connection(
     response_model=DbConnectionOut,
     status_code=status.HTTP_201_CREATED,
     summary="Create Database Connection",
-    description="Save database connection metadata and store credentials in Databricks Secrets.",
+    description="Save database connection metadata and store credentials in Databricks Secrets. Operated by Team Member or Admin on behalf of a tenant.",
 )
 def create_connection(
-    conn_in: DbConnectionCreate,
-    current_user: UserOut = Depends(require_role("smb_owner")),
+    conn_in: DbConnectionCreateRequest,
+    tenant_id: Optional[int] = Query(None, description="Target tenant ID on whose behalf the connection is created"),
+    current_user: UserOut = Depends(require_role("team_member", "admin")),
     cursor: Cursor = Depends(get_db_cursor),
 ) -> DbConnectionOut:
     """Store connection metadata in platform tables and credentials in Databricks Secrets."""
-    if current_user.tenant_id is None:
+    target_tenant_id = tenant_id if tenant_id is not None else conn_in.tenant_id
+    if target_tenant_id is None:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Authenticated user must be assigned to an active tenant.",
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="tenant_id is required in request body or query parameter.",
         )
+
+    verify_team_member_tenant_access(cursor, current_user, target_tenant_id)
 
     repo = DbConnectionRepository(cursor)
     return DbConnectionService.save_connection(
         conn_in=conn_in,
-        tenant_id=current_user.tenant_id,
+        tenant_id=target_tenant_id,
         repo=repo,
+        created_by=current_user.id,
     )
 
 
@@ -75,21 +147,24 @@ def create_connection(
     response_model=List[DbConnectionOut],
     status_code=status.HTTP_200_OK,
     summary="List Database Connections",
-    description="List all saved database connections for the authenticated SMB Owner's tenant.",
+    description="List all saved database connections for a specified tenant. Operated by Team Member or Admin.",
 )
 def list_connections(
-    current_user: UserOut = Depends(require_role("smb_owner")),
+    tenant_id: Optional[int] = Query(None, description="Target tenant ID"),
+    current_user: UserOut = Depends(require_role("team_member", "admin")),
     cursor: Cursor = Depends(get_db_cursor),
 ) -> List[DbConnectionOut]:
     """Retrieve all non-sensitive database connection configurations for the tenant."""
-    if current_user.tenant_id is None:
+    if tenant_id is None:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Authenticated user must be assigned to an active tenant.",
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="tenant_id query parameter is required.",
         )
 
+    verify_team_member_tenant_access(cursor, current_user, tenant_id)
+
     repo = DbConnectionRepository(cursor)
-    records = repo.list_by_tenant(tenant_id=current_user.tenant_id)
+    records = repo.list_by_tenant(tenant_id=tenant_id)
     return [
         DbConnectionOut(
             connection_id=int(r["connection_id"]),
@@ -113,26 +188,31 @@ def list_connections(
     response_model=UploadResponse,
     status_code=status.HTTP_200_OK,
     summary="Trigger On-Demand Database Sync",
-    description="Fetch credentials ephemerally, pull source data, and land in Bronze storage.",
+    description="Fetch credentials ephemerally, pull source data, and land in Bronze storage. Operated by Team Member or Admin on behalf of a tenant.",
 )
 def sync_connection(
     connection_id: int,
-    current_user: UserOut = Depends(require_role("smb_owner")),
+    tenant_id: Optional[int] = Query(None, description="Target tenant ID on whose behalf sync is executed"),
+    payload: Optional[DbConnectionSyncRequest] = None,
+    current_user: UserOut = Depends(require_role("team_member", "admin")),
     cursor: Cursor = Depends(get_db_cursor),
 ) -> UploadResponse:
     """Execute live data sync, land dataset into Bronze volume, and register batch tracking."""
-    if current_user.tenant_id is None:
+    target_tenant_id = tenant_id if tenant_id is not None else (payload.tenant_id if payload else None)
+    if target_tenant_id is None:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Authenticated user must be assigned to an active tenant.",
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="tenant_id is required in request body or query parameter.",
         )
+
+    verify_team_member_tenant_access(cursor, current_user, target_tenant_id)
 
     repo = DbConnectionRepository(cursor)
     upload_repo = UploadRepository(cursor)
 
     return DbConnectionService.sync_now(
         connection_id=connection_id,
-        tenant_id=current_user.tenant_id,
+        tenant_id=target_tenant_id,
         user_id=current_user.id,
         repo=repo,
         upload_repo=upload_repo,
