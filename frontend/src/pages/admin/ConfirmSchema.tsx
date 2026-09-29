@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { BatchCompleteness, DataQualityLogItem, SchemaPreview, SourceType } from '@/types/admin';
 import { adminService } from '@/services/adminService';
+import { FlagForAdminButton } from '@/components/team/FlagForAdminButton';
 
 export const ConfirmSchema: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
@@ -199,7 +200,15 @@ export const ConfirmSchema: React.FC = () => {
           <span>Back to Pending Approvals</span>
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
+          {preview && (
+            <FlagForAdminButton
+              tenantId={preview.tenant_id}
+              batchId={preview.batch_id || batchId}
+              tenantName={preview.tenant_name}
+              variant="compact"
+            />
+          )}
           {preview && renderSourceTypeBadge(preview.source_type)}
         </div>
       </div>
@@ -530,24 +539,36 @@ export const ConfirmSchema: React.FC = () => {
             Confirming this schema records an immutable audit log, stores internal reviewer notes, and dispatches the Databricks Silver cleaning job.
           </p>
 
-          <button
-            type="button"
-            onClick={handleConfirm}
-            disabled={isConfirming}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold bg-helios-accent-blue hover:bg-blue-600 text-white shadow-md transition-all disabled:opacity-50 cursor-pointer"
-          >
-            {isConfirming ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Triggering Silver Pipeline...</span>
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4 fill-current" />
-                <span>Confirm Schema & Trigger Silver</span>
-              </>
+          <div className="flex items-center gap-2.5 w-full sm:w-auto">
+            {preview && (
+              <FlagForAdminButton
+                tenantId={preview.tenant_id}
+                batchId={preview.batch_id || batchId}
+                tenantName={preview.tenant_name}
+                variant="button"
+                label="Flag for Admin"
+              />
             )}
-          </button>
+
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={isConfirming}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold bg-helios-accent-blue hover:bg-blue-600 text-white shadow-md transition-all disabled:opacity-50 cursor-pointer"
+            >
+              {isConfirming ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Triggering Silver Pipeline...</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4 fill-current" />
+                  <span>Confirm Schema & Trigger Silver</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

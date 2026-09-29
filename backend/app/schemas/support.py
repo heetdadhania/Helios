@@ -14,6 +14,19 @@ class SupportMessageCreate(BaseModel):
     )
 
 
+class SupportFlagCreate(BaseModel):
+    """Payload for Team Member/Admin to flag an issue or escalation directly to Admin."""
+
+    tenant_id: int = Field(..., description="Tenant organization ID being flagged")
+    batch_id: Optional[str] = Field(None, description="Optional batch ID associated with the pipeline issue")
+    message: str = Field(
+        ...,
+        min_length=1,
+        max_length=5000,
+        description="Detailed explanation of the issue or reason for escalation",
+    )
+
+
 class SupportMessageOut(BaseModel):
     """Support message response representation."""
 
@@ -25,6 +38,8 @@ class SupportMessageOut(BaseModel):
     to_user_id: int = Field(..., description="Routed recipient user identifier")
     to_user_name: Optional[str] = Field(None, description="Routed recipient display name")
     message: str = Field(..., description="Message content")
+    message_source: str = Field("smb_owner", description="Source of message: smb_owner or team_member")
+    batch_id: Optional[str] = Field(None, description="Optional batch identifier associated with the message")
     status: str = Field("open", description="Message resolution status: open or resolved")
     created_at: datetime = Field(..., description="Timestamp when message was submitted")
     resolved_at: Optional[datetime] = Field(None, description="Timestamp when message was marked resolved")

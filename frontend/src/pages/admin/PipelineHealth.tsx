@@ -20,10 +20,15 @@ import {
   Search,
   UploadCloud,
   X,
+  ArrowDownToLine,
+  Download,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { StageStatusBadge } from '@/components/admin/StageStatusBadge';
+import { FlagForAdminButton } from '@/components/team/FlagForAdminButton';
 import { pipelineHealthService } from '@/services/pipelineHealthService';
+import { oversightService } from '@/services/oversightService';
 import {
   PipelineRun,
   PipelineRunDetail,
@@ -82,6 +87,29 @@ export const PipelineHealth: React.FC = () => {
   // Full Restart Confirmation Dialog state
   const [showRestartConfirm, setShowRestartConfirm] = useState<boolean>(false);
   const [copiedBatch, setCopiedBatch] = useState<boolean>(false);
+
+  // Export Audit Log Dialog state
+  const [showExportModal, setShowExportModal] = useState<boolean>(false);
+  const [exportStartDate, setExportStartDate] = useState<string>('');
+  const [exportEndDate, setExportEndDate] = useState<string>('');
+  const [isExporting, setIsExporting] = useState<boolean>(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  const handleExportAudit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsExporting(true);
+    setExportError(null);
+    try {
+      await oversightService.downloadAuditExport(exportStartDate, exportEndDate);
+      setShowExportModal(false);
+      setExportStartDate('');
+      setExportEndDate('');
+    } catch (err: any) {
+      setExportError(err?.message || 'Failed to download audit log export.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // Load runs
   const fetchRuns = async () => {
@@ -227,14 +255,24 @@ export const PipelineHealth: React.FC = () => {
             Real-time stage tracking across Bronze, Silver, and Gold pipelines. Repair failed tasks or initiate controlled restarts.
           </p>
         </div>
-        <button
-          onClick={fetchRuns}
-          disabled={isLoading}
-          className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors self-start sm:self-auto"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-helios-accent-blue' : ''}`} />
-          <span>Refresh Telemetry</span>
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={() => setShowExportModal(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-helios-accent-blue text-white hover:bg-helios-accent-blue/90 shadow-sm transition-colors"
+          >
+            <ArrowDownToLine className="w-3.5 h-3.5" />
+            <span>Export Audit Log</span>
+          </button>
+          <button
+            onClick={fetchRuns}
+            disabled={isLoading}
+            className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-helios-accent-blue' : ''}`} />
+            <span>Refresh Telemetry</span>
+          </button>
+        </div>
       </div>
 
       {/* KPI Stats */}
@@ -467,7 +505,7 @@ export const PipelineHealth: React.FC = () => {
             {/* Modal Header */}
             <div className="p-5 border-b border-helios-border-light dark:border-helios-border-dark flex items-start justify-between bg-black/[0.02] dark:bg-white/[0.02]">
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="text-base font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
                     Run Inspection: {detail?.tenant || detail?.tenant_name || 'Batch Details'}
                   </h3>
@@ -475,6 +513,15 @@ export const PipelineHealth: React.FC = () => {
                     <StageStatusBadge
                       stage={detail.current_stage}
                       status={detail.status}
+                    />
+                  )}
+                  {detail && detail.status.toLowerCase() === 'failed' && (
+                    <FlagForAdminButton
+                      tenantId={detail.tenant_id}
+                      batchId={detail.batch_id}
+                      tenantName={detail.tenant || detail.tenant_name}
+                      variant="compact"
+                      label="Flag for Admin"
                     />
                   )}
                 </div>
@@ -654,6 +701,15 @@ export const PipelineHealth: React.FC = () => {
 
                 {detail?.status.toLowerCase() === 'failed' && (
                   <>
+                    {/* Escalation Action: Flag for Admin */}
+                    <FlagForAdminButton
+                      tenantId={detail.tenant_id}
+                      batchId={detail.batch_id}
+                      tenantName={detail.tenant || detail.tenant_name}
+                      variant="warning"
+                      label="Flag for Admin"
+                    />
+
                     {/* Secondary Action: Full Restart */}
                     <button
                       type="button"
@@ -738,6 +794,87 @@ export const PipelineHealth: React.FC = () => {
                 <span>Send Alert & Require Re-Upload</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export Audit Log Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md p-6 rounded-2xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-helios-border-light dark:border-helios-border-dark">
+              <div className="flex items-center gap-2">
+                <FileSpreadsheet className="w-5 h-5 text-helios-accent-blue" />
+                <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
+                  Export System ETL Audit Log
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowExportModal(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-400">
+              Generate and download the system ETL audit log as CSV containing batch executions, row counts, stage status, duration, and error traces.
+            </p>
+
+            {exportError && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 text-xs">
+                {exportError}
+              </div>
+            )}
+
+            <form onSubmit={handleExportAudit} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-400 mb-1">
+                  Start Date (Optional)
+                </label>
+                <input
+                  type="date"
+                  value={exportStartDate}
+                  onChange={(e) => setExportStartDate(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-400 mb-1">
+                  End Date (Optional)
+                </label>
+                <input
+                  type="date"
+                  value={exportEndDate}
+                  onChange={(e) => setExportEndDate(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowExportModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-black/5 dark:bg-white/5 text-slate-400 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isExporting}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-helios-accent-blue text-white disabled:opacity-50"
+                >
+                  {isExporting ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Download className="w-3.5 h-3.5" />
+                  )}
+                  <span>{isExporting ? 'Generating CSV...' : 'Download CSV'}</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -90,23 +90,52 @@ class SupportRepository:
         fb_row = self._fetch_one(fallback_q)
         return int(fb_row["user_id"]) if fb_row and fb_row.get("user_id") else 1
 
+    def resolve_admin_user_id(self) -> int:
+        """
+        Resolve an Admin user ID for escalation flags.
+        Always routes to an active Admin regardless of tenant team assignments.
+        """
+        admin_q = f"""
+            SELECT user_id
+            FROM {self.users_table}
+            WHERE lower(role) = 'admin' AND is_active = true
+            ORDER BY user_id ASC
+            LIMIT 1
+        """
+        admin_row = self._fetch_one(admin_q)
+        if admin_row and admin_row.get("user_id") is not None:
+            return int(admin_row["user_id"])
+
+        fallback_q = f"""
+            SELECT user_id
+            FROM {self.users_table}
+            WHERE lower(role) = 'admin'
+            ORDER BY user_id ASC
+            LIMIT 1
+        """
+        fb_row = self._fetch_one(fallback_q)
+        return int(fb_row["user_id"]) if fb_row and fb_row.get("user_id") else 1
+
     def create_message(
         self,
         tenant_id: int,
         from_user_id: int,
         to_user_id: int,
         message: str,
+        message_source: str = "smb_owner",
+        batch_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Insert a support message record and return populated model dictionary."""
         insert_query = f"""
-            INSERT INTO {self.table} (tenant_id, from_user_id, to_user_id, message, status, created_at)
-            VALUES (:tenant_id, :from_user_id, :to_user_id, :message, 'open', current_timestamp())
+            INSERT INTO {self.table} (tenant_id, from_user_id, to_user_id, message, message_source, status, created_at)
+            VALUES (:tenant_id, :from_user_id, :to_user_id, :message, :message_source, 'open', current_timestamp())
         """
         params = {
             "tenant_id": tenant_id,
             "from_user_id": from_user_id,
             "to_user_id": to_user_id,
             "message": message.strip(),
+            "message_source": message_source,
         }
         self.cursor.execute(insert_query, params)
 
@@ -121,6 +150,7 @@ class SupportRepository:
                 sm.to_user_id,
                 u_to.name AS to_user_name,
                 sm.message,
+                sm.message_source,
                 sm.status,
                 sm.created_at,
                 sm.resolved_at
@@ -136,7 +166,7 @@ class SupportRepository:
         if not row:
             # Fallback for mock environments
             from datetime import datetime, timezone
-            return {
+            row = {
                 "message_id": 1,
                 "tenant_id": tenant_id,
                 "tenant_name": None,
@@ -145,10 +175,13 @@ class SupportRepository:
                 "to_user_id": to_user_id,
                 "to_user_name": None,
                 "message": message.strip(),
+                "message_source": message_source,
                 "status": "open",
                 "created_at": datetime.now(timezone.utc),
                 "resolved_at": None,
             }
+        if batch_id:
+            row["batch_id"] = batch_id
         return row
 
     def get_messages(
@@ -186,6 +219,7 @@ class SupportRepository:
                 sm.to_user_id,
                 u_to.name AS to_user_name,
                 sm.message,
+                sm.message_source,
                 sm.status,
                 sm.created_at,
                 sm.resolved_at
@@ -210,6 +244,7 @@ class SupportRepository:
                 sm.to_user_id,
                 u_to.name AS to_user_name,
                 sm.message,
+                sm.message_source,
                 sm.status,
                 sm.created_at,
                 sm.resolved_at

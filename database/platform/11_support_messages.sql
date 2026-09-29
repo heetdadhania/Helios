@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS helios.platform.support_messages (
   from_user_id BIGINT NOT NULL COMMENT 'Foreign key to platform.users for the sender (SMB Owner)',
   to_user_id BIGINT NOT NULL COMMENT 'Foreign key to platform.users for the routed recipient (Team Member or fallback Admin)',
   message STRING NOT NULL COMMENT 'Content of the support or status update request',
+  message_source STRING NOT NULL DEFAULT 'smb_owner' COMMENT 'Source role of message sender: smb_owner or team_member',
   status STRING NOT NULL DEFAULT 'open' COMMENT 'Resolution state: open, resolved',
   created_at TIMESTAMP NOT NULL DEFAULT current_timestamp() COMMENT 'Timestamp when the message was sent',
   resolved_at TIMESTAMP COMMENT 'Timestamp when the message was marked resolved',

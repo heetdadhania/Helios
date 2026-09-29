@@ -10,6 +10,9 @@ import {
   Database,
   History,
   MessageSquare,
+  BarChart3,
+  TrendingUp,
+  ShieldAlert,
 } from 'lucide-react';
 import { Sidebar, NavItem } from '@/components/Sidebar';
 import { TopBar } from '@/components/TopBar';
@@ -25,6 +28,9 @@ const adminNavItems: NavItem[] = [
   { label: 'Pipeline Health', to: '/admin/pipeline-health', icon: Activity },
   { label: 'Data Quality', to: '/admin/data-quality', icon: CheckCircle2 },
   { label: 'Tenants', to: '/admin/tenants', icon: Building2 },
+  { label: 'Tenant Health', to: '/admin/oversight/health', icon: ShieldAlert },
+  { label: 'Tenant Compare', to: '/admin/oversight/compare', icon: BarChart3 },
+  { label: 'Platform Usage', to: '/admin/oversight/usage', icon: TrendingUp },
   { label: 'Team', to: '/admin/team', icon: Users },
 ];
 
@@ -48,6 +54,12 @@ const adminTitleMap: Record<string, string> = {
   '/admin/data-quality': 'Data Quality & Rejection Audit',
   '/admin/tenants': 'Tenant Management',
   '/admin/team': 'Team & Role Assignments',
+  '/admin/oversight/health': 'Tenant Health & SLA Oversight',
+  '/admin/tenant-health': 'Tenant Health & SLA Oversight',
+  '/admin/oversight/compare': 'Cross-Tenant Comparison',
+  '/admin/tenant-compare': 'Cross-Tenant Comparison',
+  '/admin/oversight/usage': 'Platform Usage & Telemetry',
+  '/admin/usage': 'Platform Usage & Telemetry',
 };
 
 export const AdminLayout: React.FC = () => {
@@ -60,17 +72,25 @@ export const AdminLayout: React.FC = () => {
   if (!currentTitle) {
     if (currentPath.startsWith('/admin/confirm-schema')) {
       currentTitle = 'Confirm Ingestion Schema';
+    } else if (currentPath.startsWith('/admin/oversight/dashboard')) {
+      currentTitle = 'Tenant Dashboard (Admin View-As)';
     } else {
       currentTitle = user?.role === 'admin' ? 'Admin Console' : 'Operations Console';
     }
   }
 
-  // Team Member sees only assigned tenants and operational screens; Admin sees everything plus Team
+  // Team Member sees only assigned tenants and operational screens; Admin sees everything plus Oversight & Team
   const navItems = React.useMemo(() => {
     if (user?.role === 'admin') {
       return adminNavItems;
     }
-    return adminNavItems.filter((item) => item.to !== '/admin/team');
+    const adminOnlyRoutes = [
+      '/admin/team',
+      '/admin/oversight/health',
+      '/admin/oversight/compare',
+      '/admin/oversight/usage',
+    ];
+    return adminNavItems.filter((item) => !adminOnlyRoutes.includes(item.to));
   }, [user?.role]);
 
   const portalTitle = user?.role === 'admin' ? 'Admin Portal' : 'Operations Portal';

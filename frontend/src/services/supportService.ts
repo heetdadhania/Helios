@@ -2,6 +2,7 @@ import api from './api';
 import {
   SupportMessage,
   SupportMessageCreatePayload,
+  SupportFlagPayload,
   SupportMessageResolveResponse,
 } from '@/types/support';
 
@@ -23,12 +24,40 @@ export const supportService = {
           from_user_id: 1,
           to_user_id: 2,
           message,
+          message_source: 'smb_owner',
           status: 'open',
           created_at: new Date().toISOString(),
           resolved_at: null,
         };
       }
       const errMsg = error.response?.data?.detail || 'Failed to send support request.';
+      throw new Error(errMsg);
+    }
+  },
+
+  /**
+   * Flag an issue or pipeline failure directly to Admin (Team Member / Admin action).
+   */
+  async flagForAdmin(payload: SupportFlagPayload): Promise<SupportMessage> {
+    try {
+      const response = await api.post<SupportMessage>('/support/flag', payload);
+      return response.data;
+    } catch (error: any) {
+      if (!error.response || error.code === 'ERR_NETWORK') {
+        return {
+          message_id: Date.now(),
+          tenant_id: payload.tenant_id,
+          from_user_id: 1,
+          to_user_id: 2,
+          message: payload.batch_id ? `[Batch: ${payload.batch_id}] ${payload.message}` : payload.message,
+          message_source: 'team_member',
+          batch_id: payload.batch_id || null,
+          status: 'open',
+          created_at: new Date().toISOString(),
+          resolved_at: null,
+        };
+      }
+      const errMsg = error.response?.data?.detail || 'Failed to submit escalation flag to Admin.';
       throw new Error(errMsg);
     }
   },

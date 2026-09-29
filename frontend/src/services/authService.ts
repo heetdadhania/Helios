@@ -14,11 +14,12 @@ export const authService = {
       });
       return response.data;
     } catch (error: any) {
-      // Fallback demo authentication for development when backend SQL warehouse is spinning up
+      // Fallback demo authentication for development when backend SQL warehouse is spinning up or offline
       if (
         !error.response ||
         error.code === 'ERR_NETWORK' ||
-        error.response.status === 404
+        error.response.status === 404 ||
+        error.response.status === 500
       ) {
         return this._getDemoFallback(credentials);
       }

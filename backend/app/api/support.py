@@ -10,6 +10,7 @@ from app.core.dependencies import get_db_cursor, require_role
 from app.repositories.support_repository import SupportRepository
 from app.schemas.auth import UserOut
 from app.schemas.support import (
+    SupportFlagCreate,
     SupportMessageCreate,
     SupportMessageOut,
     SupportMessageResolveResponse,
@@ -17,6 +18,35 @@ from app.schemas.support import (
 from app.services.support_service import SupportService
 
 router = APIRouter()
+
+
+@router.post(
+    "/flag",
+    response_model=SupportMessageOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Flag for Admin Escalation",
+    description=(
+        "Submit an issue or pipeline escalation flagged by a Team Member or Admin. "
+        "Always routes to an Admin recipient regardless of tenant team assignments, "
+        "and tags message_source as 'team_member'."
+    ),
+)
+def flag_for_admin(
+    payload: SupportFlagCreate,
+    current_user: UserOut = Depends(require_role("team_member", "admin")),
+    cursor: Cursor = Depends(get_db_cursor),
+) -> SupportMessageOut:
+    """
+    Escalate an issue to Admin with message_source='team_member'.
+    """
+    repo = SupportRepository(cursor)
+    return SupportService.flag_for_admin(
+        tenant_id=payload.tenant_id,
+        from_user_id=current_user.id,
+        message=payload.message,
+        batch_id=payload.batch_id,
+        repo=repo,
+    )
 
 
 @router.post(

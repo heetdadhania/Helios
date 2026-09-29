@@ -8,6 +8,7 @@ from app.api.export import router as export_router
 from app.api.notifications import router as notifications_router
 from app.api.history import router as history_router
 from app.api.support import router as support_router
+from app.api.oversight import router as oversight_router
 
 api_router = APIRouter()
 
@@ -23,3 +24,4 @@ api_router.include_router(export_router, prefix="/export", tags=["Export"])
 api_router.include_router(notifications_router, prefix="/notifications", tags=["Notifications"])
 api_router.include_router(history_router, prefix="/history", tags=["History"])
 api_router.include_router(support_router, prefix="/support", tags=["Support"])
+api_router.include_router(oversight_router, prefix="/oversight", tags=["Admin Oversight"])

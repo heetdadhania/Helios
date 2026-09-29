@@ -22,6 +22,10 @@ import { SubmissionHistory } from '@/pages/client/SubmissionHistory';
 import { TeamHistory } from '@/pages/team/TeamHistory';
 import { AdminHistory } from '@/pages/admin/AdminHistory';
 import { SupportInbox } from '@/pages/team/SupportInbox';
+import { TenantDashboardView } from '@/pages/admin/TenantDashboardView';
+import { TenantHealth } from '@/pages/admin/TenantHealth';
+import { TenantComparison } from '@/pages/admin/TenantComparison';
+import { UsageDashboard } from '@/pages/admin/UsageDashboard';
 import { useAuth } from '@/hooks/useAuth';
 
 const RootRedirect: React.FC = () => {
@@ -83,6 +87,13 @@ export const AppRoutes: React.FC = () => {
           <Route path="data-quality" element={<DataQualityLog />} />
           <Route path="tenants" element={<Tenants />} />
           <Route path="team" element={<TeamMembers />} />
+          <Route path="oversight/dashboard/:tenantId" element={<TenantDashboardView />} />
+          <Route path="oversight/health" element={<TenantHealth />} />
+          <Route path="tenant-health" element={<TenantHealth />} />
+          <Route path="oversight/compare" element={<TenantComparison />} />
+          <Route path="tenant-compare" element={<TenantComparison />} />
+          <Route path="oversight/usage" element={<UsageDashboard />} />
+          <Route path="usage" element={<UsageDashboard />} />
         </Route>
 
         {/* /team routes alias */}

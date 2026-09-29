@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Building2,
   Plus,
@@ -7,6 +8,7 @@ import {
   Power,
   XCircle,
   Lock,
+  Eye,
 } from 'lucide-react';
 import { Tenant } from '@/types/admin';
 import { adminService } from '@/services/adminService';
@@ -246,30 +248,42 @@ export const Tenants: React.FC = () => {
                     </td>
 
                     <td className="py-3.5 px-4 text-right">
-                      {/* Deactivate control: Enabled for Admin ONLY */}
-                      {isAdmin ? (
-                        <button
-                          type="button"
-                          onClick={() => handleToggleDeactivate(tenant.tenant_id)}
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
-                            tenant.is_active
-                              ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20'
-                              : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                          }`}
-                          title={tenant.is_active ? 'Deactivate tenant' : 'Reactivate tenant'}
+                      <div className="flex items-center justify-end gap-2">
+                        {/* View Dashboard action (Oversight View-As) */}
+                        <Link
+                          to={`/admin/oversight/dashboard/${tenant.tenant_id}`}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-helios-accent-blue/10 hover:bg-helios-accent-blue/20 text-helios-accent-blue border border-helios-accent-blue/20 transition-colors"
+                          title="View-As tenant dashboard"
                         >
-                          <Power className="w-3.5 h-3.5" />
-                          <span>{tenant.is_active ? 'Deactivate' : 'Reactivate'}</span>
-                        </button>
-                      ) : (
-                        <div
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-black/5 dark:bg-white/5 text-slate-400 cursor-not-allowed border border-helios-border-light dark:border-helios-border-dark opacity-60"
-                          title="Admin role required to modify tenant lifecycle"
-                        >
-                          <Lock className="w-3 h-3" />
-                          <span>Deactivate</span>
-                        </div>
-                      )}
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>View Dashboard</span>
+                        </Link>
+
+                        {/* Deactivate control: Enabled for Admin ONLY */}
+                        {isAdmin ? (
+                          <button
+                            type="button"
+                            onClick={() => handleToggleDeactivate(tenant.tenant_id)}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                              tenant.is_active
+                                ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                                : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                            }`}
+                            title={tenant.is_active ? 'Deactivate tenant' : 'Reactivate tenant'}
+                          >
+                            <Power className="w-3.5 h-3.5" />
+                            <span>{tenant.is_active ? 'Deactivate' : 'Reactivate'}</span>
+                          </button>
+                        ) : (
+                          <div
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-black/5 dark:bg-white/5 text-slate-400 cursor-not-allowed border border-helios-border-light dark:border-helios-border-dark opacity-60"
+                            title="Admin role required to modify tenant lifecycle"
+                          >
+                            <Lock className="w-3 h-3" />
+                            <span>Deactivate</span>
+                          </div>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

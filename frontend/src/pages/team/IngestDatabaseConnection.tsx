@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Database,
   Server,
@@ -16,6 +17,7 @@ import {
   EyeOff,
   X,
   Building2,
+  ArrowRight,
 } from 'lucide-react';
 import {
   SupportedDbType,
@@ -29,6 +31,10 @@ import { adminService } from '@/services/adminService';
 import { Tenant } from '@/types/admin';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/services/api';
+import {
+  SessionProgressList,
+  SessionProgressItem,
+} from '@/components/team/SessionProgressList';
 
 const DB_TYPE_OPTIONS: DbTypeOption[] = [
   {
@@ -52,6 +58,7 @@ const DB_TYPE_OPTIONS: DbTypeOption[] = [
 ];
 
 export const IngestDatabaseConnection: React.FC = () => {
+  const navigate = useNavigate();
   const { user, role } = useAuth();
   const isAdmin = role === 'admin';
 
@@ -80,6 +87,13 @@ export const IngestDatabaseConnection: React.FC = () => {
   const [connections, setConnections] = useState<DbConnectionOut[]>([]);
   const [isLoadingList, setIsLoadingList] = useState<boolean>(true);
   const [syncingConnectionId, setSyncingConnectionId] = useState<number | null>(null);
+
+  // Bulk Entry Session State
+  const [sessionItems, setSessionItems] = useState<SessionProgressItem[]>([]);
+  const [inlineConfirmation, setInlineConfirmation] = useState<string | null>(null);
+
+  // Ref for tenant selector
+  const tenantSelectRef = useRef<HTMLSelectElement | null>(null);
 
   // Toast State
   const [toasts, setToasts] = useState<ToastNotification[]>([]);
@@ -162,16 +176,13 @@ export const IngestDatabaseConnection: React.FC = () => {
 
     try {
       setIsLoadingList(true);
-      // Attempt backend API with tenant_id query parameter
       try {
         const response = await api.get<DbConnectionOut[]>('/db-connections', {
           params: { tenant_id: targetTenant },
         });
         setConnections(response.data);
       } catch (apiErr: any) {
-        // Fallback to service default
         const data = await dbConnectionService.listConnections();
-        // Filter by tenant if present
         const filtered = data.filter((c) => String(c.tenant_id) === String(targetTenant));
         setConnections(filtered.length > 0 ? filtered : data);
       }
@@ -271,12 +282,15 @@ export const IngestDatabaseConnection: React.FC = () => {
     }
   };
 
-  // Save & Sync Now on behalf of tenant
+  // Save & Sync Now on behalf of tenant (Bulk Entry Flow)
   const handleSaveAndSync = async () => {
     if (!isTested) {
       addToast('warning', 'Test Required', 'You must successfully test the connection before saving.');
       return;
     }
+
+    const currentTenantName = selectedTenant?.name || `Tenant #${selectedTenantId}`;
+    const configuredDetail = `${dbType.toUpperCase()} · ${databaseName} (${tableOrQuery.trim().substring(0, 30)})`;
 
     try {
       setIsSaving(true);
@@ -294,18 +308,42 @@ export const IngestDatabaseConnection: React.FC = () => {
 
       // 1. Save connection & store secret in Databricks Secrets
       const savedConn = await dbConnectionService.saveConnection(payload as any);
-      addToast(
-        'success',
-        'Connection Saved',
-        `Configured database connector for ${selectedTenant?.name || `Tenant #${selectedTenantId}`}.`
-      );
 
-      // 2. Clear sensitive input password immediately from state
+      // 2. Show inline confirmation: "Submitted for [Tenant Name] ✓"
+      setInlineConfirmation(`Submitted for ${currentTenantName} ✓`);
+
+      // 3. Append to Session Progress list
+      const newSessionItem: SessionProgressItem = {
+        id: `conn-${savedConn.connection_id || Date.now()}`,
+        tenantName: currentTenantName,
+        tenantId: selectedTenantId,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        }),
+        status: 'Submitted ✓',
+        details: configuredDetail,
+        type: 'database',
+      };
+      setSessionItems((prev) => [newSessionItem, ...prev]);
+
+      // 4. Reset form immediately
+      setHost('');
+      setPort(DB_TYPE_OPTIONS.find((o) => o.value === dbType)?.defaultPort || 5432);
+      setDatabaseName('');
+      setUsername('');
       setPassword('');
+      setTableOrQuery('');
       setIsTested(false);
       setTestResultMessage(null);
 
-      // 3. Immediately trigger Bronze sync
+      // 5. Re-focus tenant selector, ready for next tenant
+      setTimeout(() => {
+        tenantSelectRef.current?.focus();
+      }, 100);
+
+      // 6. Immediately trigger Bronze sync in the background
       try {
         setSyncingConnectionId(savedConn.connection_id);
         const syncResp = await dbConnectionService.syncNow(savedConn.connection_id);
@@ -324,13 +362,17 @@ export const IngestDatabaseConnection: React.FC = () => {
         setSyncingConnectionId(null);
       }
 
-      // 4. Refresh connections list for tenant
+      // 7. Refresh connections list for tenant
       await loadConnections();
     } catch (err: any) {
       addToast('error', 'Save Failed', err.message || 'Could not save database connection.');
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleDoneForNow = () => {
+    navigate('/admin/uploads');
   };
 
   // Individual row Sync Now
@@ -437,16 +479,63 @@ export const IngestDatabaseConnection: React.FC = () => {
             Managed Database Connection Ingestion
           </h2>
           <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1">
-            Configure external MySQL, PostgreSQL, or SQL Server connections on behalf of customer tenants.
+            Bulk Entry Mode: Configure external MySQL, PostgreSQL, or SQL Server connections across customer tenants in succession.
             Credentials are securely stored in Databricks Secrets and synchronized to Medallion Bronze.
           </p>
         </div>
 
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark shadow-sm">
-          <ShieldCheck className="w-4 h-4 text-helios-accent-teal" />
-          <span>Role Guard: Team Member & Admin</span>
+        <div className="flex items-center gap-3">
+          {sessionItems.length > 0 && (
+            <button
+              type="button"
+              id="top-db-done-for-now-btn"
+              onClick={handleDoneForNow}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-control text-xs font-bold bg-helios-accent-blue hover:bg-blue-600 text-white shadow-sm transition-all"
+            >
+              <span>Done for now</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark shadow-sm">
+            <ShieldCheck className="w-4 h-4 text-helios-accent-teal" />
+            <span>Role Guard: Team Member & Admin</span>
+          </div>
         </div>
       </div>
+
+      {/* Inline Confirmation ("Submitted for [Tenant Name] ✓") */}
+      {inlineConfirmation && (
+        <div className="p-4 rounded-control bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-between text-xs animate-in fade-in duration-200">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+            <div>
+              <span className="font-bold text-sm">{inlineConfirmation}</span>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Database connector saved and sync initiated. The form has been reset with the tenant selector re-focused for your next entry.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleDoneForNow}
+              className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-helios-accent-blue hover:underline"
+            >
+              <span>Done for now</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setInlineConfirmation(null)}
+              className="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Tenant Selector Card */}
       <div className="p-5 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm space-y-3">
@@ -483,11 +572,13 @@ export const IngestDatabaseConnection: React.FC = () => {
             ) : (
               <select
                 id="db-tenant-selector"
+                ref={tenantSelectRef}
                 value={selectedTenantId}
                 onChange={(e) => {
                   setSelectedTenantId(e.target.value);
                   setIsTested(false);
                   setTestResultMessage(null);
+                  setInlineConfirmation(null);
                 }}
                 className="w-full text-xs font-semibold px-3.5 py-2.5 rounded-control border border-helios-border-light dark:border-helios-border-dark bg-white dark:bg-neutral-900 text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-2 focus:ring-helios-accent-blue"
               >
@@ -769,7 +860,7 @@ export const IngestDatabaseConnection: React.FC = () => {
                 type="submit"
                 id="save-sync-btn"
                 disabled={!isTested || isSaving}
-                className="flex-1 sm:flex-initial px-5 py-2.5 text-xs font-semibold rounded-control bg-helios-accent-teal text-white hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-center gap-2"
+                className="flex-1 sm:flex-initial px-5 py-2.5 text-xs font-bold rounded-control bg-helios-accent-teal text-white hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-center gap-2"
               >
                 {isSaving ? (
                   <>
@@ -778,8 +869,8 @@ export const IngestDatabaseConnection: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Save & Sync Now</span>
+                    <span>Save, Sync & Next Tenant</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </>
                 )}
               </button>
@@ -787,6 +878,16 @@ export const IngestDatabaseConnection: React.FC = () => {
           </div>
         </form>
       </div>
+
+      {/* Running Session Progress Panel */}
+      <SessionProgressList
+        items={sessionItems}
+        title="Session Progress"
+        description="Database connections configured during this active session without leaving the page"
+        onDone={handleDoneForNow}
+        doneButtonLabel="Done for now"
+        onClear={() => setSessionItems([])}
+      />
 
       {/* Previously Connected Databases Section */}
       <div className="space-y-4">

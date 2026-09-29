@@ -64,6 +64,61 @@ class SupportService:
         return SupportMessageOut.model_validate(created_raw)
 
     @classmethod
+    def flag_for_admin(
+        cls,
+        tenant_id: int,
+        from_user_id: int,
+        message: str,
+        batch_id: Optional[str],
+        repo: SupportRepository,
+    ) -> SupportMessageOut:
+        """
+        Submit a flagged escalation from a Team Member or Admin.
+        Always routes to an Admin user regardless of team_assignments.
+        Sets message_source='team_member'.
+        Triggers an operational warning notification to the recipient Admin.
+        """
+        if not message or not message.strip():
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Escalation message content cannot be empty.",
+            )
+
+        # 1. Always route to an Admin regardless of team_assignments
+        to_user_id = repo.resolve_admin_user_id()
+
+        # 2. Format message with optional batch reference if provided
+        batch_tag = f"[Batch: {batch_id.strip()}] " if batch_id and batch_id.strip() else ""
+        formatted_message = f"{batch_tag}{message.strip()}"
+
+        # 3. Persist escalation message with message_source='team_member'
+        created_raw = repo.create_message(
+            tenant_id=tenant_id,
+            from_user_id=from_user_id,
+            to_user_id=to_user_id,
+            message=formatted_message,
+            message_source="team_member",
+            batch_id=batch_id,
+        )
+
+        # 4. Trigger warning notification to the recipient Admin
+        try:
+            notification_repo = NotificationRepository(repo.cursor, catalog=repo.catalog)
+            snippet = message.strip()[:60] + ("..." if len(message.strip()) > 60 else "")
+            tenant_label = created_raw.get("tenant_name") or f"Tenant #{tenant_id}"
+            batch_desc = f" on batch {batch_id}" if batch_id else ""
+            notification_repo.create(
+                tenant_id=tenant_id,
+                user_id=to_user_id,
+                message=f"Team Member flagged issue{batch_desc} for {tenant_label}: \"{snippet}\"",
+                type="warning",
+            )
+        except Exception as exc:
+            logger.warning("Could not dispatch notification for flag escalation: %s", exc)
+
+        return SupportMessageOut.model_validate(created_raw)
+
+    @classmethod
     def get_messages(
         cls,
         user_id: int,

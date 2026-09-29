@@ -11,11 +11,16 @@ import {
   RefreshCw,
   Sparkles,
   Info,
+  X,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { adminService } from '@/services/adminService';
 import { Tenant } from '@/types/admin';
 import api from '@/services/api';
+import {
+  SessionProgressList,
+  SessionProgressItem,
+} from '@/components/team/SessionProgressList';
 
 export const IngestUpload: React.FC = () => {
   const navigate = useNavigate();
@@ -33,14 +38,17 @@ export const IngestUpload: React.FC = () => {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'analyzing' | 'ready'>('idle');
-  const [batchId, setBatchId] = useState<string | null>(null);
-  const [uploadId, setUploadId] = useState<number | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<{
     type: 'success' | 'error' | 'info';
     text: string;
   } | null>(null);
 
+  // Bulk Entry: Session Progress and inline confirmation state
+  const [sessionItems, setSessionItems] = useState<SessionProgressItem[]>([]);
+  const [inlineConfirmation, setInlineConfirmation] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const tenantSelectRef = useRef<HTMLSelectElement | null>(null);
 
   // Load tenants on mount
   useEffect(() => {
@@ -107,6 +115,7 @@ export const IngestUpload: React.FC = () => {
       setSimulatedFileName(file.name);
       setUploadStatus('analyzing');
       setFeedbackMessage(null);
+      setInlineConfirmation(null);
       setTimeout(() => {
         setUploadStatus('ready');
       }, 600);
@@ -132,6 +141,7 @@ export const IngestUpload: React.FC = () => {
       setSimulatedFileName(file.name);
       setUploadStatus('analyzing');
       setFeedbackMessage(null);
+      setInlineConfirmation(null);
       setTimeout(() => {
         setUploadStatus('ready');
       }, 600);
@@ -143,6 +153,7 @@ export const IngestUpload: React.FC = () => {
     setSimulatedFileName(sampleName);
     setUploadStatus('analyzing');
     setFeedbackMessage(null);
+    setInlineConfirmation(null);
     setTimeout(() => {
       setUploadStatus('ready');
     }, 600);
@@ -164,6 +175,9 @@ export const IngestUpload: React.FC = () => {
       });
       return;
     }
+
+    const currentTenantName = selectedTenant?.name || `Tenant #${selectedTenantId}`;
+    const fileLabel = selectedFile?.name || simulatedFileName || 'Data File';
 
     try {
       setIsSubmitting(true);
@@ -194,14 +208,39 @@ export const IngestUpload: React.FC = () => {
         }
       }
 
-      setBatchId(responseBatchId);
-      setUploadId(responseUploadId);
-      setFeedbackMessage({
-        type: 'success',
-        text: `Batch ingested successfully for ${
-          selectedTenant?.name || `Tenant #${selectedTenantId}`
-        }! Batch ID: ${responseBatchId} (Upload #${responseUploadId})`,
-      });
+      // 1. Show inline confirmation: "Submitted for [Tenant Name] ✓"
+      setInlineConfirmation(`Submitted for ${currentTenantName} ✓`);
+
+      // 2. Append to running Session Progress list
+      const newSessionItem: SessionProgressItem = {
+        id: responseBatchId,
+        tenantName: currentTenantName,
+        tenantId: selectedTenantId,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        }),
+        status: 'Submitted ✓',
+        details: fileLabel,
+        batchId: responseBatchId,
+        uploadId: responseUploadId,
+        type: 'file',
+      };
+      setSessionItems((prev) => [newSessionItem, ...prev]);
+
+      // 3. Immediately reset form
+      setSelectedFile(null);
+      setSimulatedFileName(null);
+      setUploadStatus('idle');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+
+      // 4. Re-focus tenant selector, ready for the next tenant
+      setTimeout(() => {
+        tenantSelectRef.current?.focus();
+      }, 100);
     } catch (err: any) {
       setFeedbackMessage({
         type: 'error',
@@ -210,6 +249,10 @@ export const IngestUpload: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleDoneForNow = () => {
+    navigate('/admin/uploads');
   };
 
   return (
@@ -222,16 +265,91 @@ export const IngestUpload: React.FC = () => {
             Ingest Data File on Behalf of Tenant
           </h2>
           <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1">
-            Upload CSV or Excel spreadsheets on behalf of an assigned customer tenant. Validates format,
-            stores in Unity Catalog Bronze Volume, and initiates automated schema inference.
+            Bulk Entry Mode: Upload CSV or Excel spreadsheets across multiple tenants in succession.
+            Each submission registers to the pipeline without leaving this page.
           </p>
         </div>
 
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark shadow-sm">
-          <ShieldCheck className="w-4 h-4 text-helios-accent-teal" />
-          <span>Role Guard: Team Member & Admin</span>
+        <div className="flex items-center gap-3">
+          {sessionItems.length > 0 && (
+            <button
+              type="button"
+              id="top-done-for-now-btn"
+              onClick={handleDoneForNow}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-control text-xs font-bold bg-helios-accent-blue hover:bg-blue-600 text-white shadow-sm transition-all"
+            >
+              <span>Done for now</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark shadow-sm">
+            <ShieldCheck className="w-4 h-4 text-helios-accent-teal" />
+            <span>Role Guard: Team Member & Admin</span>
+          </div>
         </div>
       </div>
+
+      {/* Inline Confirmation ("Submitted for [Tenant Name] ✓") */}
+      {inlineConfirmation && (
+        <div className="p-4 rounded-control bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-between text-xs animate-in fade-in duration-200">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+            <div>
+              <span className="font-bold text-sm">{inlineConfirmation}</span>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Batch queued for pipeline processing. The form has been reset with the tenant selector re-focused for your next entry.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleDoneForNow}
+              className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-helios-accent-blue hover:underline"
+            >
+              <span>Done for now</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setInlineConfirmation(null)}
+              className="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Error / Warning Feedback Banner */}
+      {feedbackMessage && (
+        <div
+          className={`p-4 rounded-control text-xs flex items-center justify-between border ${
+            feedbackMessage.type === 'error'
+              ? 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
+              : 'bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400'
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            {feedbackMessage.type === 'error' ? (
+              <AlertCircle className="w-5 h-5 shrink-0" />
+            ) : (
+              <Info className="w-5 h-5 shrink-0" />
+            )}
+            <span className="font-medium">{feedbackMessage.text}</span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setFeedbackMessage(null)}
+            className="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Tenant Selector Card */}
       <div className="p-5 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm space-y-3">
@@ -268,11 +386,12 @@ export const IngestUpload: React.FC = () => {
             ) : (
               <select
                 id="tenant-selector"
+                ref={tenantSelectRef}
                 value={selectedTenantId}
                 onChange={(e) => {
                   setSelectedTenantId(e.target.value);
-                  setBatchId(null);
                   setFeedbackMessage(null);
+                  setInlineConfirmation(null);
                 }}
                 className="w-full text-xs font-semibold px-3.5 py-2.5 rounded-control border border-helios-border-light dark:border-helios-border-dark bg-white dark:bg-neutral-900 text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-2 focus:ring-helios-accent-blue"
               >
@@ -300,48 +419,6 @@ export const IngestUpload: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Feedback Banner */}
-      {feedbackMessage && (
-        <div
-          className={`p-4 rounded-control text-xs flex items-center justify-between border ${
-            feedbackMessage.type === 'success'
-              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
-              : feedbackMessage.type === 'error'
-              ? 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
-              : 'bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400'
-          }`}
-        >
-          <div className="flex items-center gap-2.5">
-            {feedbackMessage.type === 'success' ? (
-              <CheckCircle2 className="w-5 h-5 shrink-0" />
-            ) : feedbackMessage.type === 'error' ? (
-              <AlertCircle className="w-5 h-5 shrink-0" />
-            ) : (
-              <Info className="w-5 h-5 shrink-0" />
-            )}
-            <span className="font-medium">{feedbackMessage.text}</span>
-          </div>
-
-          {batchId && (
-            <div className="flex items-center gap-3 shrink-0 ml-3">
-              {uploadId && (
-                <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
-                  ID: #{uploadId}
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={() => navigate('/admin/uploads')}
-                className="inline-flex items-center gap-1 text-xs font-bold underline hover:opacity-80 shrink-0"
-              >
-                <span>View in Approvals</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Upload Drag & Drop Box */}
       <div
@@ -508,7 +585,7 @@ export const IngestUpload: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <span>Submit to Pipeline Queue</span>
+                  <span>Submit & Prepare Next Tenant</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </>
               )}
@@ -516,6 +593,16 @@ export const IngestUpload: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Running Session Progress Panel */}
+      <SessionProgressList
+        items={sessionItems}
+        title="Session Progress"
+        description="Tenants submitted during this active session without leaving the page"
+        onDone={handleDoneForNow}
+        doneButtonLabel="Done for now"
+        onClear={() => setSessionItems([])}
+      />
     </div>
   );
 };
