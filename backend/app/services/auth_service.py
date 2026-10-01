@@ -1,9 +1,12 @@
+import logging
 from typing import Any, Dict, Optional
 from fastapi import HTTPException, status
 from databricks.sql.client import Cursor
 from app.core import security
 from app.repositories.user_repository import UserRepository
 from app.schemas.auth import TokenResponse, UserOut
+
+logger = logging.getLogger(__name__)
 
 
 class AuthService:
@@ -36,25 +39,106 @@ class AuthService:
         """
         Authenticate user credentials against Databricks platform.users table.
         
-        Raises HTTP 401 if user does not exist, password does not match, or account is disabled.
+        Handles distinct failure outcomes with structured logging:
+          1. Database/connection error -> HTTP 503 (Service Unavailable)
+          2. User not found -> HTTP 401 (Invalid email or password)
+          3. Password mismatch -> HTTP 401 (Invalid email or password)
+          4. User deactivated -> HTTP 401 (Account deactivated)
         """
+        clean_email = email.strip().lower()
         repo = UserRepository(cursor)
-        user = repo.get_by_email(email)
 
-        if not user or not cls.verify_password(password, str(user.get("password_hash", ""))):
+        try:
+            user = repo.get_by_email(clean_email)
+        except Exception as exc:
+            # Outcome: Database / Connection Error (e.g. warehouse cold start / wake-up timeout)
+            logger.error(
+                "Login failure: database/connection error while retrieving user record [email=%s]: %s",
+                clean_email,
+                exc,
+                exc_info=True,
+                extra={
+                    "event": "auth_login_error",
+                    "outcome": "database_connection_error",
+                    "email": clean_email,
+                    "error": str(exc),
+                },
+            )
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Service temporarily unavailable, please try again.",
+            )
+
+        # Outcome: User Not Found
+        if not user:
+            logger.warning(
+                "Login failure: user record not found in platform.users [email=%s]",
+                clean_email,
+                extra={
+                    "event": "auth_login_failure",
+                    "outcome": "user_not_found",
+                    "email": clean_email,
+                },
+            )
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email or password.",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
+        # Outcome: Password Mismatch (Verification is NOT retried)
+        stored_hash = str(user.get("password_hash", ""))
+        if not cls.verify_password(password, stored_hash):
+            logger.warning(
+                "Login failure: password mismatch for user [email=%s, user_id=%s]",
+                clean_email,
+                user.get("user_id"),
+                extra={
+                    "event": "auth_login_failure",
+                    "outcome": "password_mismatch",
+                    "email": clean_email,
+                    "user_id": user.get("user_id"),
+                },
+            )
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid email or password.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        # Outcome: Account Deactivated
         if not user.get("is_active", True):
+            logger.warning(
+                "Login failure: user account is deactivated [email=%s, user_id=%s]",
+                clean_email,
+                user.get("user_id"),
+                extra={
+                    "event": "auth_login_failure",
+                    "outcome": "account_deactivated",
+                    "email": clean_email,
+                    "user_id": user.get("user_id"),
+                },
+            )
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="User account has been deactivated. Contact your administrator.",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
+        # Outcome: Successful Authentication
+        logger.info(
+            "Login success: user authenticated successfully [email=%s, user_id=%s, role=%s]",
+            clean_email,
+            user.get("user_id"),
+            user.get("role"),
+            extra={
+                "event": "auth_login_success",
+                "outcome": "login_success",
+                "email": clean_email,
+                "user_id": user.get("user_id"),
+                "role": user.get("role"),
+            },
+        )
         return user
 
     @classmethod

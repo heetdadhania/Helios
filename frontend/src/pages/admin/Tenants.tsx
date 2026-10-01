@@ -368,11 +368,11 @@ export const Tenants: React.FC = () => {
                 <select
                   value={tier}
                   onChange={(e) => setTier(e.target.value as any)}
-                  className="w-full px-3 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+                  className="w-full px-3 py-2 rounded-xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
                 >
-                  <option value="Starter">Starter (Shared Compute)</option>
-                  <option value="Growth">Growth (Dedicated Lakehouse)</option>
-                  <option value="Enterprise">Enterprise (High-Concurrency Cluster)</option>
+                  <option value="Starter" className="bg-helios-card-light dark:bg-helios-card-dark text-helios-text-primary-light dark:text-helios-text-primary-dark">Starter (Shared Compute)</option>
+                  <option value="Growth" className="bg-helios-card-light dark:bg-helios-card-dark text-helios-text-primary-light dark:text-helios-text-primary-dark">Growth (Dedicated Lakehouse)</option>
+                  <option value="Enterprise" className="bg-helios-card-light dark:bg-helios-card-dark text-helios-text-primary-light dark:text-helios-text-primary-dark">Enterprise (High-Concurrency Cluster)</option>
                 </select>
               </div>
 

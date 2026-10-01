@@ -4,8 +4,6 @@ import {
   Filter,
   RefreshCw,
   AlertCircle,
-  CheckCircle2,
-  Clock,
   ChevronDown,
   ChevronUp,
   Inbox,
@@ -16,6 +14,7 @@ import {
 } from 'lucide-react';
 import { historyService } from '@/services/historyService';
 import { AdminHistoryItem } from '@/types/history';
+import { StageStatusBadge } from '@/components/admin/StageStatusBadge';
 
 export const AdminHistory: React.FC = () => {
   const [history, setHistory] = useState<AdminHistoryItem[]>([]);
@@ -36,7 +35,7 @@ export const AdminHistory: React.FC = () => {
       });
       setHistory(data);
     } catch (err: any) {
-      setError(err?.message || 'Failed to load system-wide submission history.');
+      setError(err?.message || 'Failed to load global submission audit log.');
     } finally {
       setLoading(false);
     }
@@ -63,40 +62,6 @@ export const AdminHistory: React.FC = () => {
     });
   };
 
-  const renderStatusBadge = (statusStr: string) => {
-    const s = statusStr.toLowerCase();
-    if (s === 'success' || s === 'completed') {
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-          <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-          Success
-        </span>
-      );
-    }
-    if (s === 'failed' || s === 'error') {
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
-          <AlertCircle className="w-3 h-3 text-rose-600 dark:text-rose-400" />
-          Failed
-        </span>
-      );
-    }
-    if (s === 'awaiting_confirmation') {
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-300 dark:border-purple-800">
-          <Clock className="w-3 h-3 text-purple-600 dark:text-purple-400" />
-          Awaiting Review
-        </span>
-      );
-    }
-    return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300 border border-blue-300 dark:border-blue-800">
-        <Clock className="w-3 h-3 text-blue-600 dark:text-blue-400 animate-spin" />
-        {statusStr}
-      </span>
-    );
-  };
-
   const renderSourceIcon = (sourceType: string) => {
     switch (sourceType?.toLowerCase()) {
       case 'db_connection':
@@ -104,7 +69,7 @@ export const AdminHistory: React.FC = () => {
       case 'api_push':
         return <Key className="w-4 h-4 text-amber-500" />;
       default:
-        return <UploadCloud className="w-4 h-4 text-blue-500" />;
+        return <UploadCloud className="w-4 h-4 text-helios-accent-blue" />;
     }
   };
 
@@ -113,43 +78,48 @@ export const AdminHistory: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">System Submission History</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-helios-text-primary-light dark:text-helios-text-primary-dark">
+            System Submission History
+          </h1>
+          <p className="text-xs sm:text-sm text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1">
             Global audit log of all data transmissions and pipeline executions across all tenants.
           </p>
         </div>
         <button
+          type="button"
           onClick={fetchHistory}
           disabled={loading}
-          className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-750 transition"
+          className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-50 self-start sm:self-auto shadow-xs"
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-helios-accent-blue' : ''}`} />
+          <span>Refresh</span>
         </button>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="bg-white dark:bg-gray-850 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col md:flex-row gap-4 justify-between items-center">
+      <div className="bg-helios-card-light dark:bg-helios-card-dark p-4 rounded-xl shadow-sm border border-helios-border-light dark:border-helios-border-dark flex flex-col md:flex-row gap-4 justify-between items-center">
         <form onSubmit={handleSearchSubmit} className="relative w-full md:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             placeholder="Search tenant name or ID..."
             value={tenantFilter}
             onChange={(e) => setTenantFilter(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-9 pr-4 py-2 text-xs rounded-lg border border-helios-border-light dark:border-helios-border-dark bg-helios-bg-light dark:bg-helios-bg-dark text-helios-text-primary-light dark:text-helios-text-primary-dark placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
           />
         </form>
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-400" />
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Status:</span>
+            <Filter className="w-4 h-4 text-slate-400" />
+            <span className="text-xs font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark uppercase tracking-wider">
+              Status:
+            </span>
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-1.5 text-xs rounded-lg border border-helios-border-light dark:border-helios-border-dark bg-helios-bg-light dark:bg-helios-bg-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
           >
             <option value="all">All Statuses</option>
             <option value="success">Success</option>
@@ -164,31 +134,19 @@ export const AdminHistory: React.FC = () => {
 
       {/* Error alert */}
       {error && (
-        <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 text-sm">
-          {error}
+        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs sm:text-sm flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
+          <span>{error}</span>
         </div>
       )}
 
-      {/* Table */}
-      <div className="bg-white dark:bg-gray-850 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
+      {/* Table Container */}
+      <div className="bg-helios-card-light dark:bg-helios-card-dark rounded-xl shadow-sm border border-helios-border-light dark:border-helios-border-dark overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-gray-500 dark:text-gray-400">
-            <RefreshCw className="w-6 h-6 mx-auto animate-spin mb-3 text-blue-600" />
-            Loading global submission audit...
-          </div>
-        ) : history.length === 0 ? (
-          <div className="p-16 text-center">
-            <Inbox className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" />
-            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">No submissions yet</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Global tenant data submissions will appear here.
-            </p>
-          </div>
-        ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[920px]">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold">
+                <tr className="border-b border-helios-border-light dark:border-helios-border-dark bg-black/[0.02] dark:bg-white/[0.02] text-xs uppercase tracking-wider text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-semibold">
                   <th className="py-3.5 px-6">Tenant</th>
                   <th className="py-3.5 px-6">Source</th>
                   <th className="py-3.5 px-6">Stage</th>
@@ -198,7 +156,63 @@ export const AdminHistory: React.FC = () => {
                   <th className="py-3.5 px-6 text-right">Details</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-sm">
+              <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td className="py-4 px-6">
+                      <div className="h-4 w-32 bg-slate-200 dark:bg-slate-800 rounded mb-1" />
+                      <div className="h-3 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="h-4 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="h-6 w-28 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="h-6 w-20 bg-slate-200 dark:bg-slate-800 rounded-md" />
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="h-4 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+                    </td>
+                    <td className="py-4 px-6 text-right">
+                      <div className="h-4 w-16 bg-slate-200 dark:bg-slate-800 rounded ml-auto" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : history.length === 0 ? (
+          <div className="p-16 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-black/5 dark:bg-white/5 flex items-center justify-center mx-auto mb-3 text-slate-400">
+              <Inbox className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark">
+              No submissions yet
+            </h3>
+            <p className="text-sm text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1 max-w-sm mx-auto">
+              Global tenant data submissions will appear here.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[920px]">
+              <thead>
+                <tr className="border-b border-helios-border-light dark:border-helios-border-dark bg-black/[0.02] dark:bg-white/[0.02] text-xs uppercase tracking-wider text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-semibold">
+                  <th className="py-3.5 px-6">Tenant</th>
+                  <th className="py-3.5 px-6">Source</th>
+                  <th className="py-3.5 px-6">Stage</th>
+                  <th className="py-3.5 px-6">Status</th>
+                  <th className="py-3.5 px-6">Handled By</th>
+                  <th className="py-3.5 px-6">Timestamp</th>
+                  <th className="py-3.5 px-6 text-right">Details</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark text-sm">
                 {history.map((item) => {
                   const isExpanded = expandedRows.has(item.batch_id);
                   const hasError = Boolean(item.error_message);
@@ -208,39 +222,43 @@ export const AdminHistory: React.FC = () => {
                       <tr
                         onClick={() => hasError && toggleExpand(item.batch_id)}
                         className={`transition-colors ${
-                          hasError ? 'cursor-pointer hover:bg-gray-50/70 dark:hover:bg-gray-800/50' : ''
+                          hasError
+                            ? 'cursor-pointer hover:bg-black/[0.02] dark:hover:bg-white/[0.02]'
+                            : 'hover:bg-black/[0.01] dark:hover:bg-white/[0.01]'
                         }`}
                       >
-                        <td className="py-4 px-6 font-medium text-gray-900 dark:text-gray-100">
+                        <td className="py-4 px-6 font-medium text-helios-text-primary-light dark:text-helios-text-primary-dark">
                           <div>{item.tenant}</div>
-                          <div className="text-xs text-gray-400 font-normal">Tenant #{item.tenant_id}</div>
-                        </td>
-                        <td className="py-4 px-6 text-gray-600 dark:text-gray-300">
-                          <div className="inline-flex items-center gap-1.5 capitalize">
-                            {renderSourceIcon(item.source_type)}
-                            <span>{item.source_type?.replace('_', ' ')}</span>
+                          <div className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-normal">
+                            Tenant #{item.tenant_id}
                           </div>
                         </td>
-                        <td className="py-4 px-6 text-gray-600 dark:text-gray-300 font-mono text-xs">
+                        <td className="py-4 px-6 text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
+                          <div className="inline-flex items-center gap-1.5 capitalize text-xs">
+                            {renderSourceIcon(item.source_type)}
+                            <span>{item.source_type?.replace(/_/g, ' ')}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6 text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-mono text-xs">
                           {item.stage || '—'}
                         </td>
                         <td className="py-4 px-6">
-                          {renderStatusBadge(item.status)}
+                          <StageStatusBadge stage={item.stage} status={item.status} />
                         </td>
                         <td className="py-4 px-6">
                           {item.handled_by && item.handled_by !== 'N/A' ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-900/60">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                               <UserCheck className="w-3.5 h-3.5 text-blue-500" />
                               {item.handled_by}
                             </span>
                           ) : (
-                            <span className="text-xs text-gray-400">N/A</span>
+                            <span className="text-xs text-slate-400">N/A</span>
                           )}
                         </td>
-                        <td className="py-4 px-6 text-gray-500 dark:text-gray-400 text-xs">
+                        <td className="py-4 px-6 text-helios-text-secondary-light dark:text-helios-text-secondary-dark text-xs whitespace-nowrap">
                           {new Date(item.timestamp).toLocaleString()}
                         </td>
-                        <td className="py-4 px-6 text-right">
+                        <td className="py-4 px-6 text-right whitespace-nowrap">
                           {hasError ? (
                             <button
                               type="button"
@@ -248,27 +266,27 @@ export const AdminHistory: React.FC = () => {
                                 e.stopPropagation();
                                 toggleExpand(item.batch_id);
                               }}
-                              className="inline-flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400 hover:underline font-medium"
+                              className="inline-flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400 hover:underline font-semibold"
                             >
                               <span>Error Detail</span>
                               {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                             </button>
                           ) : (
-                            <span className="text-xs text-gray-400">—</span>
+                            <span className="text-xs text-slate-400">—</span>
                           )}
                         </td>
                       </tr>
 
                       {/* Expandable Error Detail Row */}
                       {isExpanded && hasError && (
-                        <tr className="bg-rose-50/40 dark:bg-rose-950/20 border-b border-rose-100 dark:border-rose-900/40">
+                        <tr className="bg-rose-500/[0.03] dark:bg-rose-950/20 border-b border-rose-500/20">
                           <td colSpan={7} className="p-4 px-6">
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2 text-rose-700 dark:text-rose-300 font-semibold text-xs uppercase tracking-wider">
+                            <div className="space-y-1.5">
+                              <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-semibold text-xs uppercase tracking-wider">
                                 <AlertCircle className="w-4 h-4 text-rose-500" />
-                                Failure Diagnostics & Error Stack
+                                Failure Diagnostics & Error Trace
                               </div>
-                              <pre className="mt-2 p-3 bg-white dark:bg-gray-900 border border-rose-200 dark:border-rose-900/60 rounded-lg text-xs font-mono text-rose-800 dark:text-rose-300 whitespace-pre-wrap break-all overflow-x-auto">
+                              <pre className="mt-2 p-3 bg-helios-card-light dark:bg-neutral-900 border border-rose-500/20 rounded-lg text-xs font-mono text-rose-700 dark:text-rose-300 whitespace-pre-wrap break-all overflow-x-auto leading-relaxed">
                                 {item.error_message}
                               </pre>
                             </div>

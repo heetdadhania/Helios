@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    color-scheme: light;
     --bg-primary: #FAFAFA;
     --sidebar-bg: #FFFFFF;
     --card-bg: #FFFFFF;
@@ -13,6 +14,7 @@
   }
 
   .dark {
+    color-scheme: dark;
     --bg-primary: #0A0A0A;
     --sidebar-bg: #111111;
     --card-bg: #161616;
@@ -23,6 +25,7 @@
 
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    @apply bg-helios-bg-light text-helios-text-primary-light dark:bg-helios-bg-dark dark:text-helios-text-primary-dark;
   }
 }
 

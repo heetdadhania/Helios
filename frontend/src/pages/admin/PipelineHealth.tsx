@@ -837,7 +837,7 @@ export const PipelineHealth: React.FC = () => {
                   type="date"
                   value={exportStartDate}
                   onChange={(e) => setExportStartDate(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+                  className="w-full px-3 py-2 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark [color-scheme:light] dark:[color-scheme:dark] focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
                 />
               </div>
 
@@ -849,7 +849,7 @@ export const PipelineHealth: React.FC = () => {
                   type="date"
                   value={exportEndDate}
                   onChange={(e) => setExportEndDate(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+                  className="w-full px-3 py-2 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark [color-scheme:light] dark:[color-scheme:dark] focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
                 />
               </div>
 

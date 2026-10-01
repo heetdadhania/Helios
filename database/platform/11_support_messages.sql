@@ -2,10 +2,10 @@
 -- Helios Platform Layer: Support Messages & Update Requests
 -- =====================================================================
 
-USE CATALOG helios;
+USE CATALOG helios_catalog;
 USE SCHEMA platform;
 
-CREATE TABLE IF NOT EXISTS helios.platform.support_messages (
+CREATE TABLE IF NOT EXISTS helios_catalog.platform.support_messages (
   message_id BIGINT GENERATED ALWAYS AS IDENTITY,
   tenant_id BIGINT NOT NULL COMMENT 'Foreign key to platform.tenants representing the tenant context',
   from_user_id BIGINT NOT NULL COMMENT 'Foreign key to platform.users for the sender (SMB Owner)',

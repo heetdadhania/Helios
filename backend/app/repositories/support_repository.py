@@ -200,7 +200,7 @@ class SupportRepository:
         params: Dict[str, Any] = {}
 
         if not is_admin:
-            where_clauses.append("sm.to_user_id = :user_id")
+            where_clauses.append("(sm.to_user_id = :user_id OR (sm.from_user_id = :user_id AND sm.message_source = 'team_member'))")
             params["user_id"] = user_id
 
         if status_filter and status_filter.strip().lower() != "all":

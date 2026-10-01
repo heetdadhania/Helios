@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Clock, CheckCircle2, AlertTriangle, RefreshCw, Inbox } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, RefreshCw, Inbox, Loader2 } from 'lucide-react';
 import { historyService } from '@/services/historyService';
 import { SmbHistoryItem } from '@/types/history';
 
@@ -26,29 +26,29 @@ export const SubmissionHistory: React.FC = () => {
   }, []);
 
   const renderStatusBadge = (status: string) => {
-    switch (status) {
-      case 'Ready':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            Ready
-          </span>
-        );
-      case 'Needs attention — please resend':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-            Needs attention — please resend
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300 border border-blue-300 dark:border-blue-800">
-            <Clock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 animate-spin" />
-            Processing
-          </span>
-        );
+    const s = (status || '').toLowerCase();
+    if (s === 'ready' || s === 'completed' || s === 'success') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+          <span>Ready</span>
+        </span>
+      );
     }
+    if (s.includes('attention') || s.includes('resend') || s === 'failed' || s === 'error') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+          <AlertTriangle className="w-3.5 h-3.5 text-rose-500 flex-shrink-0" />
+          <span>Needs attention — please resend</span>
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+        <Loader2 className="w-3.5 h-3.5 text-blue-500 animate-spin flex-shrink-0" />
+        <span>Processing</span>
+      </span>
+    );
   };
 
   return (
@@ -56,66 +56,96 @@ export const SubmissionHistory: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Submission History</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-helios-text-primary-light dark:text-helios-text-primary-dark">
+            Submission History
+          </h1>
+          <p className="text-xs sm:text-sm text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1">
             Track the status of your data submissions and processing readiness.
           </p>
         </div>
         <button
+          type="button"
           onClick={fetchHistory}
           disabled={loading}
-          className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-750 transition"
+          className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-50 self-start sm:self-auto shadow-xs"
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-helios-accent-blue' : ''}`} />
+          <span>Refresh</span>
         </button>
       </div>
 
       {/* Error alert */}
       {error && (
-        <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 text-sm">
-          {error}
+        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs sm:text-sm flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500" />
+          <span>{error}</span>
         </div>
       )}
 
-      {/* Content */}
-      <div className="bg-white dark:bg-gray-850 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
+      {/* Content Container */}
+      <div className="bg-helios-card-light dark:bg-helios-card-dark rounded-xl shadow-sm border border-helios-border-light dark:border-helios-border-dark overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-gray-500 dark:text-gray-400">
-            <RefreshCw className="w-6 h-6 mx-auto animate-spin mb-3 text-blue-600" />
-            Loading submissions...
-          </div>
-        ) : history.length === 0 ? (
-          <div className="p-16 text-center">
-            <Inbox className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" />
-            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">No submissions yet</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Your ingested files and data transmissions will appear here once submitted.
-            </p>
-          </div>
-        ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[560px]">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold">
+                <tr className="border-b border-helios-border-light dark:border-helios-border-dark bg-black/[0.02] dark:bg-white/[0.02] text-xs uppercase tracking-wider text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-semibold">
                   <th className="py-3.5 px-6">Submission Date</th>
                   <th className="py-3.5 px-6">Event</th>
                   <th className="py-3.5 px-6 text-right">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-sm">
+              <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark">
+                {[1, 2, 3, 4].map((i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td className="py-4 px-6">
+                      <div className="h-4 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="h-4 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="h-6 w-24 bg-slate-200 dark:bg-slate-800 rounded-full ml-auto" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : history.length === 0 ? (
+          <div className="p-16 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-black/5 dark:bg-white/5 flex items-center justify-center mx-auto mb-3 text-slate-400">
+              <Inbox className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark">
+              No submissions yet
+            </h3>
+            <p className="text-sm text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1 max-w-sm mx-auto">
+              Your ingested files and data transmissions will appear here once submitted.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[560px]">
+              <thead>
+                <tr className="border-b border-helios-border-light dark:border-helios-border-dark bg-black/[0.02] dark:bg-white/[0.02] text-xs uppercase tracking-wider text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-semibold">
+                  <th className="py-3.5 px-6">Submission Date</th>
+                  <th className="py-3.5 px-6">Event</th>
+                  <th className="py-3.5 px-6 text-right">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark text-sm">
                 {history.map((item) => (
                   <tr
                     key={item.batch_id}
-                    className="hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors"
+                    className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
                   >
-                    <td className="py-4 px-6 text-gray-900 dark:text-gray-100 font-medium">
+                    <td className="py-4 px-6 text-helios-text-primary-light dark:text-helios-text-primary-dark font-medium whitespace-nowrap">
                       {item.date || '—'}
                     </td>
-                    <td className="py-4 px-6 text-gray-600 dark:text-gray-300">
+                    <td className="py-4 px-6 text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
                       {item.label || 'Data received'}
                     </td>
-                    <td className="py-4 px-6 text-right">
+                    <td className="py-4 px-6 text-right whitespace-nowrap">
                       {renderStatusBadge(item.status)}
                     </td>
                   </tr>

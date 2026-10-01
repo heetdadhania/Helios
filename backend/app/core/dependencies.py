@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Callable, Dict, Generator, Optional, Sequence
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -14,12 +15,21 @@ from app.db.base import get_databricks_connection
 from app.repositories.user_repository import UserRepository
 from app.schemas.auth import UserOut, UserRole
 
+logger = logging.getLogger(__name__)
+
 security_bearer = HTTPBearer(auto_error=False)
 
 
 def get_db_connection() -> Generator[Connection, None, None]:
     """Yield a Databricks SQL connection for request lifecycle and ensure cleanup."""
-    conn = get_databricks_connection()
+    try:
+        conn = get_databricks_connection()
+    except Exception as exc:
+        logger.error("Failed to establish Databricks SQL connection for request: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Service temporarily unavailable, please try again.",
+        )
     try:
         yield conn
     finally:

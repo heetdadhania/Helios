@@ -240,9 +240,12 @@ export const UsageDashboard: React.FC = () => {
                     contentStyle={{
                       backgroundColor: tooltipBg,
                       borderColor: tooltipBorder,
+                      color: isDark ? '#F5F5F5' : '#111827',
                       borderRadius: '0.75rem',
                       fontSize: '12px',
                     }}
+                    itemStyle={{ color: isDark ? '#F5F5F5' : '#111827' }}
+                    labelStyle={{ color: isDark ? '#A3A3A3' : '#6B7280' }}
                   />
                   <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
                   <Area
@@ -320,9 +323,12 @@ export const UsageDashboard: React.FC = () => {
                     contentStyle={{
                       backgroundColor: tooltipBg,
                       borderColor: tooltipBorder,
+                      color: isDark ? '#F5F5F5' : '#111827',
                       borderRadius: '0.75rem',
                       fontSize: '12px',
                     }}
+                    itemStyle={{ color: isDark ? '#F5F5F5' : '#111827' }}
+                    labelStyle={{ color: isDark ? '#A3A3A3' : '#6B7280' }}
                     formatter={(val: number) => [`${val.toLocaleString()} rows`, 'Rows Ingested']}
                   />
                   <Area
@@ -381,9 +387,12 @@ export const UsageDashboard: React.FC = () => {
                   contentStyle={{
                     backgroundColor: tooltipBg,
                     borderColor: tooltipBorder,
+                    color: isDark ? '#F5F5F5' : '#111827',
                     borderRadius: '0.75rem',
                     fontSize: '12px',
                   }}
+                  itemStyle={{ color: isDark ? '#F5F5F5' : '#111827' }}
+                  labelStyle={{ color: isDark ? '#A3A3A3' : '#6B7280' }}
                   formatter={(val: number) => [`${val} batches`, 'Total Batches']}
                 />
                 <Bar dataKey="batch_count" name="Batches" fill="#8B5CF6" radius={[6, 6, 0, 0]} />
@@ -432,7 +441,7 @@ export const UsageDashboard: React.FC = () => {
                   type="date"
                   value={exportStartDate}
                   onChange={(e) => setExportStartDate(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+                  className="w-full px-3 py-2 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark [color-scheme:light] dark:[color-scheme:dark] focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
                 />
               </div>
 
@@ -444,7 +453,7 @@ export const UsageDashboard: React.FC = () => {
                   type="date"
                   value={exportEndDate}
                   onChange={(e) => setExportEndDate(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+                  className="w-full px-3 py-2 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark [color-scheme:light] dark:[color-scheme:dark] focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
                 />
               </div>
 

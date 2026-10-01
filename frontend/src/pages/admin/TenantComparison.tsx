@@ -286,10 +286,13 @@ export const TenantComparison: React.FC = () => {
                       contentStyle={{
                         backgroundColor: tooltipBg,
                         borderColor: tooltipBorder,
+                        color: isDark ? '#F5F5F5' : '#111827',
                         borderRadius: '0.75rem',
                         fontSize: '12px',
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                       }}
+                      itemStyle={{ color: isDark ? '#F5F5F5' : '#111827' }}
+                      labelStyle={{ color: isDark ? '#A3A3A3' : '#6B7280' }}
                       formatter={(val: number) => [`$${val.toLocaleString()}`, 'Total Revenue']}
                     />
                     <Bar dataKey="total_revenue" radius={[6, 6, 0, 0]}>
@@ -341,10 +344,13 @@ export const TenantComparison: React.FC = () => {
                       contentStyle={{
                         backgroundColor: tooltipBg,
                         borderColor: tooltipBorder,
+                        color: isDark ? '#F5F5F5' : '#111827',
                         borderRadius: '0.75rem',
                         fontSize: '12px',
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                       }}
+                      itemStyle={{ color: isDark ? '#F5F5F5' : '#111827' }}
+                      labelStyle={{ color: isDark ? '#A3A3A3' : '#6B7280' }}
                       formatter={(val: number) => [`${val.toFixed(1)}%`, 'Late Delivery Rate']}
                     />
                     <Bar dataKey="late_delivery_pct" radius={[6, 6, 0, 0]}>

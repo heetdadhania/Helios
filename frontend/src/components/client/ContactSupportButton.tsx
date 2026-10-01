@@ -97,7 +97,7 @@ export const ContactSupportButton: React.FC<ContactSupportButtonProps> = ({
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
           <div
-            className="w-full max-w-lg bg-white dark:bg-gray-850 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+            className="w-full max-w-lg bg-helios-card-light dark:bg-helios-card-dark rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
             role="dialog"
             aria-modal="true"
           >

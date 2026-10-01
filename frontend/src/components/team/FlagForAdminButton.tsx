@@ -258,8 +258,8 @@ export const FlagForAdminButton: React.FC<FlagForAdminButtonProps> = ({
 
       {/* Confirmation Toast */}
       {toast.show && (
-        <div className="fixed bottom-6 right-6 z-50 p-4 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl border border-slate-700 dark:border-slate-200 flex items-center gap-2.5 text-xs font-semibold animate-in fade-in slide-in-from-bottom-2 duration-200">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 dark:text-emerald-600 shrink-0" />
+        <div className="fixed bottom-6 right-6 z-50 p-4 rounded-xl bg-slate-900 dark:bg-neutral-800 text-white shadow-xl border border-slate-700 dark:border-neutral-700 flex items-center gap-2.5 text-xs font-semibold animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 dark:text-emerald-400 shrink-0" />
           <span>{toast.text}</span>
         </div>
       )}
