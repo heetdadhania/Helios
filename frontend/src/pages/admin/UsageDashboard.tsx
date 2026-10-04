@@ -10,6 +10,7 @@ import {
   TrendingUp,
   Users,
   AlertCircle,
+  BarChart2,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -26,6 +27,30 @@ import {
 import { oversightService } from '@/services/oversightService';
 import { PlatformUsageResponse } from '@/types/oversight';
 import { useTheme } from '@/hooks/useTheme';
+
+interface EmptyChartStateProps {
+  title?: string;
+  description: string;
+  icon?: React.ReactNode;
+}
+
+const EmptyChartState: React.FC<EmptyChartStateProps> = ({
+  title = 'Not enough activity yet to show usage trends',
+  description,
+  icon,
+}) => (
+  <div className="h-full w-full flex flex-col items-center justify-center p-6 text-center rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-dashed border-slate-200 dark:border-slate-700/60">
+    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 dark:text-slate-500 mb-2.5 shadow-sm">
+      {icon || <BarChart2 className="w-5 h-5" />}
+    </div>
+    <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+      {title}
+    </p>
+    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 max-w-xs">
+      {description}
+    </p>
+  </div>
+);
 
 export const UsageDashboard: React.FC = () => {
   const { theme } = useTheme();
@@ -208,9 +233,11 @@ export const UsageDashboard: React.FC = () => {
                 Loading pipeline history...
               </div>
             ) : (usage?.pipeline_runs_per_day || []).length === 0 ? (
-              <div className="h-full flex items-center justify-center text-xs text-slate-400">
-                No pipeline runs recorded in telemetry yet.
-              </div>
+              <EmptyChartState
+                title="Not enough activity yet to show usage trends"
+                description="Daily execution volume and success rates will appear here as pipeline runs occur."
+                icon={<Activity className="w-5 h-5 text-helios-accent-blue" />}
+              />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
@@ -256,6 +283,8 @@ export const UsageDashboard: React.FC = () => {
                     strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#colorSuccess)"
+                    dot={{ r: 3, strokeWidth: 1 }}
+                    activeDot={{ r: 5 }}
                   />
                   <Area
                     type="monotone"
@@ -265,6 +294,8 @@ export const UsageDashboard: React.FC = () => {
                     strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#colorFailed)"
+                    dot={{ r: 3, strokeWidth: 1 }}
+                    activeDot={{ r: 5 }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -290,9 +321,11 @@ export const UsageDashboard: React.FC = () => {
                 Loading ingestion history...
               </div>
             ) : (usage?.total_rows_ingested_over_time || []).length === 0 ? (
-              <div className="h-full flex items-center justify-center text-xs text-slate-400">
-                No row ingestion history recorded yet.
-              </div>
+              <EmptyChartState
+                title="Not enough activity yet to show usage trends"
+                description="Bronze stage row volume will populate here as data files are uploaded and ingested."
+                icon={<Database className="w-5 h-5 text-emerald-500" />}
+              />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
@@ -339,6 +372,8 @@ export const UsageDashboard: React.FC = () => {
                     strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#colorRows)"
+                    dot={{ r: 3, strokeWidth: 1 }}
+                    activeDot={{ r: 5 }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -365,9 +400,11 @@ export const UsageDashboard: React.FC = () => {
               Loading tenant batch distribution...
             </div>
           ) : (usage?.batches_per_tenant || []).length === 0 ? (
-            <div className="h-full flex items-center justify-center text-xs text-slate-400">
-              No batches recorded for any tenant.
-            </div>
+            <EmptyChartState
+              title="Not enough activity yet to show usage trends"
+              description="Ingestion batches per tenant will appear here once organizations begin uploading telemetry."
+              icon={<Layers className="w-5 h-5 text-purple-500" />}
+            />
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart

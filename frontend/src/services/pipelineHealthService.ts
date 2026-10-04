@@ -178,7 +178,14 @@ export const pipelineHealthService = {
     } catch (error: any) {
       if (!error.response || error.code === 'ERR_NETWORK') {
         if (status && status !== 'all') {
-          return mockRuns.filter((r) => r.status.toLowerCase() === status.toLowerCase());
+          const s = status.toLowerCase();
+          return mockRuns.filter((r) => {
+            const norm = r.status.toLowerCase();
+            if (s === 'running' || s === 'in_progress' || s === 'processing') {
+              return norm.includes('running') || norm === 'processing';
+            }
+            return norm === s;
+          });
         }
         return mockRuns;
       }

@@ -256,15 +256,16 @@ class OversightService:
 
             # 2. Pipeline execution health check
             pipe_status = str(pipe.get("status", "")).lower() if pipe else None
-            batch_id = str(pipe.get("batch_id", "")) if pipe else None
+            batch_id = str(pipe.get("batch_id") or "") if pipe else None
             last_activity = pipe.get("updated_at") if pipe else t.get("created_at")
 
+            batch_label = f"batch {batch_id[:8]}... " if batch_id else ""
             if pipe_status in ("failed", "restart_required"):
                 stage_fail = pipe.get("current_stage") or "pipeline"
-                issues.append(f"Most recent batch {batch_id[:8]}... failed at {stage_fail} stage")
+                issues.append(f"Most recent {batch_label}failed at {stage_fail} stage".replace("  ", " "))
                 health_status = "critical"
             elif pipe_status in ("schema_inference_running", "in_progress", "awaiting_confirmation"):
-                issues.append(f"Pipeline batch {batch_id[:8]}... currently awaiting confirmation / in progress")
+                issues.append(f"Pipeline {batch_label}currently awaiting confirmation / in progress".replace("  ", " "))
                 if health_status != "critical":
                     health_status = "needs_attention"
 

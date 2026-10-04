@@ -53,7 +53,16 @@ class OversightRepository:
     def get_tenant_by_id(self, tenant_id: int) -> Optional[Dict[str, Any]]:
         """Fetch tenant information by ID."""
         query = f"""
-            SELECT tenant_id, business_name, slug, tier, is_active, created_at
+            SELECT 
+                tenant_id, 
+                business_name, 
+                coalesce(lower(replace(business_name, ' ', '_')), concat('tenant_', string(tenant_id))) AS slug,
+                'starter' AS tier,
+                industry,
+                contact_email,
+                created_by,
+                created_at,
+                is_active
             FROM {self.tenants_table}
             WHERE tenant_id = :tenant_id
             LIMIT 1
@@ -63,7 +72,16 @@ class OversightRepository:
     def get_all_tenants(self) -> List[Dict[str, Any]]:
         """Fetch all tenants registered on the platform."""
         query = f"""
-            SELECT tenant_id, business_name, slug, tier, is_active, created_at
+            SELECT 
+                tenant_id, 
+                business_name, 
+                coalesce(lower(replace(business_name, ' ', '_')), concat('tenant_', string(tenant_id))) AS slug,
+                'starter' AS tier,
+                industry,
+                contact_email,
+                created_by,
+                created_at,
+                is_active
             FROM {self.tenants_table}
             ORDER BY tenant_id ASC
         """
@@ -86,7 +104,7 @@ class OversightRepository:
                 SELECT 
                     tenant_id,
                     batch_id,
-                    current_stage,
+                    stage AS current_stage,
                     status,
                     updated_at,
                     error_message,
@@ -104,7 +122,7 @@ class OversightRepository:
                 SELECT 
                     tenant_id,
                     batch_id,
-                    current_stage,
+                    stage AS current_stage,
                     status,
                     updated_at,
                     error_message
@@ -129,7 +147,7 @@ class OversightRepository:
                 tenant_id,
                 count(*) AS total_shipments,
                 sum(CASE WHEN late_flag THEN 1 ELSE 0 END) AS late_shipments,
-                round(sum(CASE WHEN late_flag THEN 1.0 ELSE 0.0 END) / count(*) * 100.0, 2) AS late_rate_pct,
+                round(sum(CASE WHEN late_flag THEN 1.0 ELSE 0.0 END) / nullif(count(*), 0) * 100.0, 2) AS late_rate_pct,
                 round(avg(coalesce(shipping_days, 0)), 2) AS avg_shipping_days
             FROM {self.shipments_table}
             GROUP BY tenant_id
@@ -147,12 +165,12 @@ class OversightRepository:
         """
         query = f"""
             SELECT 
-                cast(to_date(started_at) AS string) AS date_str,
+                cast(to_date(coalesce(created_at, updated_at)) AS string) AS date_str,
                 count(*) AS total_runs,
                 sum(CASE WHEN lower(status) in ('success', 'completed') THEN 1 ELSE 0 END) AS successful_runs,
                 sum(CASE WHEN lower(status) in ('failed', 'restart_required') THEN 1 ELSE 0 END) AS failed_runs
             FROM {self.pipeline_table}
-            WHERE started_at IS NOT NULL
+            WHERE coalesce(created_at, updated_at) IS NOT NULL
             GROUP BY 1
             ORDER BY 1 DESC
             LIMIT :limit_days

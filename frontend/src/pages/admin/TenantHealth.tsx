@@ -53,28 +53,40 @@ export const TenantHealth: React.FC = () => {
   }, []);
 
   const filteredTenants = useMemo(() => {
-    if (!healthData) return [];
+    if (!healthData || !Array.isArray(healthData.tenants)) return [];
     return healthData.tenants.filter((tenant) => {
+      const name = tenant.tenant_name || '';
+      const slug = tenant.slug || '';
+      const idStr = String(tenant.tenant_id ?? '');
       const matchesSearch =
         !searchQuery ||
-        tenant.tenant_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tenant.slug.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tenant.tenant_id.toString().includes(searchQuery);
+        name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        slug.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        idStr.includes(searchQuery);
 
+      const status = tenant.health_status || 'good';
       const matchesStatus =
-        statusFilter === 'all' || tenant.health_status === statusFilter;
+        statusFilter === 'all' || status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
   }, [healthData, searchQuery, statusFilter]);
 
-  const renderHealthBadge = (status: HealthStatusType, issues: string[]) => {
+  const renderHealthBadge = (
+    status?: HealthStatusType | string | null,
+    issues: string[] = [],
+    totalShipments: number = 0,
+    pipelineStatus?: string | null
+  ) => {
+    const issueList = issues || [];
+    const isZeroData = (totalShipments === 0 || totalShipments === null || totalShipments === undefined) && !pipelineStatus;
+
     switch (status) {
       case 'critical':
         return (
           <span
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
-            title={issues.length > 0 ? issues.join('; ') : 'Critical health status'}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 shadow-sm"
+            title={issueList.length > 0 ? issueList.join('; ') : 'Critical health status'}
           >
             <ShieldAlert className="w-3.5 h-3.5 flex-shrink-0" />
             <span>Critical</span>
@@ -83,8 +95,8 @@ export const TenantHealth: React.FC = () => {
       case 'needs_attention':
         return (
           <span
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
-            title={issues.length > 0 ? issues.join('; ') : 'Needs attention'}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-sm"
+            title={issueList.length > 0 ? issueList.join('; ') : 'Needs attention'}
           >
             <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
             <span>Needs Attention</span>
@@ -94,10 +106,11 @@ export const TenantHealth: React.FC = () => {
       default:
         return (
           <span
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shadow-sm"
+            title={isZeroData ? 'Nominal default standing (no telemetry recorded yet)' : 'Operating normally within SLA thresholds'}
           >
             <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
-            <span>Good</span>
+            <span>{isZeroData ? 'Good (No Data)' : 'Good'}</span>
           </span>
         );
     }
@@ -348,14 +361,14 @@ export const TenantHealth: React.FC = () => {
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg bg-helios-accent-blue/10 flex items-center justify-center flex-shrink-0 text-helios-accent-blue font-bold text-xs">
-                          {t.tenant_name.charAt(0).toUpperCase()}
+                          {(t.tenant_name || 'T').charAt(0).toUpperCase()}
                         </div>
                         <div>
                           <div className="font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                            {t.tenant_name}
+                            {t.tenant_name || `Tenant #${t.tenant_id}`}
                           </div>
                           <div className="text-[11px] text-slate-400 font-mono">
-                            {t.slug} • ID #{t.tenant_id}
+                            {t.slug || `tenant-${t.tenant_id}`} • ID #{t.tenant_id}
                           </div>
                         </div>
                       </div>
@@ -364,13 +377,13 @@ export const TenantHealth: React.FC = () => {
                     {/* Tier */}
                     <td className="py-3.5 px-4">
                       <span className="inline-flex px-2 py-0.5 rounded text-[11px] font-semibold uppercase bg-black/5 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-helios-border-light dark:border-helios-border-dark">
-                        {t.tier}
+                        {t.tier || 'starter'}
                       </span>
                     </td>
 
                     {/* Health Status */}
                     <td className="py-3.5 px-4">
-                      {renderHealthBadge(t.health_status, t.issues)}
+                      {renderHealthBadge(t.health_status, t.issues, t.total_shipments, t.latest_pipeline_status)}
                     </td>
 
                     {/* Latest Pipeline */}
@@ -388,20 +401,24 @@ export const TenantHealth: React.FC = () => {
                     {/* Late Delivery Rate */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-1.5">
-                        <span
-                          className={`font-semibold ${
-                            t.late_delivery_rate_pct >= 25
-                              ? 'text-rose-600 dark:text-rose-400 font-bold'
-                              : t.late_delivery_rate_pct >= 10
-                              ? 'text-amber-600 dark:text-amber-400 font-semibold'
-                              : 'text-helios-text-primary-light dark:text-helios-text-primary-dark'
-                          }`}
-                        >
-                          {t.late_delivery_rate_pct.toFixed(1)}%
-                        </span>
-                        {t.late_delivery_rate_pct >= 25 ? (
+                        {(t.total_shipments ?? 0) === 0 ? (
+                          <span className="text-slate-400 font-mono text-xs">0.0%</span>
+                        ) : (
+                          <span
+                            className={`font-semibold ${
+                              (t.late_delivery_rate_pct ?? 0) >= 25
+                                ? 'text-rose-600 dark:text-rose-400 font-bold'
+                                : (t.late_delivery_rate_pct ?? 0) >= 10
+                                ? 'text-amber-600 dark:text-amber-400 font-semibold'
+                                : 'text-helios-text-primary-light dark:text-helios-text-primary-dark'
+                            }`}
+                          >
+                            {(t.late_delivery_rate_pct ?? 0).toFixed(1)}%
+                          </span>
+                        )}
+                        {(t.total_shipments ?? 0) > 0 && (t.late_delivery_rate_pct ?? 0) >= 25 ? (
                           <TrendingUp className="w-3.5 h-3.5 text-rose-500" />
-                        ) : t.late_delivery_rate_pct === 0 ? (
+                        ) : (t.total_shipments ?? 0) > 0 && (t.late_delivery_rate_pct ?? 0) === 0 ? (
                           <CheckCircle2 className="w-3 h-3 text-emerald-500" />
                         ) : null}
                       </div>
@@ -409,18 +426,18 @@ export const TenantHealth: React.FC = () => {
 
                     {/* Total Shipments */}
                     <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300 font-mono">
-                      {t.total_shipments.toLocaleString()}
+                      {(t.total_shipments ?? 0).toLocaleString()}
                     </td>
 
                     {/* Issues Breakdown */}
                     <td className="py-3.5 px-4 max-w-[200px]">
-                      {t.issues.length === 0 ? (
+                      {(t.issues ?? []).length === 0 ? (
                         <span className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3" /> Nominal
                         </span>
                       ) : (
                         <div className="space-y-0.5">
-                          {t.issues.slice(0, 1).map((issue, idx) => (
+                          {(t.issues ?? []).slice(0, 1).map((issue, idx) => (
                             <div
                               key={idx}
                               className="text-[11px] text-slate-600 dark:text-slate-300 truncate"
@@ -429,13 +446,13 @@ export const TenantHealth: React.FC = () => {
                               • {issue}
                             </div>
                           ))}
-                          {t.issues.length > 1 && (
+                          {(t.issues ?? []).length > 1 && (
                             <button
                               type="button"
                               onClick={() => setSelectedTenantIssues(t)}
                               className="text-[10px] text-helios-accent-blue hover:underline font-semibold"
                             >
-                              +{t.issues.length - 1} more issue{t.issues.length > 2 ? 's' : ''}
+                              +{(t.issues ?? []).length - 1} more issue{(t.issues ?? []).length > 2 ? 's' : ''}
                             </button>
                           )}
                         </div>

@@ -4,62 +4,32 @@ import {
   Activity,
   AlertCircle,
   AlertTriangle,
-  ArrowRight,
+  ArrowDownToLine,
   Check,
   CheckCircle2,
   Clock,
   Copy,
-  Database,
+  Download,
+  FileSpreadsheet,
   Filter,
   Layers,
   Loader2,
   Play,
-  Radio,
   RefreshCw,
   RotateCcw,
   Search,
-  UploadCloud,
   X,
-  ArrowDownToLine,
-  Download,
-  FileSpreadsheet,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { StageStatusBadge } from '@/components/admin/StageStatusBadge';
+import { PipelineSection, SourceTypeIcon } from '@/components/admin/PipelineSection';
 import { FlagForAdminButton } from '@/components/team/FlagForAdminButton';
 import { pipelineHealthService } from '@/services/pipelineHealthService';
 import { oversightService } from '@/services/oversightService';
 import {
   PipelineRun,
   PipelineRunDetail,
-  IngestionSourceType,
 } from '@/types/pipelineHealth';
-
-const SourceTypeIcon: React.FC<{ type: IngestionSourceType }> = ({ type }) => {
-  const norm = (type || '').toLowerCase();
-  if (norm === 'db_connection' || norm.includes('db')) {
-    return (
-      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
-        <Database className="w-3 h-3 flex-shrink-0" />
-        <span>DB Sync</span>
-      </span>
-    );
-  }
-  if (norm === 'api_push' || norm.includes('api')) {
-    return (
-      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-        <Radio className="w-3 h-3 flex-shrink-0" />
-        <span>API Push</span>
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-      <UploadCloud className="w-3 h-3 flex-shrink-0" />
-      <span>File Upload</span>
-    </span>
-  );
-};
 
 export const PipelineHealth: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
@@ -82,7 +52,7 @@ export const PipelineHealth: React.FC = () => {
   const [isDetailLoading, setIsDetailLoading] = useState<boolean>(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
-  const [isActionLoading, setIsActionLoading] = useState<boolean>(false);
+  const [actionLoading, setActionLoading] = useState<'retry' | 'restart' | null>(null);
 
   // Full Restart Confirmation Dialog state
   const [showRestartConfirm, setShowRestartConfirm] = useState<boolean>(false);
@@ -116,9 +86,7 @@ export const PipelineHealth: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await pipelineHealthService.listRuns(
-        selectedStatus !== 'all' ? selectedStatus : undefined
-      );
+      const data = await pipelineHealthService.listRuns();
       setRuns(data);
     } catch (err: any) {
       setError(err.message || 'Failed to load pipeline executions.');
@@ -131,12 +99,14 @@ export const PipelineHealth: React.FC = () => {
     if (isAuthorized) {
       fetchRuns();
     }
-  }, [selectedStatus, isAuthorized]);
+  }, [isAuthorized]);
 
   // Load Run detail when selected
   useEffect(() => {
     if (!selectedBatchId) {
       setDetail(null);
+      setActionError(null);
+      setActionSuccess(null);
       return;
     }
     let isMounted = true;
@@ -162,12 +132,14 @@ export const PipelineHealth: React.FC = () => {
   // Action: Retry from Failed Stage
   const handleRetryFailedStage = async () => {
     if (!detail) return;
-    setIsActionLoading(true);
+    setActionLoading('retry');
     setActionError(null);
     setActionSuccess(null);
     try {
       const res = await pipelineHealthService.retryFailedStage(detail.batch_id);
-      setActionSuccess(res.message);
+      setActionSuccess(
+        res.message || 'Databricks Jobs repair-run initiated. Upstream stage data preserved and reused.'
+      );
       // Refresh current detail and list
       const updatedDetail = await pipelineHealthService.getRunDetail(detail.batch_id);
       setDetail(updatedDetail);
@@ -175,19 +147,21 @@ export const PipelineHealth: React.FC = () => {
     } catch (err: any) {
       setActionError(err.message || 'Could not retry failed stage.');
     } finally {
-      setIsActionLoading(false);
+      setActionLoading(null);
     }
   };
 
   // Action: Full Restart
   const handleConfirmFullRestart = async () => {
     if (!detail) return;
-    setIsActionLoading(true);
+    setActionLoading('restart');
     setActionError(null);
     setActionSuccess(null);
     try {
       const res = await pipelineHealthService.fullRestart(detail.batch_id);
-      setActionSuccess(res.message);
+      setActionSuccess(
+        res.message || "Batch marked as 'restart_required'. A notification has been sent to the SMB Owner."
+      );
       setShowRestartConfirm(false);
       // Refresh current detail and list
       const updatedDetail = await pipelineHealthService.getRunDetail(detail.batch_id);
@@ -196,7 +170,7 @@ export const PipelineHealth: React.FC = () => {
     } catch (err: any) {
       setActionError(err.message || 'Could not trigger full restart.');
     } finally {
-      setIsActionLoading(false);
+      setActionLoading(null);
     }
   };
 
@@ -211,31 +185,57 @@ export const PipelineHealth: React.FC = () => {
     const total = runs.length;
     const failed = runs.filter((r) => r.status.toLowerCase() === 'failed').length;
     const running = runs.filter(
-      (r) => r.status.includes('running') || r.status === 'processing'
+      (r) => {
+        const norm = r.status.toLowerCase();
+        return norm.includes('running') || norm === 'processing' || norm === 'in_progress';
+      }
     ).length;
-    const success = runs.filter((r) => r.status.toLowerCase() === 'success').length;
-    return { total, failed, running, success };
+    const success = runs.filter((r) => {
+      const norm = r.status.toLowerCase();
+      return norm === 'success' || norm === 'completed';
+    }).length;
+    const restartRequired = runs.filter((r) => r.status.toLowerCase() === 'restart_required').length;
+    return { total, failed, running, success, restartRequired };
   }, [runs]);
 
-  // Filtered runs
-  const filteredRuns = useMemo(() => {
+  // Helper filter function for search query
+  const matchesSearch = (r: PipelineRun): boolean => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    const tenant = (r.tenant || r.tenant_name || '').toLowerCase();
+    const batchId = (r.batch_id || '').toLowerCase();
+    const source = (r.source_type || '').toLowerCase();
+    const stage = (r.current_stage || '').toLowerCase();
+    return tenant.includes(q) || batchId.includes(q) || source.includes(q) || stage.includes(q);
+  };
+
+  // Partition runs by section/status with search filtering
+  const runningRuns = useMemo(() => {
     return runs.filter((r) => {
-      const matchesSearch =
-        !searchQuery ||
-        (r.tenant && r.tenant.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (r.batch_id && r.batch_id.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (r.source_type && r.source_type.toLowerCase().includes(searchQuery.toLowerCase()));
-
       const norm = r.status.toLowerCase();
-      let matchesTab = true;
-      if (selectedStatus === 'failed') matchesTab = norm === 'failed';
-      else if (selectedStatus === 'running') matchesTab = norm.includes('running') || norm === 'processing';
-      else if (selectedStatus === 'success') matchesTab = norm === 'success';
-      else if (selectedStatus === 'restart_required') matchesTab = norm === 'restart_required';
-
-      return matchesSearch && matchesTab;
+      const isRunning = norm.includes('running') || norm === 'processing' || norm === 'in_progress';
+      return isRunning && matchesSearch(r);
     });
-  }, [runs, searchQuery, selectedStatus]);
+  }, [runs, searchQuery]);
+
+  const failedRuns = useMemo(() => {
+    return runs.filter((r) => {
+      return r.status.toLowerCase() === 'failed' && matchesSearch(r);
+    });
+  }, [runs, searchQuery]);
+
+  const successRuns = useMemo(() => {
+    return runs.filter((r) => {
+      const norm = r.status.toLowerCase();
+      return (norm === 'success' || norm === 'completed') && matchesSearch(r);
+    });
+  }, [runs, searchQuery]);
+
+  const restartRequiredRuns = useMemo(() => {
+    return runs.filter((r) => {
+      return r.status.toLowerCase() === 'restart_required' && matchesSearch(r);
+    });
+  }, [runs, searchQuery]);
 
   // Enforce role isolation
   if (!isAuthorized) {
@@ -275,13 +275,29 @@ export const PipelineHealth: React.FC = () => {
         </div>
       </div>
 
-      {/* KPI Stats */}
+      {/* Global Error Notice if initial fetch failed */}
+      {error && (
+        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            <span className="font-semibold">{error}</span>
+          </div>
+          <button
+            onClick={fetchRuns}
+            className="px-3 py-1 bg-rose-500 text-white rounded-lg font-semibold hover:bg-rose-600 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* KPI Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div
           onClick={() => setSelectedStatus('all')}
           className={`p-4 rounded-xl border transition-all cursor-pointer ${
             selectedStatus === 'all'
-              ? 'border-helios-accent-blue bg-helios-accent-blue/5'
+              ? 'border-helios-accent-blue bg-helios-accent-blue/5 shadow-sm'
               : 'border-helios-border-light dark:border-helios-border-dark bg-helios-card-light dark:bg-helios-card-dark hover:border-slate-400'
           }`}
         >
@@ -290,7 +306,7 @@ export const PipelineHealth: React.FC = () => {
             <Layers className="w-4 h-4 text-slate-400" />
           </div>
           <div className="text-2xl font-bold mt-1 text-helios-text-primary-light dark:text-helios-text-primary-dark">
-            {metrics.total}
+            {isLoading ? '...' : metrics.total}
           </div>
         </div>
 
@@ -298,7 +314,7 @@ export const PipelineHealth: React.FC = () => {
           onClick={() => setSelectedStatus('failed')}
           className={`p-4 rounded-xl border transition-all cursor-pointer ${
             selectedStatus === 'failed'
-              ? 'border-rose-500 bg-rose-500/10'
+              ? 'border-rose-500 bg-rose-500/10 shadow-sm'
               : 'border-rose-500/30 bg-helios-card-light dark:bg-helios-card-dark hover:border-rose-500'
           }`}
         >
@@ -307,7 +323,7 @@ export const PipelineHealth: React.FC = () => {
             <AlertCircle className="w-4 h-4 text-rose-500" />
           </div>
           <div className="text-2xl font-bold mt-1 text-rose-600 dark:text-rose-400">
-            {metrics.failed}
+            {isLoading ? '...' : metrics.failed}
           </div>
         </div>
 
@@ -315,16 +331,16 @@ export const PipelineHealth: React.FC = () => {
           onClick={() => setSelectedStatus('running')}
           className={`p-4 rounded-xl border transition-all cursor-pointer ${
             selectedStatus === 'running'
-              ? 'border-blue-500 bg-blue-500/10'
+              ? 'border-blue-500 bg-blue-500/10 shadow-sm'
               : 'border-helios-border-light dark:border-helios-border-dark bg-helios-card-light dark:bg-helios-card-dark hover:border-blue-400'
           }`}
         >
           <div className="flex items-center justify-between text-xs text-blue-600 dark:text-blue-400 font-semibold">
             <span>In-Progress</span>
-            <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+            <Loader2 className={`w-4 h-4 text-blue-500 ${metrics.running > 0 ? 'animate-spin' : ''}`} />
           </div>
           <div className="text-2xl font-bold mt-1 text-blue-600 dark:text-blue-400">
-            {metrics.running}
+            {isLoading ? '...' : metrics.running}
           </div>
         </div>
 
@@ -332,7 +348,7 @@ export const PipelineHealth: React.FC = () => {
           onClick={() => setSelectedStatus('success')}
           className={`p-4 rounded-xl border transition-all cursor-pointer ${
             selectedStatus === 'success'
-              ? 'border-emerald-500 bg-emerald-500/10'
+              ? 'border-emerald-500 bg-emerald-500/10 shadow-sm'
               : 'border-helios-border-light dark:border-helios-border-dark bg-helios-card-light dark:bg-helios-card-dark hover:border-emerald-400'
           }`}
         >
@@ -341,7 +357,7 @@ export const PipelineHealth: React.FC = () => {
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           </div>
           <div className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
-            {metrics.success}
+            {isLoading ? '...' : metrics.success}
           </div>
         </div>
       </div>
@@ -351,11 +367,11 @@ export const PipelineHealth: React.FC = () => {
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
           <Filter className="w-4 h-4 text-slate-400 ml-1 mr-1 flex-shrink-0" />
           {[
-            { id: 'all', label: 'All' },
-            { id: 'failed', label: 'Failed', alert: metrics.failed > 0 },
-            { id: 'running', label: 'Running' },
-            { id: 'success', label: 'Success' },
-            { id: 'restart_required', label: 'Restart Required' },
+            { id: 'all', label: 'All Sections' },
+            { id: 'running', label: 'Running', count: metrics.running },
+            { id: 'failed', label: 'Failed', count: metrics.failed, alert: metrics.failed > 0 },
+            { id: 'success', label: 'Success', count: metrics.success },
+            { id: 'restart_required', label: 'Restart Required', count: metrics.restartRequired },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -367,6 +383,17 @@ export const PipelineHealth: React.FC = () => {
               }`}
             >
               <span>{tab.label}</span>
+              {tab.count !== undefined && !isLoading && (
+                <span
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                    selectedStatus === tab.id
+                      ? 'bg-white/20 text-white'
+                      : 'bg-black/5 dark:bg-white/10 text-slate-400'
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              )}
               {tab.alert && (
                 <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
               )}
@@ -378,7 +405,7 @@ export const PipelineHealth: React.FC = () => {
           <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search tenant or batch ID..."
+            placeholder="Search tenant, batch ID, or stage..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg bg-black/5 dark:bg-white/5 border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark placeholder-slate-400 focus:outline-none focus:border-helios-accent-blue"
@@ -386,113 +413,99 @@ export const PipelineHealth: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Runs Table */}
-      <div className="rounded-xl overflow-hidden bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-helios-border-light dark:border-helios-border-dark bg-black/[0.02] dark:bg-white/[0.02] text-helios-text-secondary-light dark:text-helios-text-secondary-dark uppercase tracking-wider text-[11px]">
-                <th className="py-3 px-4 font-semibold">Tenant</th>
-                <th className="py-3 px-4 font-semibold">Source</th>
-                <th className="py-3 px-4 font-semibold">Current / Stopped Stage</th>
-                <th className="py-3 px-4 font-semibold">Status</th>
-                <th className="py-3 px-4 font-semibold">Timestamp</th>
-                <th className="py-3 px-4 font-semibold text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-helios-accent-blue" />
-                    <span>Loading pipeline runs...</span>
-                  </td>
-                </tr>
-              ) : error ? (
-                <tr>
-                  <td colSpan={6} className="py-12 text-center text-rose-500 font-medium">
-                    <AlertCircle className="w-6 h-6 mx-auto mb-2 text-rose-500" />
-                    <span>{error}</span>
-                  </td>
-                </tr>
-              ) : filteredRuns.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
-                    <Activity className="w-6 h-6 mx-auto mb-2 text-slate-300 dark:text-slate-600" />
-                    <span>No pipeline runs found matching criteria.</span>
-                  </td>
-                </tr>
-              ) : (
-                filteredRuns.map((run) => {
-                  const isFailed = run.status.toLowerCase() === 'failed';
-                  return (
-                    <tr
-                      key={run.batch_id}
-                      onClick={() => setSelectedBatchId(run.batch_id)}
-                      className={`hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer group ${
-                        isFailed ? 'bg-rose-500/[0.02]' : ''
-                      }`}
-                    >
-                      <td className="py-3 px-4 font-medium text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                        <div className="font-semibold text-xs text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                          {run.tenant || run.tenant_name || `Tenant ${run.tenant_id}`}
-                        </div>
-                        <div className="font-mono text-[10px] text-slate-400 truncate max-w-[140px]">
-                          {run.batch_id}
-                        </div>
-                      </td>
+      {/* INDEPENDENT SECTIONS: Running, Failed, Success, Restart Required */}
+      <div className="space-y-6">
+        {/* 1. RUNNING & IN-PROGRESS SECTION */}
+        {(selectedStatus === 'all' || selectedStatus === 'running') && (
+          <PipelineSection
+            id="running"
+            title="Running & In-Progress Pipelines"
+            subtitle="Batches currently actively executing across Databricks stages"
+            icon={<Loader2 className="w-5 h-5 text-blue-500 animate-spin flex-shrink-0" />}
+            count={runningRuns.length}
+            variant="blue"
+            runs={runningRuns}
+            isLoading={isLoading}
+            searchQuery={searchQuery}
+            emptyTitle="No running runs"
+            emptyDescription="There are currently no active or in-progress pipeline executions. Upstream ingestion stages are idle or completed."
+            emptyIcon={
+              <div className="w-12 h-12 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
+                <Activity className="w-6 h-6" />
+              </div>
+            }
+            onInspect={(batchId) => setSelectedBatchId(batchId)}
+          />
+        )}
 
-                      <td className="py-3 px-4">
-                        <SourceTypeIcon type={run.source_type} />
-                      </td>
+        {/* 2. FAILED PIPELINES SECTION */}
+        {(selectedStatus === 'all' || selectedStatus === 'failed') && (
+          <PipelineSection
+            id="failed"
+            title="Failed Pipelines"
+            subtitle="Executions halted due to errors; require stage retry or restart"
+            icon={<AlertCircle className="w-5 h-5 text-rose-500 flex-shrink-0" />}
+            count={failedRuns.length}
+            variant="rose"
+            runs={failedRuns}
+            isLoading={isLoading}
+            searchQuery={searchQuery}
+            emptyTitle="No failed runs"
+            emptyDescription="All pipeline executions are running smoothly. Zero stages currently require failure recovery or attention."
+            emptyIcon={
+              <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+            }
+            onInspect={(batchId) => setSelectedBatchId(batchId)}
+          />
+        )}
 
-                      <td className="py-3 px-4">
-                        <StageStatusBadge
-                          stage={run.current_stage}
-                          status={run.status}
-                        />
-                      </td>
+        {/* 3. SUCCESSFUL PIPELINES SECTION */}
+        {(selectedStatus === 'all' || selectedStatus === 'success') && (
+          <PipelineSection
+            id="success"
+            title="Successful Pipelines"
+            subtitle="Completed Medallion pipeline runs committed into Unity Catalog"
+            icon={<CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />}
+            count={successRuns.length}
+            variant="emerald"
+            runs={successRuns}
+            isLoading={isLoading}
+            searchQuery={searchQuery}
+            emptyTitle="No succeeded runs"
+            emptyDescription="No successful pipeline executions found."
+            emptyIcon={
+              <div className="w-12 h-12 rounded-full bg-slate-500/10 border border-slate-500/20 flex items-center justify-center text-slate-400">
+                <Layers className="w-6 h-6" />
+              </div>
+            }
+            onInspect={(batchId) => setSelectedBatchId(batchId)}
+          />
+        )}
 
-                      <td className="py-3 px-4">
-                        <span className="font-mono text-[11px] text-helios-text-secondary-light dark:text-helios-text-secondary-dark capitalize">
-                          {run.status.replace(/_/g, ' ')}
-                        </span>
-                      </td>
-
-                      <td className="py-3 px-4 text-helios-text-secondary-light dark:text-helios-text-secondary-dark text-[11px]">
-                        {run.started_at
-                          ? new Date(run.started_at).toLocaleString([], {
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })
-                          : '—'}
-                      </td>
-
-                      <td className="py-3 px-4 text-right">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedBatchId(run.batch_id);
-                          }}
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold transition-colors ${
-                            isFailed
-                              ? 'bg-rose-500/10 text-rose-600 hover:bg-rose-500/20'
-                              : 'bg-black/5 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-black/10'
-                          }`}
-                        >
-                          <span>Inspect</span>
-                          <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+        {/* 4. RESTART REQUIRED SECTION */}
+        {(selectedStatus === 'all' || selectedStatus === 'restart_required') && (
+          <PipelineSection
+            id="restart_required"
+            title="Restart Required Pipelines"
+            subtitle="Batches marked for SMB Owner re-upload or external database re-sync"
+            icon={<RotateCcw className="w-5 h-5 text-amber-500 flex-shrink-0" />}
+            count={restartRequiredRuns.length}
+            variant="amber"
+            runs={restartRequiredRuns}
+            isLoading={isLoading}
+            searchQuery={searchQuery}
+            emptyTitle="No runs requiring restart"
+            emptyDescription="No pipeline batches currently require SMB file re-upload or connection reset."
+            emptyIcon={
+              <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
+                <RotateCcw className="w-6 h-6" />
+              </div>
+            }
+            onInspect={(batchId) => setSelectedBatchId(batchId)}
+          />
+        )}
       </div>
 
       {/* DETAIL MODAL / DRAWER */}
@@ -563,16 +576,32 @@ export const PipelineHealth: React.FC = () => {
                 <>
                   {/* Action Banners */}
                   {actionSuccess && (
-                    <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
-                      <span>{actionSuccess}</span>
+                    <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-start justify-between gap-2 animate-fadeIn">
+                      <div className="flex items-start gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span className="font-medium">{actionSuccess}</span>
+                      </div>
+                      <button
+                        onClick={() => setActionSuccess(null)}
+                        className="text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-200 p-0.5"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   )}
 
-                  {actionError && (
-                    <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300 flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
-                      <span>{actionError}</span>
+                  {actionError && !showRestartConfirm && (
+                    <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300 flex items-start justify-between gap-2 animate-fadeIn">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
+                        <span className="font-medium">{actionError}</span>
+                      </div>
+                      <button
+                        onClick={() => setActionError(null)}
+                        className="text-rose-500 hover:text-rose-700 dark:hover:text-rose-200 p-0.5"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   )}
 
@@ -680,13 +709,18 @@ export const PipelineHealth: React.FC = () => {
               )}
             </div>
 
-            {/* Modal Footer with Actions for Failed Runs */}
+            {/* Modal Footer with Actions */}
             <div className="p-4 border-t border-helios-border-light dark:border-helios-border-dark flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-black/[0.02] dark:bg-white/[0.02]">
               <div className="text-[11px] text-slate-400">
                 {detail?.status.toLowerCase() === 'failed' ? (
                   <span>Select recovery action to repair pipeline execution.</span>
                 ) : (
-                  <span>Execution state: <strong>{detail?.status}</strong></span>
+                  <span>
+                    Execution state:{' '}
+                    <strong className="text-helios-text-primary-light dark:text-helios-text-primary-dark capitalize">
+                      {detail?.status.replace(/_/g, ' ')}
+                    </strong>
+                  </span>
                 )}
               </div>
 
@@ -713,9 +747,12 @@ export const PipelineHealth: React.FC = () => {
                     {/* Secondary Action: Full Restart */}
                     <button
                       type="button"
-                      disabled={isActionLoading}
-                      onClick={() => setShowRestartConfirm(true)}
-                      className="px-3.5 py-2 rounded-lg border border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 text-xs font-semibold transition-colors flex items-center gap-1.5"
+                      disabled={actionLoading !== null}
+                      onClick={() => {
+                        setActionError(null);
+                        setShowRestartConfirm(true);
+                      }}
+                      className="px-3.5 py-2 rounded-lg border border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 text-xs font-semibold transition-colors flex items-center gap-1.5 disabled:opacity-50"
                       title="Mark batch restart_required and notify SMB Owner"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
@@ -725,17 +762,22 @@ export const PipelineHealth: React.FC = () => {
                     {/* Primary Action: Retry from Failed Stage */}
                     <button
                       type="button"
-                      disabled={isActionLoading}
+                      disabled={actionLoading !== null}
                       onClick={handleRetryFailedStage}
                       className="px-4 py-2 rounded-lg bg-helios-accent-blue text-white hover:bg-blue-600 text-xs font-bold transition-all shadow-md flex items-center gap-1.5 disabled:opacity-50"
                       title="Re-run only the failed stage via Databricks Jobs repair API, reusing clean upstream data"
                     >
-                      {isActionLoading ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      {actionLoading === 'retry' ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Retrying Stage...</span>
+                        </>
                       ) : (
-                        <Play className="w-3.5 h-3.5 fill-current" />
+                        <>
+                          <Play className="w-3.5 h-3.5 fill-current" />
+                          <span>Retry from Failed Stage</span>
+                        </>
                       )}
-                      <span>Retry from Failed Stage</span>
                     </button>
                   </>
                 )}
@@ -774,24 +816,46 @@ export const PipelineHealth: React.FC = () => {
               </p>
             </div>
 
+            {/* Error banner inside confirmation dialog if restart fails */}
+            {actionError && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2 animate-fadeIn">
+                <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
+                <span className="flex-1 font-medium">{actionError}</span>
+              </div>
+            )}
+
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => setShowRestartConfirm(false)}
-                disabled={isActionLoading}
-                className="px-3.5 py-1.5 rounded-lg border border-helios-border-light dark:border-helios-border-dark text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
+                onClick={() => {
+                  if (actionLoading !== 'restart') {
+                    setShowRestartConfirm(false);
+                    setActionError(null);
+                  }
+                }}
+                disabled={actionLoading !== null}
+                className="px-3.5 py-1.5 rounded-lg border border-helios-border-light dark:border-helios-border-dark text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
 
               <button
                 type="button"
-                disabled={isActionLoading}
+                disabled={actionLoading !== null}
                 onClick={handleConfirmFullRestart}
                 className="px-4 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow flex items-center gap-1.5 disabled:opacity-50"
               >
-                {isActionLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                <span>Send Alert & Require Re-Upload</span>
+                {actionLoading === 'restart' ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Initiating Restart...</span>
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Send Alert & Require Re-Upload</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

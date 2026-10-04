@@ -76,6 +76,7 @@ export const TenantComparison: React.FC = () => {
       setComparisonData(res);
     } catch (err: any) {
       setError(err?.response?.data?.detail || err?.message || 'Failed to compare selected tenants.');
+      setComparisonData(null);
     } finally {
       setIsComparing(false);
     }
@@ -224,13 +225,23 @@ export const TenantComparison: React.FC = () => {
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center gap-2 text-xs">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          <span>{error}</span>
+        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+          {selectedIds.length >= 2 && (
+            <button
+              onClick={() => runComparison(selectedIds, selectedDays)}
+              className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-700 dark:text-rose-300 font-semibold text-[11px] transition-colors flex-shrink-0"
+            >
+              Retry
+            </button>
+          )}
         </div>
       )}
 
-      {/* Content depending on selection count */}
+      {/* Content depending on selection count and query state */}
       {selectedIds.length < 2 ? (
         <div className="p-16 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-dashed border-helios-border-light dark:border-helios-border-dark text-center space-y-3">
           <BarChart3 className="w-12 h-12 mx-auto text-slate-400 opacity-50" />
@@ -245,6 +256,28 @@ export const TenantComparison: React.FC = () => {
         <div className="p-16 text-center">
           <RefreshCw className="w-8 h-8 animate-spin mx-auto text-helios-accent-blue mb-3" />
           <p className="text-xs text-slate-500 font-medium">Aggregating comparative telemetry...</p>
+        </div>
+      ) : error && !comparisonData ? (
+        <div className="p-16 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-rose-500/20 text-center space-y-3">
+          <AlertCircle className="w-12 h-12 mx-auto text-rose-500 opacity-80" />
+          <h3 className="text-base font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
+            Comparison Request Failed
+          </h3>
+          <p className="text-xs text-slate-500 max-w-md mx-auto">
+            An error occurred while compiling side-by-side telemetry for the selected tenants:
+          </p>
+          <p className="text-xs font-mono text-rose-600 dark:text-rose-400 bg-rose-500/5 border border-rose-500/10 p-2.5 rounded-lg max-w-lg mx-auto">
+            {error}
+          </p>
+          <div className="pt-2">
+            <button
+              onClick={() => runComparison(selectedIds, selectedDays)}
+              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl bg-helios-accent-blue text-white shadow-sm hover:opacity-90 transition-opacity"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Retry Comparison</span>
+            </button>
+          </div>
         </div>
       ) : comparisonData ? (
         <div className="space-y-6 animate-fadeIn">
@@ -405,7 +438,7 @@ export const TenantComparison: React.FC = () => {
                     <td className="py-3 px-4 font-semibold text-slate-500">Gross Revenue</td>
                     {comparisonData.tenants.map((t) => (
                       <td key={t.tenant_id} className="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-                        ${t.total_revenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        ${Number(t.total_revenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                     ))}
                   </tr>
@@ -413,7 +446,7 @@ export const TenantComparison: React.FC = () => {
                     <td className="py-3 px-4 font-semibold text-slate-500">Total Order Volume</td>
                     {comparisonData.tenants.map((t) => (
                       <td key={t.tenant_id} className="py-3 px-4 font-mono text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                        {t.total_orders.toLocaleString()}
+                        {(t.total_orders ?? 0).toLocaleString()}
                       </td>
                     ))}
                   </tr>
@@ -421,7 +454,7 @@ export const TenantComparison: React.FC = () => {
                     <td className="py-3 px-4 font-semibold text-slate-500">Average Order Value (AOV)</td>
                     {comparisonData.tenants.map((t) => (
                       <td key={t.tenant_id} className="py-3 px-4 font-mono font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                        ${t.avg_order_value.toFixed(2)}
+                        ${Number(t.avg_order_value ?? 0).toFixed(2)}
                       </td>
                     ))}
                   </tr>
@@ -429,33 +462,36 @@ export const TenantComparison: React.FC = () => {
                     <td className="py-3 px-4 font-semibold text-slate-500">Shipment Volume</td>
                     {comparisonData.tenants.map((t) => (
                       <td key={t.tenant_id} className="py-3 px-4 font-mono text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                        {t.total_shipments.toLocaleString()}
+                        {(t.total_shipments ?? 0).toLocaleString()}
                       </td>
                     ))}
                   </tr>
                   <tr>
                     <td className="py-3 px-4 font-semibold text-slate-500">Late Delivery Rate</td>
-                    {comparisonData.tenants.map((t) => (
-                      <td key={t.tenant_id} className="py-3 px-4">
-                        <span
-                          className={`font-mono font-bold ${
-                            t.late_delivery_pct >= 25
-                              ? 'text-rose-600 dark:text-rose-400'
-                              : t.late_delivery_pct >= 10
-                              ? 'text-amber-600 dark:text-amber-400'
-                              : 'text-emerald-600 dark:text-emerald-400'
-                          }`}
-                        >
-                          {t.late_delivery_pct.toFixed(1)}%
-                        </span>
-                      </td>
-                    ))}
+                    {comparisonData.tenants.map((t) => {
+                      const latePct = t.late_delivery_pct ?? 0;
+                      return (
+                        <td key={t.tenant_id} className="py-3 px-4">
+                          <span
+                            className={`font-mono font-bold ${
+                              latePct >= 25
+                                ? 'text-rose-600 dark:text-rose-400'
+                                : latePct >= 10
+                                ? 'text-amber-600 dark:text-amber-400'
+                                : 'text-emerald-600 dark:text-emerald-400'
+                            }`}
+                          >
+                            {latePct.toFixed(1)}%
+                          </span>
+                        </td>
+                      );
+                    })}
                   </tr>
                   <tr>
                     <td className="py-3 px-4 font-semibold text-slate-500">Avg Shipping Transit Time</td>
                     {comparisonData.tenants.map((t) => (
                       <td key={t.tenant_id} className="py-3 px-4 font-mono text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                        {t.avg_shipping_days.toFixed(1)} days
+                        {Number(t.avg_shipping_days ?? 0).toFixed(1)} days
                       </td>
                     ))}
                   </tr>

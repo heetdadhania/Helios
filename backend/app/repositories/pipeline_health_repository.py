@@ -73,8 +73,20 @@ class PipelineHealthRepository:
         params: Dict[str, Any] = {}
 
         if status_filter:
-            where_clauses.append("ps.status = :status_filter")
-            params["status_filter"] = status_filter
+            norm_filter = status_filter.strip().lower()
+            if norm_filter in ("all", "*", ""):
+                pass
+            elif norm_filter in ("running", "in_progress", "processing"):
+                where_clauses.append(
+                    "(LOWER(ps.status) LIKE '%running%' OR LOWER(ps.status) IN ('processing', 'in_progress', 'running'))"
+                )
+            elif norm_filter in ("success", "completed"):
+                where_clauses.append("LOWER(ps.status) IN ('success', 'completed')")
+            elif norm_filter in ("failed", "failure", "error"):
+                where_clauses.append("LOWER(ps.status) IN ('failed', 'failure', 'error')")
+            else:
+                where_clauses.append("LOWER(ps.status) = :status_filter")
+                params["status_filter"] = norm_filter
 
         if is_admin:
             where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""

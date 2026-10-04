@@ -154,6 +154,43 @@ class TestPipelineHealthRepository(unittest.TestCase):
         executed_sql = calls[0][0][0]
         self.assertIn("team_assignments", executed_sql)
 
+    def test_list_runs_status_filter_running(self):
+        self.mock_cursor.description = [
+            ("batch_id",), ("tenant_id",), ("tenant",), ("tenant_name",),
+            ("source_type",), ("current_stage",), ("status",), ("started_at",),
+            ("updated_at",), ("error_message",),
+        ]
+        self.mock_cursor.fetchall.return_value = []
+        self.repo.list_runs(user_id=1, user_role="admin", status_filter="running")
+        calls = self.mock_cursor.execute.call_args_list
+        executed_sql = calls[0][0][0]
+        self.assertIn("LIKE '%running%'", executed_sql)
+
+    def test_list_runs_status_filter_case_insensitive(self):
+        self.mock_cursor.description = [
+            ("batch_id",), ("tenant_id",), ("tenant",), ("tenant_name",),
+            ("source_type",), ("current_stage",), ("status",), ("started_at",),
+            ("updated_at",), ("error_message",),
+        ]
+        self.mock_cursor.fetchall.return_value = []
+        self.repo.list_runs(user_id=1, user_role="admin", status_filter="Success")
+        calls = self.mock_cursor.execute.call_args_list
+        executed_sql = calls[0][0][0]
+        self.assertIn("LOWER(ps.status) IN ('success', 'completed')", executed_sql)
+
+    def test_list_runs_status_filter_all(self):
+        self.mock_cursor.description = [
+            ("batch_id",), ("tenant_id",), ("tenant",), ("tenant_name",),
+            ("source_type",), ("current_stage",), ("status",), ("started_at",),
+            ("updated_at",), ("error_message",),
+        ]
+        self.mock_cursor.fetchall.return_value = []
+        self.repo.list_runs(user_id=1, user_role="admin", status_filter="all")
+        calls = self.mock_cursor.execute.call_args_list
+        executed_sql = calls[0][0][0]
+        self.assertNotIn("status = 'all'", executed_sql)
+        self.assertNotIn("WHERE", executed_sql)
+
     def test_update_status_for_retry(self):
         self.repo.update_status_for_retry(
             batch_id="b-retry",
