@@ -13,6 +13,7 @@ import {
 import { Tenant } from '@/types/admin';
 import { adminService } from '@/services/adminService';
 import { useAuth } from '@/hooks/useAuth';
+import { Pagination } from '@/components/ui/Pagination';
 
 export const Tenants: React.FC = () => {
   const { user } = useAuth();
@@ -23,6 +24,8 @@ export const Tenants: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 10;
 
   // Form state
   const [name, setName] = useState<string>('');
@@ -102,14 +105,20 @@ export const Tenants: React.FC = () => {
     }
   };
 
-  const filteredTenants = tenants.filter((t) => {
-    return (
-      searchQuery === '' ||
-      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.slug.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.catalog_name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  });
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  const filteredTenants = React.useMemo(() => {
+    return tenants.filter((t) => {
+      return (
+        searchQuery === '' ||
+        t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.slug.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.catalog_name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    });
+  }, [tenants, searchQuery]);
 
   return (
     <div className="space-y-6">
@@ -190,7 +199,8 @@ export const Tenants: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="border-b border-helios-border-light dark:border-helios-border-dark text-slate-400 bg-black/[0.02] dark:bg-white/[0.02]">
@@ -203,7 +213,9 @@ export const Tenants: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                {filteredTenants.map((tenant) => (
+                {filteredTenants
+                  .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+                  .map((tenant) => (
                   <tr key={tenant.tenant_id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                     <td className="py-3.5 px-4 font-medium">
                       <div className="flex items-center gap-2.5">
@@ -290,7 +302,14 @@ export const Tenants: React.FC = () => {
               </tbody>
             </table>
           </div>
-        )}
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredTenants.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+          />
+        </>
+      )}
       </div>
 
       {/* Add New Tenant Modal (Both Admin and Team Member can access) */}

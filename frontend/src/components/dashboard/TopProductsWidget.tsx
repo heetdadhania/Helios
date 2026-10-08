@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ResponsiveContainer,
   BarChart,
@@ -21,7 +21,7 @@ interface TopProductsWidgetProps {
 
 const BAR_COLORS = ['#3B82F6', '#2563EB', '#1D4ED8', '#1E40AF', '#1E3A8A', '#0284C7', '#0369A1', '#075985'];
 
-export const TopProductsWidget: React.FC<TopProductsWidgetProps> = ({
+export const TopProductsWidget: React.FC<TopProductsWidgetProps> = React.memo(({
   data,
   isLoading = false,
   className = '',
@@ -48,14 +48,18 @@ export const TopProductsWidget: React.FC<TopProductsWidgetProps> = ({
   const hasData = products.length > 0;
 
   // Format data for horizontal bar display (take top 6 for clean visual fit)
-  const chartItems = products.slice(0, 6).map((p) => ({
-    name: p.product_name.length > 20 ? `${p.product_name.slice(0, 18)}...` : p.product_name,
-    fullName: p.product_name,
-    revenue: p.total_revenue,
-    units: p.total_units_sold,
-    orders: p.total_orders,
-    category: p.category || 'General',
-  }));
+  const chartItems = useMemo(
+    () =>
+      products.slice(0, 6).map((p) => ({
+        name: p.product_name.length > 20 ? `${p.product_name.slice(0, 18)}...` : p.product_name,
+        fullName: p.product_name,
+        revenue: p.total_revenue,
+        units: p.total_units_sold,
+        orders: p.total_orders,
+        category: p.category || 'General',
+      })),
+    [products]
+  );
 
   return (
     <div className={`p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm flex flex-col justify-between ${className}`}>
@@ -158,6 +162,8 @@ export const TopProductsWidget: React.FC<TopProductsWidgetProps> = ({
       )}
     </div>
   );
-};
+});
+
+TopProductsWidget.displayName = 'TopProductsWidget';
 
 export default TopProductsWidget;

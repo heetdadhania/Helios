@@ -19,7 +19,7 @@ interface ShippingModeWidgetProps {
   className?: string;
 }
 
-export const ShippingModeWidget: React.FC<ShippingModeWidgetProps> = ({
+export const ShippingModeWidget: React.FC<ShippingModeWidgetProps> = React.memo(({
   data,
   isLoading = false,
   className = '',
@@ -128,6 +128,8 @@ export const ShippingModeWidget: React.FC<ShippingModeWidgetProps> = ({
       )}
     </div>
   );
-};
+});
+
+ShippingModeWidget.displayName = 'ShippingModeWidget';
 
 export default ShippingModeWidget;

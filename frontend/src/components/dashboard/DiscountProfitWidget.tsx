@@ -19,7 +19,7 @@ interface DiscountProfitWidgetProps {
   className?: string;
 }
 
-export const DiscountProfitWidget: React.FC<DiscountProfitWidgetProps> = ({
+export const DiscountProfitWidget: React.FC<DiscountProfitWidgetProps> = React.memo(({
   data,
   isLoading = false,
   className = '',
@@ -131,6 +131,8 @@ export const DiscountProfitWidget: React.FC<DiscountProfitWidgetProps> = ({
       )}
     </div>
   );
-};
+});
+
+DiscountProfitWidget.displayName = 'DiscountProfitWidget';
 
 export default DiscountProfitWidget;

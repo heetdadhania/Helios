@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Clock,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { PendingUpload, SourceType } from '@/types/admin';
 import { adminService } from '@/services/adminService';
+import { Pagination } from '@/components/ui/Pagination';
 
 export const PendingUploads: React.FC = () => {
   const navigate = useNavigate();
@@ -23,6 +24,8 @@ export const PendingUploads: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sourceFilter, setSourceFilter] = useState<string>('all');
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 10;
 
   const loadUploads = async () => {
     setIsLoading(true);
@@ -41,16 +44,22 @@ export const PendingUploads: React.FC = () => {
     loadUploads();
   }, []);
 
-  const filteredUploads = uploads.filter((item) => {
-    const matchesSource =
-      sourceFilter === 'all' || item.source_type === sourceFilter;
-    const matchesSearch =
-      searchQuery === '' ||
-      item.batch_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item.tenant_name && item.tenant_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      item.filename.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSource && matchesSearch;
-  });
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sourceFilter]);
+
+  const filteredUploads = useMemo(() => {
+    return uploads.filter((item) => {
+      const matchesSource =
+        sourceFilter === 'all' || item.source_type === sourceFilter;
+      const matchesSearch =
+        searchQuery === '' ||
+        item.batch_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (item.tenant_name && item.tenant_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        item.filename.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesSource && matchesSearch;
+    });
+  }, [uploads, sourceFilter, searchQuery]);
 
   const renderSourceTypeBadge = (type: SourceType) => {
     switch (type) {
@@ -179,7 +188,8 @@ export const PendingUploads: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="border-b border-helios-border-light dark:border-helios-border-dark text-slate-400 bg-black/[0.02] dark:bg-white/[0.02]">
@@ -193,7 +203,9 @@ export const PendingUploads: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                {filteredUploads.map((upl) => (
+                {filteredUploads
+                  .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+                  .map((upl: PendingUpload) => (
                   <tr
                     key={upl.batch_id}
                     className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer group"
@@ -248,7 +260,14 @@ export const PendingUploads: React.FC = () => {
               </tbody>
             </table>
           </div>
-        )}
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredUploads.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+          />
+        </>
+      )}
       </div>
     </div>
   );

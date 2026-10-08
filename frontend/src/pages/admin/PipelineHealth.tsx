@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
 import {
   Activity,
@@ -237,6 +237,10 @@ export const PipelineHealth: React.FC = () => {
     });
   }, [runs, searchQuery]);
 
+  const handleInspect = useCallback((batchId: string) => {
+    setSelectedBatchId(batchId);
+  }, []);
+
   // Enforce role isolation
   if (!isAuthorized) {
     return <Navigate to="/client/dashboard" replace />;
@@ -434,7 +438,7 @@ export const PipelineHealth: React.FC = () => {
                 <Activity className="w-6 h-6" />
               </div>
             }
-            onInspect={(batchId) => setSelectedBatchId(batchId)}
+            onInspect={handleInspect}
           />
         )}
 
@@ -457,7 +461,7 @@ export const PipelineHealth: React.FC = () => {
                 <CheckCircle2 className="w-6 h-6" />
               </div>
             }
-            onInspect={(batchId) => setSelectedBatchId(batchId)}
+            onInspect={handleInspect}
           />
         )}
 
@@ -480,7 +484,7 @@ export const PipelineHealth: React.FC = () => {
                 <Layers className="w-6 h-6" />
               </div>
             }
-            onInspect={(batchId) => setSelectedBatchId(batchId)}
+            onInspect={handleInspect}
           />
         )}
 
@@ -503,7 +507,7 @@ export const PipelineHealth: React.FC = () => {
                 <RotateCcw className="w-6 h-6" />
               </div>
             }
-            onInspect={(batchId) => setSelectedBatchId(batchId)}
+            onInspect={handleInspect}
           />
         )}
       </div>

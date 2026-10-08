@@ -208,3 +208,74 @@ def test_get_platform_usage_admin_success(client, admin_token):
     assert data["pipeline_runs_per_day"][0]["total_runs"] >= 1
 
 
+def test_oversight_caching_tenant_health_and_usage():
+    """Verify that tenant health and platform usage results are cached in-memory."""
+    from app.services.oversight_service import OversightService
+
+    OversightService.clear_cache()
+    mock_repo = MagicMock()
+    mock_repo.get_all_tenants.return_value = [{"tenant_id": 1, "business_name": "T1"}]
+    mock_repo.get_latest_pipeline_status_per_tenant.return_value = {}
+    mock_repo.get_tenant_late_delivery_rates.return_value = {}
+
+    # First call queries repo
+    res1 = OversightService.get_tenant_health(mock_repo)
+    assert res1.total_tenants == 1
+    assert mock_repo.get_all_tenants.call_count == 1
+
+    # Second call returns cached result without querying repo again
+    res2 = OversightService.get_tenant_health(mock_repo)
+    assert res2 == res1
+    assert mock_repo.get_all_tenants.call_count == 1  # Still 1, verified cache hit!
+
+    # Clearing cache forces a fresh query
+    OversightService.clear_cache()
+    res3 = OversightService.get_tenant_health(mock_repo)
+    assert mock_repo.get_all_tenants.call_count == 2
+
+
+def test_oversight_compare_uses_set_based_batching():
+    """Verify compare_tenants invokes batch queries rather than looping single tenant queries."""
+    from app.services.oversight_service import OversightService
+
+    mock_oversight_repo = MagicMock()
+    mock_dashboard_repo = MagicMock()
+
+    mock_oversight_repo.get_tenants_by_ids.return_value = {
+        1: {"tenant_id": 1, "business_name": "Tenant One", "tier": "growth"},
+        2: {"tenant_id": 2, "business_name": "Tenant Two", "tier": "enterprise"},
+    }
+    mock_oversight_repo.get_comparison_revenue_metrics.return_value = {
+        1: {"tenant_id": 1, "total_revenue": 1000.0, "total_orders": 10},
+        2: {"tenant_id": 2, "total_revenue": 2000.0, "total_orders": 20},
+    }
+    mock_oversight_repo.get_comparison_delivery_metrics.return_value = {
+        1: {"tenant_id": 1, "total_shipments": 10, "late_pct": 5.0, "avg_shipping_days": 2.0},
+        2: {"tenant_id": 2, "total_shipments": 20, "late_pct": 2.0, "avg_shipping_days": 1.5},
+    }
+
+    result = OversightService.compare_tenants(
+        tenant_ids=[1, 2],
+        days=30,
+        dashboard_repo=mock_dashboard_repo,
+        oversight_repo=mock_oversight_repo,
+    )
+
+    # Verified: set-based methods called exactly once for the batch
+    assert mock_oversight_repo.get_tenants_by_ids.call_count == 1
+    assert mock_oversight_repo.get_comparison_revenue_metrics.call_count == 1
+    assert mock_oversight_repo.get_comparison_delivery_metrics.call_count == 1
+
+    # Verified: no N+1 single-tenant queries were called
+    assert mock_oversight_repo.get_tenant_by_id.call_count == 0
+    assert mock_dashboard_repo.get_revenue_trend.call_count == 0
+    assert mock_dashboard_repo.get_late_delivery_risk.call_count == 0
+
+    assert len(result.tenants) == 2
+    assert result.tenants[0].tenant_id == 1
+    assert result.tenants[0].total_revenue == 1000.0
+    assert result.tenants[1].tenant_id == 2
+    assert result.tenants[1].total_revenue == 2000.0
+
+
+

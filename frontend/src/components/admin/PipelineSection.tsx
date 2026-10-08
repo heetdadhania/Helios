@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Activity,
   ArrowRight,
@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { PipelineRun, IngestionSourceType } from '@/types/pipelineHealth';
 import { StageStatusBadge } from '@/components/admin/StageStatusBadge';
+import { Pagination } from '@/components/ui/Pagination';
 
 export const SourceTypeIcon: React.FC<{ type: IngestionSourceType }> = ({ type }) => {
   const norm = (type || '').toLowerCase();
@@ -51,7 +52,7 @@ export interface PipelineSectionProps {
   onInspect: (batchId: string) => void;
 }
 
-export const PipelineSection: React.FC<PipelineSectionProps> = ({
+export const PipelineSection: React.FC<PipelineSectionProps> = React.memo(({
   id,
   title,
   subtitle,
@@ -66,6 +67,12 @@ export const PipelineSection: React.FC<PipelineSectionProps> = ({
   emptyIcon,
   onInspect,
 }) => {
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, runs.length]);
   const badgeClasses = {
     rose: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
     blue: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
@@ -161,7 +168,9 @@ export const PipelineSection: React.FC<PipelineSectionProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark">
-              {runs.map((run) => {
+              {runs
+                .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+                .map((run) => {
                 const isFailed = run.status.toLowerCase() === 'failed';
                 return (
                   <tr
@@ -229,8 +238,16 @@ export const PipelineSection: React.FC<PipelineSectionProps> = ({
               })}
             </tbody>
           </table>
+          <Pagination
+            currentPage={currentPage}
+            totalItems={runs.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+          />
         </div>
       )}
     </div>
   );
-};
+});
+
+PipelineSection.displayName = 'PipelineSection';

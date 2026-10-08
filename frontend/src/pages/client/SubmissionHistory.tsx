@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { CheckCircle2, AlertTriangle, RefreshCw, Inbox, Loader2 } from 'lucide-react';
 import { historyService } from '@/services/historyService';
 import { SmbHistoryItem } from '@/types/history';
+import { Pagination } from '@/components/ui/Pagination';
 
 export const SubmissionHistory: React.FC = () => {
   const [history, setHistory] = useState<SmbHistoryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 10;
 
   const fetchHistory = async () => {
     setLoading(true);
@@ -124,35 +127,45 @@ export const SubmissionHistory: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[560px]">
-              <thead>
-                <tr className="border-b border-helios-border-light dark:border-helios-border-dark bg-black/[0.02] dark:bg-white/[0.02] text-xs uppercase tracking-wider text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-semibold">
-                  <th className="py-3.5 px-6">Submission Date</th>
-                  <th className="py-3.5 px-6">Event</th>
-                  <th className="py-3.5 px-6 text-right">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark text-sm">
-                {history.map((item) => (
-                  <tr
-                    key={item.batch_id}
-                    className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
-                  >
-                    <td className="py-4 px-6 text-helios-text-primary-light dark:text-helios-text-primary-dark font-medium whitespace-nowrap">
-                      {item.date || '—'}
-                    </td>
-                    <td className="py-4 px-6 text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
-                      {item.label || 'Data received'}
-                    </td>
-                    <td className="py-4 px-6 text-right whitespace-nowrap">
-                      {renderStatusBadge(item.status)}
-                    </td>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[560px]">
+                <thead>
+                  <tr className="border-b border-helios-border-light dark:border-helios-border-dark bg-black/[0.02] dark:bg-white/[0.02] text-xs uppercase tracking-wider text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-semibold">
+                    <th className="py-3.5 px-6">Submission Date</th>
+                    <th className="py-3.5 px-6">Event</th>
+                    <th className="py-3.5 px-6 text-right">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark text-sm">
+                  {history
+                    .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+                    .map((item) => (
+                      <tr
+                        key={item.batch_id}
+                        className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+                      >
+                        <td className="py-4 px-6 text-helios-text-primary-light dark:text-helios-text-primary-dark font-medium whitespace-nowrap">
+                          {item.date || '—'}
+                        </td>
+                        <td className="py-4 px-6 text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
+                          {item.label || 'Data received'}
+                        </td>
+                        <td className="py-4 px-6 text-right whitespace-nowrap">
+                          {renderStatusBadge(item.status)}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalItems={history.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+            />
+          </>
         )}
       </div>
     </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
@@ -18,6 +18,14 @@ import { ShippingModeWidget } from '@/components/dashboard/ShippingModeWidget';
 import { dashboardService } from '@/services/dashboardService';
 import { DashboardData } from '@/types/dashboard';
 
+interface WidgetLoadingStates {
+  revenueTrend: boolean;
+  topProducts: boolean;
+  lateDeliveryRisk: boolean;
+  discountVsProfit: boolean;
+  shippingModes: boolean;
+}
+
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -31,33 +39,140 @@ export const Dashboard: React.FC = () => {
     shippingModes: null,
     uploadStatus: null,
   });
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Granular per-widget loading states so skeletons render immediately
+  // and resolve progressively as each chart's data arrives
+  const [loadingStates, setLoadingStates] = useState<WidgetLoadingStates>({
+    revenueTrend: true,
+    topProducts: true,
+    lateDeliveryRisk: true,
+    discountVsProfit: true,
+    shippingModes: true,
+  });
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Parallel data fetching across all Gold dashboard endpoints
-  const loadDashboardData = async (lookbackDays: number, isBackground: boolean = false) => {
+  // Request race-condition guard ref to prevent out-of-order state updates
+  const currentRequestIdRef = useRef<number>(0);
+
+  // Parallel data fetching across all Gold dashboard endpoints with progressive resolution
+  const loadDashboardData = useCallback(async (lookbackDays: number, isBackground: boolean = false) => {
+    const requestId = ++currentRequestIdRef.current;
+
     if (isBackground) {
       setIsRefreshing(true);
     } else {
-      setIsLoading(true);
+      // Immediate skeleton display for all widgets
+      setLoadingStates({
+        revenueTrend: true,
+        topProducts: true,
+        lateDeliveryRisk: true,
+        discountVsProfit: true,
+        shippingModes: true,
+      });
     }
     setError(null);
 
-    try {
-      const result = await dashboardService.fetchAllDashboardData(lookbackDays);
-      setData(result);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load dashboard telemetry.');
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  };
+    // Fire all 5 dashboard chart requests and upload status in PARALLEL simultaneously
+    const pTrend = dashboardService.getRevenueTrend(lookbackDays)
+      .then((res) => {
+        if (currentRequestIdRef.current === requestId) {
+          setData((prev) => ({ ...prev, revenueTrend: res }));
+          setLoadingStates((prev) => ({ ...prev, revenueTrend: false }));
+        }
+      })
+      .catch(() => {
+        if (currentRequestIdRef.current === requestId) {
+          setLoadingStates((prev) => ({ ...prev, revenueTrend: false }));
+        }
+      });
 
+    const pProducts = dashboardService.getTopProducts(10)
+      .then((res) => {
+        if (currentRequestIdRef.current === requestId) {
+          setData((prev) => ({ ...prev, topProducts: res }));
+          setLoadingStates((prev) => ({ ...prev, topProducts: false }));
+        }
+      })
+      .catch(() => {
+        if (currentRequestIdRef.current === requestId) {
+          setLoadingStates((prev) => ({ ...prev, topProducts: false }));
+        }
+      });
+
+    const pLate = dashboardService.getLateDeliveryRisk()
+      .then((res) => {
+        if (currentRequestIdRef.current === requestId) {
+          setData((prev) => ({ ...prev, lateDeliveryRisk: res }));
+          setLoadingStates((prev) => ({ ...prev, lateDeliveryRisk: false }));
+        }
+      })
+      .catch(() => {
+        if (currentRequestIdRef.current === requestId) {
+          setLoadingStates((prev) => ({ ...prev, lateDeliveryRisk: false }));
+        }
+      });
+
+    const pDiscount = dashboardService.getDiscountVsProfit()
+      .then((res) => {
+        if (currentRequestIdRef.current === requestId) {
+          setData((prev) => ({ ...prev, discountVsProfit: res }));
+          setLoadingStates((prev) => ({ ...prev, discountVsProfit: false }));
+        }
+      })
+      .catch(() => {
+        if (currentRequestIdRef.current === requestId) {
+          setLoadingStates((prev) => ({ ...prev, discountVsProfit: false }));
+        }
+      });
+
+    const pShipping = dashboardService.getShippingModeComparison()
+      .then((res) => {
+        if (currentRequestIdRef.current === requestId) {
+          setData((prev) => ({ ...prev, shippingModes: res }));
+          setLoadingStates((prev) => ({ ...prev, shippingModes: false }));
+        }
+      })
+      .catch(() => {
+        if (currentRequestIdRef.current === requestId) {
+          setLoadingStates((prev) => ({ ...prev, shippingModes: false }));
+        }
+      });
+
+    const pStatus = dashboardService.getLatestUploadStatus()
+      .then((res) => {
+        if (currentRequestIdRef.current === requestId) {
+          setData((prev) => ({ ...prev, uploadStatus: res }));
+        }
+      })
+      .catch(() => {});
+
+    try {
+      await Promise.allSettled([pTrend, pProducts, pLate, pDiscount, pShipping, pStatus]);
+    } catch (err: any) {
+      if (currentRequestIdRef.current === requestId) {
+        setError(err.message || 'Failed to load dashboard telemetry.');
+      }
+    } finally {
+      if (currentRequestIdRef.current === requestId) {
+        setIsRefreshing(false);
+      }
+    }
+  }, []);
+
+  // Fetch only when days filter changes; immune to unrelated state changes
   useEffect(() => {
     loadDashboardData(days, false);
-  }, [days]);
+  }, [days, loadDashboardData]);
+
+  // Stable callback for lookback days selection so RevenueTrendChart memoization is preserved
+  const handleDaysChange = useCallback((newDays: number) => {
+    setDays(newDays);
+  }, []);
+
+  const isAnyLoading = useMemo(() => {
+    return Object.values(loadingStates).some(Boolean);
+  }, [loadingStates]);
 
   // Determine if tenant has any data yet
   const hasAnyData = useMemo(() => {
@@ -131,7 +246,7 @@ export const Dashboard: React.FC = () => {
           <button
             type="button"
             onClick={() => loadDashboardData(days, true)}
-            disabled={isLoading || isRefreshing}
+            disabled={isAnyLoading || isRefreshing}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
             title="Refresh dashboard metrics"
           >
@@ -161,7 +276,7 @@ export const Dashboard: React.FC = () => {
       )}
 
       {/* Empty State Banner (if no data has been connected/synced yet) */}
-      {!isLoading && !hasAnyData && (
+      {!isAnyLoading && !hasAnyData && (
         <div className="p-8 rounded-2xl border-2 border-dashed border-helios-border-light dark:border-helios-border-dark bg-helios-card-light dark:bg-helios-card-dark text-center space-y-4 shadow-sm animate-fadeIn">
           <div className="w-14 h-14 mx-auto rounded-2xl bg-helios-accent-blue/10 flex items-center justify-center text-helios-accent-blue">
             <Database className="w-7 h-7" />
@@ -194,9 +309,9 @@ export const Dashboard: React.FC = () => {
         <div>
           <RevenueTrendChart
             data={data.revenueTrend}
-            isLoading={isLoading}
+            isLoading={loadingStates.revenueTrend}
             selectedDays={days}
-            onDaysChange={setDays}
+            onDaysChange={handleDaysChange}
           />
         </div>
 
@@ -204,11 +319,11 @@ export const Dashboard: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <TopProductsWidget
             data={data.topProducts}
-            isLoading={isLoading}
+            isLoading={loadingStates.topProducts}
           />
           <LateDeliveryWidget
             data={data.lateDeliveryRisk}
-            isLoading={isLoading}
+            isLoading={loadingStates.lateDeliveryRisk}
           />
         </div>
 
@@ -216,11 +331,11 @@ export const Dashboard: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <DiscountProfitWidget
             data={data.discountVsProfit}
-            isLoading={isLoading}
+            isLoading={loadingStates.discountVsProfit}
           />
           <ShippingModeWidget
             data={data.shippingModes}
-            isLoading={isLoading}
+            isLoading={loadingStates.shippingModes}
           />
         </div>
       </div>

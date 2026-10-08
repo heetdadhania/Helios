@@ -2,6 +2,8 @@ import csv
 from datetime import datetime, timezone
 import io
 import logging
+import threading
+import time
 from typing import Any, Dict, List, Optional, Tuple
 from fastapi import HTTPException, status
 
@@ -34,8 +36,50 @@ from app.schemas.oversight import (
 logger = logging.getLogger("helios.services.oversight")
 
 
+class OversightCache:
+    """
+    Thread-safe in-memory TTL cache for expensive Admin Oversight aggregations.
+
+    Deliberate Caching Decision:
+    Platform-wide aggregations such as tenant health scoring and platform usage
+    scan multiple cross-tenant tables and audit logs. When administrators refresh
+    or navigate between oversight screens, recomputing these full scans on every
+    request creates unnecessary database pressure. A 60-second in-memory TTL
+    ensures high responsiveness while keeping operational metrics fresh.
+    """
+
+    def __init__(self, ttl_seconds: float = 60.0) -> None:
+        self.ttl_seconds = ttl_seconds
+        self._cache: Dict[str, Tuple[float, Any]] = {}
+        self._lock = threading.Lock()
+
+    def get(self, key: str) -> Optional[Any]:
+        with self._lock:
+            if key in self._cache:
+                timestamp, data = self._cache[key]
+                if time.time() - timestamp < self.ttl_seconds:
+                    return data
+                del self._cache[key]
+            return None
+
+    def set(self, key: str, value: Any) -> None:
+        with self._lock:
+            self._cache[key] = (time.time(), value)
+
+    def clear(self) -> None:
+        with self._lock:
+            self._cache.clear()
+
+
 class OversightService:
     """Service orchestrating Admin-exclusive oversight, cross-tenant observability, and system exports."""
+
+    _cache = OversightCache(ttl_seconds=60.0)
+
+    @classmethod
+    def clear_cache(cls) -> None:
+        """Clear cached tenant health and platform usage aggregations."""
+        cls._cache.clear()
 
     # -----------------------------------------------------------------------------
     # Tenant Health Evaluation Rules & Exact Thresholds:
@@ -212,10 +256,23 @@ class OversightService:
         )
 
     @classmethod
-    def get_tenant_health(cls, oversight_repo: OversightRepository) -> TenantHealthListResponse:
+    def get_tenant_health(
+        cls,
+        oversight_repo: OversightRepository,
+        force_refresh: bool = False,
+    ) -> TenantHealthListResponse:
         """
         Evaluate health status for all tenants using explainable rules against existing pipeline and delivery data.
+
+        Deliberate Caching Decision:
+        Results are cached in-memory with a 60-second TTL to avoid repetitive full-table scans
+        and window functions across all registered tenants on every admin page load.
         """
+        if not force_refresh:
+            cached = cls._cache.get("tenant_health")
+            if cached is not None:
+                return cached
+
         tenants = oversight_repo.get_all_tenants()
         latest_pipeline = oversight_repo.get_latest_pipeline_status_per_tenant()
         late_metrics = oversight_repo.get_tenant_late_delivery_rates()
@@ -293,13 +350,15 @@ class OversightService:
                 )
             )
 
-        return TenantHealthListResponse(
+        response = TenantHealthListResponse(
             total_tenants=len(items),
             critical_count=critical_count,
             needs_attention_count=needs_attention_count,
             good_count=good_count,
             tenants=items,
         )
+        cls._cache.set("tenant_health", response)
+        return response
 
     @classmethod
     def compare_tenants(
@@ -311,27 +370,36 @@ class OversightService:
     ) -> TenantCompareResponse:
         """
         Return comparative metrics (revenue, late-delivery %, AOV, order count) for 2+ tenants side by side.
-        Reuses existing dashboard repository queries.
+
+        Performance Optimization:
+        Eliminated the N+1 query pattern by replacing loops of individual tenant queries
+        with set-based queries fetching all tenant metadata, revenue summaries, and delivery
+        metrics in unified batch operations.
         """
+        # Batch 1: Fetch metadata for all requested tenants in one query
+        tenant_map = oversight_repo.get_tenants_by_ids(tenant_ids)
+
+        # Batch 2: Fetch revenue totals and order counts in a single set-based query
+        rev_map = oversight_repo.get_comparison_revenue_metrics(tenant_ids=tenant_ids, days=days)
+
+        # Batch 3: Fetch shipment counts and late delivery rates in a single set-based query
+        ship_map = oversight_repo.get_comparison_delivery_metrics(tenant_ids=tenant_ids, days=days)
+
         metrics: List[TenantComparisonMetric] = []
         for tid in tenant_ids:
-            tenant_row = oversight_repo.get_tenant_by_id(tid)
+            tenant_row = tenant_map.get(tid)
             tenant_name = tenant_row.get("business_name") if tenant_row else f"Tenant #{tid}"
             tier = tenant_row.get("tier") if tenant_row else "starter"
 
-            # Reusing get_revenue_trend
-            trend = dashboard_repo.get_revenue_trend(tenant_id=tid, days=days)
-            tot_rev = sum(float(r.get("total_revenue", 0.0) or 0.0) for r in trend)
-            tot_orders = sum(int(r.get("total_orders", 0) or 0) for r in trend)
+            rev_row = rev_map.get(tid, {})
+            tot_rev = float(rev_row.get("total_revenue", 0.0) or 0.0)
+            tot_orders = int(rev_row.get("total_orders", 0) or 0)
             aov = round(float(tot_rev / tot_orders), 2) if tot_orders > 0 else 0.0
 
-            # Reusing get_late_delivery_risk
-            risk = dashboard_repo.get_late_delivery_risk(tenant_id=tid, days=days)
-            ov = risk.get("overview", {}) or {}
-            tot_shipments = int(ov.get("total_shipments", 0) or 0)
-            late_shipments = int(ov.get("late_shipments", 0) or 0)
-            late_pct = round(float(late_shipments / tot_shipments * 100.0), 2) if tot_shipments > 0 else 0.0
-            avg_days = float(ov.get("avg_shipping_days", 0.0) or 0.0)
+            ship_row = ship_map.get(tid, {})
+            tot_shipments = int(ship_row.get("total_shipments", 0) or 0)
+            late_pct = float(ship_row.get("late_pct", 0.0) or 0.0)
+            avg_days = float(ship_row.get("avg_shipping_days", 0.0) or 0.0)
 
             metrics.append(
                 TenantComparisonMetric(
@@ -354,10 +422,23 @@ class OversightService:
         )
 
     @classmethod
-    def get_platform_usage(cls, oversight_repo: OversightRepository) -> PlatformUsageResponse:
+    def get_platform_usage(
+        cls,
+        oversight_repo: OversightRepository,
+        force_refresh: bool = False,
+    ) -> PlatformUsageResponse:
         """
         Compile system-wide platform usage trends strictly from internal pipeline and audit tables.
+
+        Deliberate Caching Decision:
+        Platform-wide ingestion and pipeline run counts are cached in-memory with a 60-second TTL
+        to prevent redundant multi-table aggregations during frequent admin dashboard checks.
         """
+        if not force_refresh:
+            cached = cls._cache.get("platform_usage")
+            if cached is not None:
+                return cached
+
         totals = oversight_repo.get_overall_usage_totals()
         raw_runs = oversight_repo.get_usage_pipeline_runs_per_day()
         raw_batches = oversight_repo.get_usage_batches_per_tenant()
@@ -391,7 +472,7 @@ class OversightService:
             for rw in raw_rows
         ]
 
-        return PlatformUsageResponse(
+        response = PlatformUsageResponse(
             total_runs=totals["total_runs"],
             total_rows_ingested=totals["total_rows_ingested"],
             total_batches=totals["total_batches"],
@@ -400,6 +481,8 @@ class OversightService:
             batches_per_tenant=tenant_batches,
             total_rows_ingested_over_time=daily_rows,
         )
+        cls._cache.set("platform_usage", response)
+        return response
 
     @classmethod
     def generate_audit_export_csv(

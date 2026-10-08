@@ -1,4 +1,5 @@
 import logging
+import time
 from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
@@ -8,6 +9,7 @@ except ImportError:
     Cursor = Any  # type: ignore
 
 from app.core.config import settings
+from app.db.base import databricks_cursor
 
 logger = logging.getLogger("helios.repositories.dashboard")
 
@@ -22,6 +24,8 @@ class DashboardRepository:
         as the most recent business date present in the tenant's data (MAX date_id).
         If the table contains no data for the tenant, anchor_date falls back to the current UTC date.
       - When `days` is None, all-time records are queried without any date boundary constraint.
+
+    Includes retry-with-backoff on query execution to absorb warehouse cold starts and transient connection drops.
     """
 
     def __init__(self, cursor: Cursor, catalog: Optional[str] = None):
@@ -35,17 +39,108 @@ class DashboardRepository:
         self.dim_shipping_mode_table = f"`{self.catalog}`.`gold`.`dim_shipping_mode`"
         self.dim_delivery_status_table = f"`{self.catalog}`.`gold`.`dim_delivery_status`"
 
+    def _execute_query_with_retry(
+        self,
+        query: str,
+        params: Optional[Dict[str, Any]] = None,
+        max_retries: int = 3,
+        base_backoff: float = 1.0,
+    ) -> List[Dict[str, Any]]:
+        """Execute a query returning multiple rows with retry-with-backoff for cold start absorption."""
+        last_exception = None
+        for attempt in range(1, max_retries + 1):
+            try:
+                if attempt == 1 and self.cursor is not None:
+                    self.cursor.execute(query, params or {})
+                    rows = self.cursor.fetchall() or []
+                    columns = [desc[0] for desc in self.cursor.description] if self.cursor.description else []
+                    return [dict(zip(columns, row)) for row in rows]
+
+                with databricks_cursor(catalog=self.catalog) as fresh_cursor:
+                    fresh_cursor.execute(query, params or {})
+                    rows = fresh_cursor.fetchall() or []
+                    columns = [desc[0] for desc in fresh_cursor.description] if fresh_cursor.description else []
+                    return [dict(zip(columns, row)) for row in rows]
+            except Exception as exc:
+                last_exception = exc
+                if attempt < max_retries:
+                    backoff = base_backoff * (2 ** (attempt - 1))
+                    logger.warning(
+                        "Dashboard query attempt %d/%d failed: %s. Retrying in %.1fs...",
+                        attempt,
+                        max_retries,
+                        exc,
+                        backoff,
+                    )
+                    time.sleep(backoff)
+                else:
+                    logger.error(
+                        "All %d dashboard query attempts failed. Last error: %s",
+                        max_retries,
+                        exc,
+                    )
+                    raise exc
+        if last_exception:
+            raise last_exception
+        return []
+
+    def _execute_single_with_retry(
+        self,
+        query: str,
+        params: Optional[Dict[str, Any]] = None,
+        max_retries: int = 3,
+        base_backoff: float = 1.0,
+    ) -> Dict[str, Any]:
+        """Execute a query returning a single row with retry-with-backoff for cold start absorption."""
+        last_exception = None
+        for attempt in range(1, max_retries + 1):
+            try:
+                if attempt == 1 and self.cursor is not None:
+                    self.cursor.execute(query, params or {})
+                    row = self.cursor.fetchone()
+                    columns = [desc[0] for desc in self.cursor.description] if self.cursor.description else []
+                    return dict(zip(columns, row)) if row else {}
+
+                with databricks_cursor(catalog=self.catalog) as fresh_cursor:
+                    fresh_cursor.execute(query, params or {})
+                    row = fresh_cursor.fetchone()
+                    columns = [desc[0] for desc in fresh_cursor.description] if fresh_cursor.description else []
+                    return dict(zip(columns, row)) if row else {}
+            except Exception as exc:
+                last_exception = exc
+                if attempt < max_retries:
+                    backoff = base_backoff * (2 ** (attempt - 1))
+                    logger.warning(
+                        "Dashboard single query attempt %d/%d failed: %s. Retrying in %.1fs...",
+                        attempt,
+                        max_retries,
+                        exc,
+                        backoff,
+                    )
+                    time.sleep(backoff)
+                else:
+                    logger.error(
+                        "All %d dashboard single query attempts failed. Last error: %s",
+                        max_retries,
+                        exc,
+                    )
+                    raise exc
+        if last_exception:
+            raise last_exception
+        return {}
+
     def _get_anchor_date(self, table: str, tenant_id: int, date_col: str = "date_id") -> date:
         """
         Determine the anchor date for the lookback window.
         Uses the most recent date present in the tenant's data (MAX date_id).
         Falls back to current UTC date if the table contains no data.
         """
-        query = f"SELECT max({date_col}) FROM {table} WHERE tenant_id = :tenant_id"
-        self.cursor.execute(query, {"tenant_id": tenant_id})
-        row = self.cursor.fetchone()
-        if row and row[0] is not None:
-            val = row[0]
+        query = f"SELECT max({date_col}) AS max_date FROM {table} WHERE tenant_id = :tenant_id"
+        row = self._execute_single_with_retry(query, {"tenant_id": tenant_id})
+        val = row.get("max_date") if row else None
+        if val is None and row and len(row) > 0:
+            val = next(iter(row.values()))
+        if val is not None:
             if isinstance(val, int) or (isinstance(val, str) and str(val).isdigit() and len(str(val)) == 8):
                 try:
                     return datetime.strptime(str(val), "%Y%m%d").date()
@@ -101,10 +196,7 @@ class DashboardRepository:
             WHERE {where_sql}
             ORDER BY s.date_id ASC
         """
-        self.cursor.execute(query, params)
-        rows = self.cursor.fetchall() or []
-        columns = [desc[0] for desc in self.cursor.description] if self.cursor.description else []
-        return [dict(zip(columns, row)) for row in rows]
+        return self._execute_query_with_retry(query, params)
 
     def get_top_products(
         self,
@@ -145,10 +237,7 @@ class DashboardRepository:
             ORDER BY total_revenue DESC
             LIMIT :limit
         """
-        self.cursor.execute(query, params)
-        rows = self.cursor.fetchall() or []
-        columns = [desc[0] for desc in self.cursor.description] if self.cursor.description else []
-        return [dict(zip(columns, row)) for row in rows]
+        return self._execute_query_with_retry(query, params)
 
     def get_late_delivery_risk(
         self,
@@ -180,10 +269,7 @@ class DashboardRepository:
             FROM {self.fact_shipments_table}
             WHERE {where_sql_ov}
         """
-        self.cursor.execute(overview_q, params)
-        overview_row = self.cursor.fetchone()
-        columns_ov = [desc[0] for desc in self.cursor.description] if self.cursor.description else []
-        overview_data = dict(zip(columns_ov, overview_row)) if overview_row else {}
+        overview_data = self._execute_single_with_retry(overview_q, params)
 
         where_clauses_bd = ["fs.tenant_id = :tenant_id"]
         if start_date_id is not None:
@@ -202,10 +288,7 @@ class DashboardRepository:
             GROUP BY ds.status_name
             ORDER BY total_shipments DESC
         """
-        self.cursor.execute(breakdown_q, params)
-        bd_rows = self.cursor.fetchall() or []
-        columns_bd = [desc[0] for desc in self.cursor.description] if self.cursor.description else []
-        breakdown_list = [dict(zip(columns_bd, r)) for r in bd_rows]
+        breakdown_list = self._execute_query_with_retry(breakdown_q, params)
 
         return {
             "overview": overview_data,
@@ -251,10 +334,7 @@ class DashboardRepository:
             GROUP BY 1
             ORDER BY 1
         """
-        self.cursor.execute(query, params)
-        rows = self.cursor.fetchall() or []
-        columns = [desc[0] for desc in self.cursor.description] if self.cursor.description else []
-        return [dict(zip(columns, row)) for row in rows]
+        return self._execute_query_with_retry(query, params)
 
     def get_shipping_mode_comparison(
         self,
@@ -291,7 +371,4 @@ class DashboardRepository:
             GROUP BY sm.mode_name
             ORDER BY shipment_count DESC
         """
-        self.cursor.execute(query, params)
-        rows = self.cursor.fetchall() or []
-        columns = [desc[0] for desc in self.cursor.description] if self.cursor.description else []
-        return [dict(zip(columns, row)) for row in rows]
+        return self._execute_query_with_retry(query, params)

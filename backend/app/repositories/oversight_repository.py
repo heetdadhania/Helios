@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 import logging
 from typing import Any, Dict, List, Optional
 
@@ -86,6 +87,148 @@ class OversightRepository:
             ORDER BY tenant_id ASC
         """
         return self._fetch_all(query)
+
+    def get_tenants_by_ids(self, tenant_ids: List[int]) -> Dict[int, Dict[str, Any]]:
+        """
+        Fetch multiple tenants by ID in a single set-based query to eliminate N+1 queries.
+        Returns a mapping of tenant_id -> tenant dictionary.
+        """
+        if not tenant_ids:
+            return {}
+        ids = [int(i) for i in tenant_ids]
+        ids_str = ", ".join(str(i) for i in ids)
+        query = f"""
+            SELECT 
+                tenant_id, 
+                business_name, 
+                coalesce(lower(replace(business_name, ' ', '_')), concat('tenant_', string(tenant_id))) AS slug,
+                'starter' AS tier,
+                industry,
+                contact_email,
+                created_by,
+                created_at,
+                is_active
+            FROM {self.tenants_table}
+            WHERE tenant_id IN ({ids_str})
+        """
+        rows = self._fetch_all(query)
+        return {int(r["tenant_id"]): r for r in rows if r.get("tenant_id") is not None}
+
+    def _get_comparison_anchor_dates(
+        self,
+        table: str,
+        tenant_ids: List[int],
+        date_col: str = "date_id",
+    ) -> Dict[int, Any]:
+        """Fetch max date per tenant to anchor lookback windows across tenants in a single query."""
+        if not tenant_ids:
+            return {}
+        ids = [int(i) for i in tenant_ids]
+        ids_str = ", ".join(str(i) for i in ids)
+        query = f"SELECT tenant_id, max({date_col}) AS max_date FROM {table} WHERE tenant_id IN ({ids_str}) GROUP BY tenant_id"
+        rows = self._fetch_all(query)
+        return {int(r["tenant_id"]): r.get("max_date") for r in rows if r.get("tenant_id") is not None}
+
+    def _resolve_start_date_id(self, anchor_val: Any, days: Optional[int]) -> Optional[int]:
+        """Convert anchor date value to start date_id integer (YYYYMMDD)."""
+        if days is None:
+            return None
+        anchor_date = None
+        if anchor_val is not None:
+            val_str = str(anchor_val)
+            if val_str.isdigit() and len(val_str) == 8:
+                try:
+                    anchor_date = datetime.strptime(val_str, "%Y%m%d").date()
+                except ValueError:
+                    pass
+            elif hasattr(anchor_val, "strftime"):
+                anchor_date = anchor_val if not hasattr(anchor_val, "date") else anchor_val.date()
+        if anchor_date is None:
+            anchor_date = datetime.now(timezone.utc).date()
+        start = anchor_date - timedelta(days=days - 1)
+        return int(start.strftime("%Y%m%d"))
+
+    def get_comparison_revenue_metrics(
+        self,
+        tenant_ids: List[int],
+        days: Optional[int],
+    ) -> Dict[int, Dict[str, Any]]:
+        """
+        Fetch total revenue and orders for multiple tenants in a single set-based query,
+        eliminating the N+1 pattern in compare_tenants.
+        """
+        if not tenant_ids:
+            return {}
+        ids = [int(i) for i in tenant_ids]
+        ids_str = ", ".join(str(i) for i in ids)
+
+        where_sql = f"tenant_id IN ({ids_str})"
+        if days is not None:
+            anchors = self._get_comparison_anchor_dates(self.summary_table, ids, "date_id")
+            tenant_clauses = []
+            for tid in ids:
+                start_date_id = self._resolve_start_date_id(anchors.get(tid), days)
+                tenant_clauses.append(f"(tenant_id = {tid} AND date_id >= {start_date_id})")
+            if tenant_clauses:
+                where_sql = " OR ".join(tenant_clauses)
+
+        query = f"""
+            SELECT 
+                tenant_id,
+                coalesce(sum(total_revenue), 0.0) AS total_revenue,
+                coalesce(sum(total_orders), 0) AS total_orders
+            FROM {self.summary_table}
+            WHERE {where_sql}
+            GROUP BY tenant_id
+        """
+        try:
+            rows = self._fetch_all(query)
+            return {int(r["tenant_id"]): r for r in rows if r.get("tenant_id") is not None}
+        except Exception as exc:
+            logger.warning("Error fetching batch revenue comparison metrics: %s", exc)
+            return {}
+
+    def get_comparison_delivery_metrics(
+        self,
+        tenant_ids: List[int],
+        days: Optional[int],
+    ) -> Dict[int, Dict[str, Any]]:
+        """
+        Fetch shipment totals, late shipments, and average shipping days for multiple tenants
+        in a single set-based query, eliminating the N+1 pattern in compare_tenants.
+        """
+        if not tenant_ids:
+            return {}
+        ids = [int(i) for i in tenant_ids]
+        ids_str = ", ".join(str(i) for i in ids)
+
+        where_sql = f"tenant_id IN ({ids_str})"
+        if days is not None:
+            anchors = self._get_comparison_anchor_dates(self.shipments_table, ids, "date_id")
+            tenant_clauses = []
+            for tid in ids:
+                start_date_id = self._resolve_start_date_id(anchors.get(tid), days)
+                tenant_clauses.append(f"(tenant_id = {tid} AND date_id >= {start_date_id})")
+            if tenant_clauses:
+                where_sql = " OR ".join(tenant_clauses)
+
+        query = f"""
+            SELECT 
+                tenant_id,
+                count(*) AS total_shipments,
+                sum(CASE WHEN late_flag THEN 1 ELSE 0 END) AS late_shipments,
+                round(sum(CASE WHEN late_flag THEN 1.0 ELSE 0.0 END) / nullif(count(*), 0) * 100.0, 2) AS late_pct,
+                round(avg(coalesce(shipping_days, 0)), 2) AS avg_shipping_days
+            FROM {self.shipments_table}
+            WHERE {where_sql}
+            GROUP BY tenant_id
+        """
+        try:
+            rows = self._fetch_all(query)
+            return {int(r["tenant_id"]): r for r in rows if r.get("tenant_id") is not None}
+        except Exception as exc:
+            logger.warning("Error fetching batch delivery comparison metrics: %s", exc)
+            return {}
 
     def get_latest_pipeline_status_per_tenant(self) -> Dict[int, Dict[str, Any]]:
         """
@@ -221,22 +364,23 @@ class OversightRepository:
             return []
 
     def get_overall_usage_totals(self) -> Dict[str, int]:
-        """Fetch total counts for runs, rows, and batches."""
-        runs_q = f"SELECT count(*) FROM {self.pipeline_table}"
-        self.cursor.execute(runs_q)
-        total_runs = (self.cursor.fetchone() or [0])[0] or 0
+        """Fetch total counts for runs, rows, and batches in unified queries."""
+        pipeline_q = f"""
+            SELECT 
+                count(*) AS total_runs,
+                count(DISTINCT batch_id) AS total_batches,
+                count(DISTINCT tenant_id) AS active_tenants
+            FROM {self.pipeline_table}
+        """
+        self.cursor.execute(pipeline_q)
+        row = self.cursor.fetchone() or [0, 0, 0]
+        total_runs = row[0] or 0
+        total_batches = row[1] or 0
+        active_tenants = row[2] or 0
 
         rows_q = f"SELECT sum(coalesce(row_count, 0)) FROM {self.audit_table} WHERE stage IN ('bronze', 'bronze_ingest')"
         self.cursor.execute(rows_q)
         total_rows = (self.cursor.fetchone() or [0])[0] or 0
-
-        batches_q = f"SELECT count(DISTINCT batch_id) FROM {self.pipeline_table}"
-        self.cursor.execute(batches_q)
-        total_batches = (self.cursor.fetchone() or [0])[0] or 0
-
-        active_t_q = f"SELECT count(DISTINCT tenant_id) FROM {self.pipeline_table}"
-        self.cursor.execute(active_t_q)
-        active_tenants = (self.cursor.fetchone() or [0])[0] or 0
 
         return {
             "total_runs": int(total_runs),

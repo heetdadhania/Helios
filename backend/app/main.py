@@ -24,6 +24,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Databricks Catalog: %s", settings.DATABRICKS_CATALOG)
     yield
     logger.info("Shutting down %s...", settings.PROJECT_NAME)
+    from app.db.base import close_connection_pool
+    close_connection_pool()
 
 
 def create_application() -> FastAPI:

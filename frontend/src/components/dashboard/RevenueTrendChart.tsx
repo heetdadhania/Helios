@@ -21,7 +21,7 @@ interface RevenueTrendChartProps {
   className?: string;
 }
 
-export const RevenueTrendChart: React.FC<RevenueTrendChartProps> = ({
+export const RevenueTrendChart: React.FC<RevenueTrendChartProps> = React.memo(({
   data,
   isLoading = false,
   selectedDays,
@@ -223,6 +223,8 @@ export const RevenueTrendChart: React.FC<RevenueTrendChartProps> = ({
       )}
     </div>
   );
-};
+});
+
+RevenueTrendChart.displayName = 'RevenueTrendChart';
 
 export default RevenueTrendChart;

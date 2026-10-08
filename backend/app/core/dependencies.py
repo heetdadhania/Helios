@@ -20,10 +20,14 @@ logger = logging.getLogger(__name__)
 security_bearer = HTTPBearer(auto_error=False)
 
 
+import time
+
 def get_db_connection() -> Generator[Connection, None, None]:
     """Yield a Databricks SQL connection for request lifecycle and ensure cleanup."""
+    t0 = time.perf_counter()
     try:
         conn = get_databricks_connection()
+        conn._acquire_time = time.perf_counter() - t0
     except Exception as exc:
         logger.error("Failed to establish Databricks SQL connection for request: %s", exc)
         raise HTTPException(
@@ -44,6 +48,7 @@ def get_db_cursor(
 ) -> Generator[Cursor, None, None]:
     """Yield an active Databricks SQL cursor scoped to current request."""
     cursor = conn.cursor()
+    cursor._connection_acquire_time = getattr(conn, "_acquire_time", 0.0)
     try:
         yield cursor
     finally:

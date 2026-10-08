@@ -1,32 +1,40 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ClientLayout } from '@/layouts/ClientLayout';
 import { AdminLayout } from '@/layouts/AdminLayout';
 import { ProtectedRoute } from './ProtectedRoute';
-
-// Pages
-import { Login } from '@/pages/Login';
-import { Dashboard } from '@/pages/client/Dashboard';
-import { DataSourceSelect } from '@/pages/client/DataSourceSelect';
-import { ApiAccess } from '@/pages/client/ApiAccess';
-import { ExportDataPage } from '@/pages/client/ExportDataPage';
-import { IngestUpload } from '@/pages/team/IngestUpload';
-import { IngestDatabaseConnection } from '@/pages/team/IngestDatabaseConnection';
-import { PendingUploads } from '@/pages/admin/PendingUploads';
-import { ConfirmSchema } from '@/pages/admin/ConfirmSchema';
-import { PipelineHealth } from '@/pages/admin/PipelineHealth';
-import { DataQualityLog } from '@/pages/admin/DataQualityLog';
-import { Tenants } from '@/pages/admin/Tenants';
-import { TeamMembers } from '@/pages/admin/TeamMembers';
-import { SubmissionHistory } from '@/pages/client/SubmissionHistory';
-import { TeamHistory } from '@/pages/team/TeamHistory';
-import { AdminHistory } from '@/pages/admin/AdminHistory';
-import { SupportInbox } from '@/pages/team/SupportInbox';
-import { TenantDashboardView } from '@/pages/admin/TenantDashboardView';
-import { TenantHealth } from '@/pages/admin/TenantHealth';
-import { TenantComparison } from '@/pages/admin/TenantComparison';
-import { UsageDashboard } from '@/pages/admin/UsageDashboard';
 import { useAuth } from '@/hooks/useAuth';
+import { Loader2 } from 'lucide-react';
+
+// Lazy-loaded route components for efficient bundle code-splitting
+const Login = lazy(() => import('@/pages/Login').then((m) => ({ default: m.Login })));
+const Dashboard = lazy(() => import('@/pages/client/Dashboard').then((m) => ({ default: m.Dashboard })));
+const DataSourceSelect = lazy(() => import('@/pages/client/DataSourceSelect').then((m) => ({ default: m.DataSourceSelect })));
+const ApiAccess = lazy(() => import('@/pages/client/ApiAccess').then((m) => ({ default: m.ApiAccess })));
+const ExportDataPage = lazy(() => import('@/pages/client/ExportDataPage').then((m) => ({ default: m.ExportDataPage })));
+const IngestUpload = lazy(() => import('@/pages/team/IngestUpload').then((m) => ({ default: m.IngestUpload })));
+const IngestDatabaseConnection = lazy(() => import('@/pages/team/IngestDatabaseConnection').then((m) => ({ default: m.IngestDatabaseConnection })));
+const PendingUploads = lazy(() => import('@/pages/admin/PendingUploads').then((m) => ({ default: m.PendingUploads })));
+const ConfirmSchema = lazy(() => import('@/pages/admin/ConfirmSchema').then((m) => ({ default: m.ConfirmSchema })));
+const PipelineHealth = lazy(() => import('@/pages/admin/PipelineHealth').then((m) => ({ default: m.PipelineHealth })));
+const DataQualityLog = lazy(() => import('@/pages/admin/DataQualityLog').then((m) => ({ default: m.DataQualityLog })));
+const Tenants = lazy(() => import('@/pages/admin/Tenants').then((m) => ({ default: m.Tenants })));
+const TeamMembers = lazy(() => import('@/pages/admin/TeamMembers').then((m) => ({ default: m.TeamMembers })));
+const SubmissionHistory = lazy(() => import('@/pages/client/SubmissionHistory').then((m) => ({ default: m.SubmissionHistory })));
+const TeamHistory = lazy(() => import('@/pages/team/TeamHistory').then((m) => ({ default: m.TeamHistory })));
+const AdminHistory = lazy(() => import('@/pages/admin/AdminHistory').then((m) => ({ default: m.AdminHistory })));
+const SupportInbox = lazy(() => import('@/pages/team/SupportInbox').then((m) => ({ default: m.SupportInbox })));
+const TenantDashboardView = lazy(() => import('@/pages/admin/TenantDashboardView').then((m) => ({ default: m.TenantDashboardView })));
+const TenantHealth = lazy(() => import('@/pages/admin/TenantHealth').then((m) => ({ default: m.TenantHealth })));
+const TenantComparison = lazy(() => import('@/pages/admin/TenantComparison').then((m) => ({ default: m.TenantComparison })));
+const UsageDashboard = lazy(() => import('@/pages/admin/UsageDashboard').then((m) => ({ default: m.UsageDashboard })));
+
+const RouteLoadingFallback: React.FC = () => (
+  <div className="min-h-[50vh] flex flex-col items-center justify-center p-8 text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
+    <Loader2 className="w-8 h-8 animate-spin text-helios-accent-blue mb-3" />
+    <span className="text-xs font-medium">Loading view...</span>
+  </div>
+);
 
 const RootRedirect: React.FC = () => {
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -46,7 +54,8 @@ const HistoryRouteSelector: React.FC = () => {
 
 export const AppRoutes: React.FC = () => {
   return (
-    <Routes>
+    <Suspense fallback={<RouteLoadingFallback />}>
+      <Routes>
       {/* Root Redirection */}
       <Route path="/" element={<RootRedirect />} />
 
@@ -113,5 +122,6 @@ export const AppRoutes: React.FC = () => {
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
+  </Suspense>
   );
 };

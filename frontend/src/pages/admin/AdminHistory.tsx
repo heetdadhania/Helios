@@ -15,6 +15,7 @@ import {
 import { historyService } from '@/services/historyService';
 import { AdminHistoryItem } from '@/types/history';
 import { StageStatusBadge } from '@/components/admin/StageStatusBadge';
+import { Pagination } from '@/components/ui/Pagination';
 
 export const AdminHistory: React.FC = () => {
   const [history, setHistory] = useState<AdminHistoryItem[]>([]);
@@ -24,6 +25,8 @@ export const AdminHistory: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [tenantFilter, setTenantFilter] = useState<string>('');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 15;
 
   const fetchHistory = async () => {
     setLoading(true);
@@ -199,7 +202,8 @@ export const AdminHistory: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[920px]">
               <thead>
                 <tr className="border-b border-helios-border-light dark:border-helios-border-dark bg-black/[0.02] dark:bg-white/[0.02] text-xs uppercase tracking-wider text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-semibold">
@@ -213,7 +217,9 @@ export const AdminHistory: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark text-sm">
-                {history.map((item) => {
+                {history
+                  .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+                  .map((item) => {
                   const isExpanded = expandedRows.has(item.batch_id);
                   const hasError = Boolean(item.error_message);
 
@@ -299,7 +305,14 @@ export const AdminHistory: React.FC = () => {
               </tbody>
             </table>
           </div>
-        )}
+          <Pagination
+            currentPage={currentPage}
+            totalItems={history.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+          />
+        </>
+      )}
       </div>
     </div>
   );

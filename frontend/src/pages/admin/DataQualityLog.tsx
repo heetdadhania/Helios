@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { DataQualityLogItem, Tenant } from '@/types/admin';
 import { adminService } from '@/services/adminService';
+import { Pagination } from '@/components/ui/Pagination';
 
 export const DataQualityLog: React.FC = () => {
   const [logs, setLogs] = useState<DataQualityLogItem[]>([]);
@@ -19,6 +20,8 @@ export const DataQualityLog: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedLog, setSelectedLog] = useState<DataQualityLogItem | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 15;
 
   const loadData = async () => {
     setIsLoading(true);
@@ -39,6 +42,10 @@ export const DataQualityLog: React.FC = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedTenant, searchQuery]);
 
   const filteredLogs = useMemo(() => {
     return logs.filter((item) => {
@@ -169,7 +176,8 @@ export const DataQualityLog: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="border-b border-helios-border-light dark:border-helios-border-dark text-slate-400 bg-black/[0.02] dark:bg-white/[0.02]">
@@ -182,7 +190,9 @@ export const DataQualityLog: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                {filteredLogs.map((log) => (
+                {filteredLogs
+                  .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+                  .map((log) => (
                   <tr
                     key={log.id}
                     onClick={() => setSelectedLog(log)}
@@ -219,7 +229,14 @@ export const DataQualityLog: React.FC = () => {
               </tbody>
             </table>
           </div>
-        )}
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredLogs.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+          />
+        </>
+      )}
       </div>
 
       {/* Detail Modal for Selected Rejection */}

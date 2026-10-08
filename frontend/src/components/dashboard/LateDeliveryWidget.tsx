@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ResponsiveContainer,
   PieChart,
@@ -16,7 +16,7 @@ interface LateDeliveryWidgetProps {
   className?: string;
 }
 
-export const LateDeliveryWidget: React.FC<LateDeliveryWidgetProps> = ({
+export const LateDeliveryWidget: React.FC<LateDeliveryWidgetProps> = React.memo(({
   data,
   isLoading = false,
   className = '',
@@ -39,10 +39,14 @@ export const LateDeliveryWidget: React.FC<LateDeliveryWidgetProps> = ({
 
   const hasData = (data?.total_shipments || 0) > 0;
 
-  const chartData = [
-    { name: 'On-Time', value: data?.on_time_shipments || 0, color: '#10B981' },
-    { name: 'Late Shipments', value: data?.late_shipments || 0, color: '#EF4444' },
-  ].filter((d) => d.value > 0);
+  const chartData = useMemo(
+    () =>
+      [
+        { name: 'On-Time', value: data?.on_time_shipments || 0, color: '#10B981' },
+        { name: 'Late Shipments', value: data?.late_shipments || 0, color: '#EF4444' },
+      ].filter((d) => d.value > 0),
+    [data?.on_time_shipments, data?.late_shipments]
+  );
 
   const lateRate = data?.late_rate_pct || 0;
   const isHealthy = lateRate <= 5.0;
@@ -166,6 +170,8 @@ export const LateDeliveryWidget: React.FC<LateDeliveryWidgetProps> = ({
       )}
     </div>
   );
-};
+});
+
+LateDeliveryWidget.displayName = 'LateDeliveryWidget';
 
 export default LateDeliveryWidget;
