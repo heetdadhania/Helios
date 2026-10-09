@@ -37,3 +37,21 @@ def read_current_user_profile_v1(
 ) -> UserOut:
     """Retrieve identity and tenant context for the currently authenticated user."""
     return current_user
+
+
+from app.api.auth import change_password as change_password_endpoint
+from app.schemas.auth import ChangePasswordRequest
+
+@router.post(
+    "/change-password",
+    response_model=dict,
+    status_code=status.HTTP_200_OK,
+    summary="Change User Password (v1)",
+)
+def change_password_v1(
+    payload: ChangePasswordRequest,
+    current_user: UserOut = Depends(get_current_user),
+    cursor: Cursor = Depends(get_db_cursor),
+) -> dict:
+    """Verify current password and apply new password (minimum 10 characters)."""
+    return change_password_endpoint(payload, current_user, cursor)

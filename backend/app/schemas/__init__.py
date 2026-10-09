@@ -1,7 +1,7 @@
 """Pydantic schemas for data validation and API serialization."""
 
 from app.schemas.token import Token, TokenPayload
-from app.schemas.tenant import TenantBase, TenantCreate, TenantUpdate, TenantResponse
+from app.schemas.tenant import TenantBase, TenantCreate, TenantUpdate, TenantResponse, TenantOut
 from app.schemas.user import UserBase, UserCreate, UserLogin, UserResponse, UserRole
 from app.schemas.dataset import (
     ColumnSchema,
@@ -78,6 +78,7 @@ __all__ = [
     "TenantCreate",
     "TenantUpdate",
     "TenantResponse",
+    "TenantOut",
     "UserBase",
     "UserCreate",
     "UserLogin",

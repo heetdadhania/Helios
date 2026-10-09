@@ -70,7 +70,7 @@ export const RevenueTrendChart: React.FC<RevenueTrendChartProps> = React.memo(({
           {[
             { days: 7, label: '7D' },
             { days: 30, label: '30D' },
-            { days: 90, label: '90D' },
+            { days: 0, label: 'All' },
           ].map((tab) => (
             <button
               key={tab.days}
@@ -112,7 +112,7 @@ export const RevenueTrendChart: React.FC<RevenueTrendChartProps> = React.memo(({
           <div>
             <span className="text-[11px] text-slate-400">Window Scope</span>
             <div className="text-base font-bold text-slate-400 mt-0.5">
-              Last {selectedDays} Days
+              {selectedDays ? `Last ${selectedDays} Days` : 'All Time'}
             </div>
           </div>
         </div>

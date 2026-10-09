@@ -26,6 +26,7 @@ import {
   TenantHealthItem,
 } from '@/types/oversight';
 import { useTheme } from '@/hooks/useTheme';
+import { formatDateAsOf } from '@/utils/formatters';
 
 export const TenantComparison: React.FC = () => {
   const { theme } = useTheme();
@@ -203,6 +204,8 @@ export const TenantComparison: React.FC = () => {
           ) : (
             availableTenants.map((t) => {
               const isSelected = selectedIds.includes(t.tenant_id);
+              const compared = comparisonData?.tenants.find((ct) => ct.tenant_id === t.tenant_id);
+              const asOf = formatDateAsOf(compared?.data_as_of);
               return (
                 <button
                   key={t.tenant_id}
@@ -216,6 +219,11 @@ export const TenantComparison: React.FC = () => {
                 >
                   <Building2 className={`w-3.5 h-3.5 ${isSelected ? 'text-white' : 'text-slate-400'}`} />
                   <span>{t.tenant_name}</span>
+                  {asOf && (
+                    <span className={`text-[10px] font-normal ${isSelected ? 'text-white/80' : 'text-slate-400'}`}>
+                      ({asOf})
+                    </span>
+                  )}
                   {isSelected && <Check className="w-3.5 h-3.5 ml-0.5" />}
                 </button>
               );
@@ -423,14 +431,28 @@ export const TenantComparison: React.FC = () => {
                 <thead>
                   <tr className="border-b border-helios-border-light dark:border-helios-border-dark bg-black/[0.02] dark:bg-white/[0.02] text-slate-400 uppercase font-semibold text-[11px] tracking-wider">
                     <th className="py-3 px-4">Metric</th>
-                    {comparisonData.tenants.map((t) => (
-                      <th key={t.tenant_id} className="py-3 px-4 font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                        {t.tenant_name}
-                        <span className="block text-[10px] text-slate-400 font-normal uppercase">
-                          Tier: {t.tier}
-                        </span>
-                      </th>
-                    ))}
+                    {comparisonData.tenants.map((t) => {
+                      const asOfStr = formatDateAsOf(t.data_as_of);
+                      return (
+                        <th key={t.tenant_id} className="py-3 px-4 font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span>{t.tenant_name}</span>
+                            {asOfStr ? (
+                              <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                                (Data as of {asOfStr})
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                                (No data)
+                              </span>
+                            )}
+                          </div>
+                          <span className="block text-[10px] text-slate-400 font-normal uppercase mt-0.5">
+                            Tier: {t.tier}
+                          </span>
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark">

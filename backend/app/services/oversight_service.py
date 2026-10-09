@@ -32,6 +32,7 @@ from app.schemas.oversight import (
     TenantHealthItem,
     TenantHealthListResponse,
 )
+from app.services.dashboard_service import DashboardService, _format_date_as_of
 
 logger = logging.getLogger("helios.services.oversight")
 
@@ -124,130 +125,20 @@ class OversightService:
             )
         tenant_name = tenant_row.get("business_name") or f"Tenant #{tenant_id}"
 
-        # 1. Revenue Trend (reusing dashboard_repo)
-        raw_trend = dashboard_repo.get_revenue_trend(tenant_id=tenant_id, days=days)
-        trend_points: List[RevenueTrendPoint] = []
-        total_rev = 0.0
-        total_orders = 0
-        for r in raw_trend:
-            rev = float(r.get("total_revenue", 0.0) or 0.0)
-            ords = int(r.get("total_orders", 0) or 0)
-            aov = float(r.get("avg_order_value", 0.0) or 0.0)
-            qty = int(r.get("total_quantity", 0) or 0)
-            total_rev += rev
-            total_orders += ords
-            trend_points.append(
-                RevenueTrendPoint(
-                    date=str(r.get("date_str", "")),
-                    total_revenue=round(rev, 2),
-                    total_orders=ords,
-                    avg_order_value=round(aov, 2),
-                    total_quantity=qty,
-                )
-            )
-        revenue_trend = RevenueTrendResponse(
-            days=days,
-            total_revenue=round(total_rev, 2),
-            total_orders=total_orders,
-            points=trend_points,
-        )
+        # Reuse DashboardService functions so calculation and windowing logic are identical
+        from app.services.dashboard_service import DashboardService
 
-        # 2. Top Products (reusing dashboard_repo)
-        raw_prods = dashboard_repo.get_top_products(tenant_id=tenant_id, limit=10, days=days)
-        products = [
-            TopProductItem(
-                product_id=int(p.get("product_id", 0)),
-                product_name=str(p.get("product_name", "Unknown")),
-                category=p.get("category"),
-                total_revenue=float(p.get("total_revenue", 0.0) or 0.0),
-                total_units_sold=int(p.get("total_units_sold", 0) or 0),
-                total_orders=int(p.get("total_orders", 0) or 0),
-            )
-            for p in raw_prods
-        ]
-        top_products = TopProductsResponse(limit=10, days=days, products=products)
-
-        # 3. Late Delivery Risk (reusing dashboard_repo)
-        raw_delivery = dashboard_repo.get_late_delivery_risk(tenant_id=tenant_id, days=days)
-        ov = raw_delivery.get("overview", {}) or {}
-        bd = raw_delivery.get("breakdown", []) or []
-        tot_shipments = int(ov.get("total_shipments", 0) or 0)
-        late_shipments = int(ov.get("late_shipments", 0) or 0)
-        on_time = int(ov.get("on_time_shipments", 0) or 0)
-        late_rate = round(float(late_shipments / tot_shipments * 100.0), 2) if tot_shipments > 0 else 0.0
-        avg_shipping = float(ov.get("avg_shipping_days", 0.0) or 0.0)
-
-        breakdown_items = [
-            DeliveryRiskBreakdownItem(
-                status_name=str(b.get("status_name", "Unknown")),
-                total_shipments=int(b.get("total_shipments", 0) or 0),
-                late_shipments=int(b.get("late_shipments", 0) or 0),
-                late_rate_pct=float(b.get("late_rate_pct", 0.0) or 0.0),
-            )
-            for b in bd
-        ]
-        late_delivery_risk = LateDeliveryRiskResponse(
-            total_shipments=tot_shipments,
-            late_shipments=late_shipments,
-            on_time_shipments=on_time,
-            late_rate_pct=late_rate,
-            avg_shipping_days=avg_shipping,
-            days=days,
-            status_breakdown=breakdown_items,
-        )
-
-        # 4. Discount vs Profit (reusing dashboard_repo)
-        raw_discount = dashboard_repo.get_discount_vs_profit(tenant_id=tenant_id, days=days)
-        bands: List[DiscountProfitBand] = []
-        tot_rev_disc = 0.0
-        tot_disc_val = 0.0
-        tot_prof_val = 0.0
-        for b in raw_discount:
-            b_rev = float(b.get("total_revenue", 0.0) or 0.0)
-            b_disc = float(b.get("total_discount", 0.0) or 0.0)
-            b_prof = float(b.get("total_profit", 0.0) or 0.0)
-            tot_rev_disc += b_rev
-            tot_disc_val += b_disc
-            tot_prof_val += b_prof
-            margin = round(float(b_prof / b_rev * 100.0), 2) if b_rev > 0 else 0.0
-            bands.append(
-                DiscountProfitBand(
-                    band=str(b.get("band", "0%")),
-                    total_revenue=b_rev,
-                    total_discount=b_disc,
-                    total_profit=b_prof,
-                    profit_margin_pct=margin,
-                    order_count=int(b.get("order_count", 0) or 0),
-                )
-            )
-        ov_margin = round(float(tot_prof_val / tot_rev_disc * 100.0), 2) if tot_rev_disc > 0 else 0.0
-        ov_disc_rate = round(float(tot_disc_val / (tot_rev_disc + tot_disc_val) * 100.0), 2) if (tot_rev_disc + tot_disc_val) > 0 else 0.0
-        discount_vs_profit = DiscountVsProfitResponse(
-            overall_profit_margin_pct=ov_margin,
-            overall_discount_rate_pct=ov_disc_rate,
-            days=days,
-            bands=bands,
-        )
-
-        # 5. Shipping Modes (reusing dashboard_repo)
-        raw_shipping = dashboard_repo.get_shipping_mode_comparison(tenant_id=tenant_id, days=days)
-        shipping_items = [
-            ShippingModeComparisonItem(
-                mode_name=str(m.get("mode_name", "Standard")),
-                shipment_count=int(m.get("shipment_count", 0) or 0),
-                avg_shipping_days=float(m.get("avg_shipping_days", 0.0) or 0.0),
-                late_count=int(m.get("late_count", 0) or 0),
-                late_rate_pct=float(m.get("late_rate_pct", 0.0) or 0.0),
-                on_time_rate_pct=float(m.get("on_time_rate_pct", 100.0) or 100.0),
-            )
-            for m in raw_shipping
-        ]
-        shipping_modes = ShippingModeComparisonResponse(modes=shipping_items)
+        revenue_trend = DashboardService.get_revenue_trend(tenant_id=tenant_id, days=days, repo=dashboard_repo)
+        top_products = DashboardService.get_top_products(tenant_id=tenant_id, limit=10, days=days, repo=dashboard_repo)
+        late_delivery_risk = DashboardService.get_late_delivery_risk(tenant_id=tenant_id, days=days, repo=dashboard_repo)
+        discount_vs_profit = DashboardService.get_discount_vs_profit(tenant_id=tenant_id, days=days, repo=dashboard_repo)
+        shipping_modes = DashboardService.get_shipping_mode_comparison(tenant_id=tenant_id, days=days, repo=dashboard_repo)
 
         return TenantDashboardViewAs(
             tenant_id=tenant_id,
             tenant_name=tenant_name,
             days=days,
+            data_as_of=revenue_trend.data_as_of,
             revenue_trend=revenue_trend,
             top_products=top_products,
             late_delivery_risk=late_delivery_risk,
@@ -259,7 +150,9 @@ class OversightService:
     def get_tenant_health(
         cls,
         oversight_repo: OversightRepository,
+        dashboard_repo: Optional[DashboardRepository] = None,
         force_refresh: bool = False,
+        days: Optional[int] = None,
     ) -> TenantHealthListResponse:
         """
         Evaluate health status for all tenants using explainable rules against existing pipeline and delivery data.
@@ -268,14 +161,26 @@ class OversightService:
         Results are cached in-memory with a 60-second TTL to avoid repetitive full-table scans
         and window functions across all registered tenants on every admin page load.
         """
+        cache_key = f"tenant_health_{days}" if days is not None else "tenant_health"
         if not force_refresh:
-            cached = cls._cache.get("tenant_health")
+            cached = cls._cache.get(cache_key)
             if cached is not None:
                 return cached
 
         tenants = oversight_repo.get_all_tenants()
         latest_pipeline = oversight_repo.get_latest_pipeline_status_per_tenant()
-        late_metrics = oversight_repo.get_tenant_late_delivery_rates()
+
+        tenant_ids = [int(t["tenant_id"]) for t in tenants if t.get("tenant_id") is not None]
+        anchors: Dict[int, Optional[date]] = {}
+        if dashboard_repo is not None and days is not None:
+            for tid in tenant_ids:
+                anchors[tid] = dashboard_repo.get_latest_data_date(tid) if hasattr(dashboard_repo, "get_latest_data_date") else None
+
+        late_metrics = oversight_repo.get_tenant_late_delivery_rates(
+            tenant_ids=tenant_ids if tenant_ids else None,
+            days=days,
+            anchor_dates=anchors if anchors else None,
+        )
 
         items: List[TenantHealthItem] = []
         critical_count = 0
@@ -357,7 +262,7 @@ class OversightService:
             good_count=good_count,
             tenants=items,
         )
-        cls._cache.set("tenant_health", response)
+        cls._cache.set(cache_key, response)
         return response
 
     @classmethod
@@ -379,11 +284,20 @@ class OversightService:
         # Batch 1: Fetch metadata for all requested tenants in one query
         tenant_map = oversight_repo.get_tenants_by_ids(tenant_ids)
 
-        # Batch 2: Fetch revenue totals and order counts in a single set-based query
-        rev_map = oversight_repo.get_comparison_revenue_metrics(tenant_ids=tenant_ids, days=days)
+        # Anchor each tenant to its own latest data date using get_latest_data_date
+        anchors: Dict[int, Optional[date]] = {}
+        for tid in tenant_ids:
+            anchors[tid] = dashboard_repo.get_latest_data_date(tid) if hasattr(dashboard_repo, "get_latest_data_date") else None
 
-        # Batch 3: Fetch shipment counts and late delivery rates in a single set-based query
-        ship_map = oversight_repo.get_comparison_delivery_metrics(tenant_ids=tenant_ids, days=days)
+        # Batch 2: Fetch revenue totals and order counts in a single set-based query using anchored windows
+        rev_map = oversight_repo.get_comparison_revenue_metrics(
+            tenant_ids=tenant_ids, days=days, anchor_dates=anchors
+        )
+
+        # Batch 3: Fetch shipment counts and late delivery rates in a single set-based query using anchored windows
+        ship_map = oversight_repo.get_comparison_delivery_metrics(
+            tenant_ids=tenant_ids, days=days, anchor_dates=anchors
+        )
 
         metrics: List[TenantComparisonMetric] = []
         for tid in tenant_ids:
@@ -401,6 +315,9 @@ class OversightService:
             late_pct = float(ship_row.get("late_pct", 0.0) or 0.0)
             avg_days = float(ship_row.get("avg_shipping_days", 0.0) or 0.0)
 
+            anchor = anchors.get(tid)
+            data_as_of = _format_date_as_of(anchor)
+
             metrics.append(
                 TenantComparisonMetric(
                     tenant_id=tid,
@@ -412,6 +329,7 @@ class OversightService:
                     total_shipments=tot_shipments,
                     late_delivery_pct=late_pct,
                     avg_shipping_days=avg_days,
+                    data_as_of=data_as_of,
                 )
             )
 

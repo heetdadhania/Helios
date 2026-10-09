@@ -45,6 +45,30 @@ export const authService = {
   },
 
   /**
+   * Change user password via /api/auth/change-password.
+   * Clears must_change_password requirement.
+   */
+  async changePassword(currentPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await api.post<{ success: boolean; message: string }>('/auth/change-password', {
+        current_password: currentPassword,
+        new_password: newPassword,
+      });
+      return response.data;
+    } catch (err: any) {
+      // If /api/v1/auth/change-password returned 404, fallback to /api/auth/change-password directly
+      if (err.response?.status === 404) {
+        const response = await api.post<{ success: boolean; message: string }>('/api/auth/change-password', {
+          current_password: currentPassword,
+          new_password: newPassword,
+        });
+        return response.data;
+      }
+      throw err;
+    }
+  },
+
+  /**
    * Helper fallback simulating authentic response if offline.
    */
   _getDemoFallback(credentials: LoginCredentials): TokenResponse {

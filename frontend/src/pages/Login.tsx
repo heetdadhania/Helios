@@ -42,6 +42,12 @@ export const Login: React.FC = () => {
     try {
       const user = await login(data as LoginCredentials);
       
+      // If user must change password, immediately navigate to /change-password
+      if (user.must_change_password) {
+        navigate('/change-password', { replace: true });
+        return;
+      }
+
       // Role-based redirect:
       // smb_owner -> /client/dashboard
       // team_member or admin -> /admin/uploads

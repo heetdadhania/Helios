@@ -68,49 +68,55 @@ const mockShippingModes: ShippingModeComparisonResponse = {
 };
 
 export const dashboardService = {
-  async getRevenueTrend(days: number = 30): Promise<RevenueTrendResponse> {
+  async getRevenueTrend(days?: number | null): Promise<RevenueTrendResponse> {
     try {
-      const response = await api.get<RevenueTrendResponse>('/dashboard/revenue-trend', {
-        params: { days },
-      });
+      const params: Record<string, any> = {};
+      if (days && days > 0) params.days = days;
+      const response = await api.get<RevenueTrendResponse>('/dashboard/revenue-trend', { params });
       return response.data;
     } catch {
       return mockRevenueTrend;
     }
   },
 
-  async getTopProducts(limit: number = 10): Promise<TopProductsResponse> {
+  async getTopProducts(limit: number = 10, days?: number | null): Promise<TopProductsResponse> {
     try {
-      const response = await api.get<TopProductsResponse>('/dashboard/top-products', {
-        params: { limit },
-      });
+      const params: Record<string, any> = { limit };
+      if (days && days > 0) params.days = days;
+      const response = await api.get<TopProductsResponse>('/dashboard/top-products', { params });
       return response.data;
     } catch {
       return mockTopProducts;
     }
   },
 
-  async getLateDeliveryRisk(): Promise<LateDeliveryRiskResponse> {
+  async getLateDeliveryRisk(days?: number | null): Promise<LateDeliveryRiskResponse> {
     try {
-      const response = await api.get<LateDeliveryRiskResponse>('/dashboard/late-delivery-risk');
+      const params: Record<string, any> = {};
+      if (days && days > 0) params.days = days;
+      const response = await api.get<LateDeliveryRiskResponse>('/dashboard/late-delivery-risk', { params });
       return response.data;
     } catch {
       return mockLateDeliveryRisk;
     }
   },
 
-  async getDiscountVsProfit(): Promise<DiscountVsProfitResponse> {
+  async getDiscountVsProfit(days?: number | null): Promise<DiscountVsProfitResponse> {
     try {
-      const response = await api.get<DiscountVsProfitResponse>('/dashboard/discount-vs-profit');
+      const params: Record<string, any> = {};
+      if (days && days > 0) params.days = days;
+      const response = await api.get<DiscountVsProfitResponse>('/dashboard/discount-vs-profit', { params });
       return response.data;
     } catch {
       return mockDiscountVsProfit;
     }
   },
 
-  async getShippingModeComparison(): Promise<ShippingModeComparisonResponse> {
+  async getShippingModeComparison(days?: number | null): Promise<ShippingModeComparisonResponse> {
     try {
-      const response = await api.get<ShippingModeComparisonResponse>('/dashboard/shipping-mode-comparison');
+      const params: Record<string, any> = {};
+      if (days && days > 0) params.days = days;
+      const response = await api.get<ShippingModeComparisonResponse>('/dashboard/shipping-mode-comparison', { params });
       return response.data;
     } catch {
       return mockShippingModes;
@@ -144,7 +150,7 @@ export const dashboardService = {
   /**
    * Fetch all Gold dashboard widgets in parallel using Promise.all.
    */
-  async fetchAllDashboardData(days: number = 30): Promise<DashboardData> {
+  async fetchAllDashboardData(days?: number | null): Promise<DashboardData> {
     const [
       revenueTrend,
       topProducts,
@@ -154,10 +160,10 @@ export const dashboardService = {
       uploadStatus,
     ] = await Promise.all([
       this.getRevenueTrend(days),
-      this.getTopProducts(10),
-      this.getLateDeliveryRisk(),
-      this.getDiscountVsProfit(),
-      this.getShippingModeComparison(),
+      this.getTopProducts(10, days),
+      this.getLateDeliveryRisk(days),
+      this.getDiscountVsProfit(days),
+      this.getShippingModeComparison(days),
       this.getLatestUploadStatus(),
     ]);
 

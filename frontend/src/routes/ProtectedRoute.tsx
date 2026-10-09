@@ -27,6 +27,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) 
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // If user must change password, block access to any other page and force /change-password
+  if (user.must_change_password) {
+    return <Navigate to="/change-password" replace />;
+  }
+
   // If role is not authorized for this specific route group, redirect to authorized portal
   if (allowedRoles && role && !allowedRoles.includes(role)) {
     const defaultTarget = role === 'smb_owner' ? '/client/dashboard' : '/admin/uploads';

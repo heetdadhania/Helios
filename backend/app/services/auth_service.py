@@ -151,6 +151,7 @@ class AuthService:
             email=str(user["email"]),
             role=user["role"],
             tenant_id=int(user["tenant_id"]) if user.get("tenant_id") is not None else None,
+            must_change_password=bool(user.get("must_change_password", False)),
         )
         return TokenResponse(
             access_token=token,

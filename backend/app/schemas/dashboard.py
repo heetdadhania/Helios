@@ -22,6 +22,7 @@ class RevenueTrendResponse(BaseModel):
     total_revenue: float = Field(..., description="Cumulative revenue across the period")
     total_orders: int = Field(..., description="Cumulative distinct orders")
     points: List[RevenueTrendPoint] = Field(default_factory=list, description="Ordered daily metric series")
+    data_as_of: Optional[str] = Field(None, description="Anchor date for lookback window in ISO format YYYY-MM-DD")
 
 
 # --- 2. Top Products Schemas ---
@@ -44,6 +45,7 @@ class TopProductsResponse(BaseModel):
     limit: int = Field(..., description="Result count limit applied")
     days: Optional[int] = Field(None, description="Requested trend time window in calendar days")
     products: List[TopProductItem] = Field(default_factory=list, description="Ranked list of top-selling products")
+    data_as_of: Optional[str] = Field(None, description="Anchor date for lookback window in ISO format YYYY-MM-DD")
 
 
 # --- 3. Late Delivery Risk Schemas ---
@@ -71,6 +73,7 @@ class LateDeliveryRiskResponse(BaseModel):
         default_factory=list,
         description="Fulfillment metrics segmented by delivery status",
     )
+    data_as_of: Optional[str] = Field(None, description="Anchor date for lookback window in ISO format YYYY-MM-DD")
 
 
 # --- 4. Discount vs Profit Schemas ---
@@ -94,6 +97,7 @@ class DiscountVsProfitResponse(BaseModel):
     overall_discount_rate_pct: float = Field(..., description="Aggregate discount as percentage of gross sales")
     days: Optional[int] = Field(None, description="Requested trend time window in calendar days")
     bands: List[DiscountProfitBand] = Field(default_factory=list, description="Performance metrics by discount tier")
+    data_as_of: Optional[str] = Field(None, description="Anchor date for lookback window in ISO format YYYY-MM-DD")
 
 
 # --- 5. Shipping Mode Comparison Schemas ---
@@ -118,3 +122,4 @@ class ShippingModeComparisonResponse(BaseModel):
         default_factory=list,
         description="Performance comparison across all shipping modes",
     )
+    data_as_of: Optional[str] = Field(None, description="Anchor date for lookback window in ISO format YYYY-MM-DD")

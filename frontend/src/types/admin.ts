@@ -65,36 +65,84 @@ export interface Tenant {
   is_active: boolean;
   created_at: string;
   active_pipelines?: number;
+
+  business_name?: string;
+  industry?: string;
+  contact_person_name?: string;
+  contact_email?: string;
+  phone_number?: string;
+  address_line1?: string;
+  address_line2?: string | null;
+  city?: string;
+  state?: string;
+  postal_code?: string;
+  country?: string;
+  website_url?: string | null;
+  tax_id?: string | null;
+  assigned_team_member_id?: number | null;
+  temporary_password?: string | null;
+  owner_email?: string | null;
 }
 
 export interface CreateTenantPayload {
-  name: string;
-  slug: string;
+  business_name: string;
+  industry: string;
+  contact_person_name: string;
+  contact_email: string;
+  phone_number: string;
+  address_line1: string;
+  address_line2?: string | null;
+  city: string;
+  state: string;
+  postal_code: string;
+  country: string;
+  website_url?: string | null;
+  tax_id?: string | null;
+  assigned_team_member_id?: number | null;
+  owner_email?: string | null;
+
+  // Legacy fallback fields
+  name?: string;
+  slug?: string;
   catalog_name?: string;
   schema_name?: string;
   tier?: 'Starter' | 'Growth' | 'Enterprise';
 }
 
 export interface TeamMember {
-  user_id: string;
+  user_id: string | number;
+  id?: string | number;
   name: string;
   email: string;
+  phone_number?: string;
   role: 'admin' | 'team_member';
+  staff_id?: string | null;
+  designation?: string | null;
   is_active: boolean;
   created_at: string;
+  tenant_ids?: number[];
   assigned_tenants: string[];
+  must_change_password?: boolean;
 }
 
 export interface CreateTeamMemberPayload {
   name: string;
   email: string;
+  phone_number: string;
   role: 'admin' | 'team_member';
+  staff_id?: string;
+  designation?: string;
+  tenant_ids?: number[];
   assigned_tenants?: string[];
 }
 
+export interface CreateTeamMemberResponse extends TeamMember {
+  temporary_password?: string;
+}
+
 export interface AssignTenantPayload {
-  user_id: string;
-  tenant_id: string;
+  user_id: string | number;
+  tenant_id: string | number;
 }
 
 export interface DataQualityLogItem {

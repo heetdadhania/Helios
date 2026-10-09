@@ -54,13 +54,28 @@ def split_sql_statements(content: str) -> List[str]:
     """Split a SQL file content into executable individual statements."""
     statements: List[str] = []
     current_stmt: List[str] = []
+    in_compound_block = False
 
     for line in content.splitlines():
         trimmed = line.strip()
         if trimmed.startswith("--") or not trimmed:
             continue
+
+        if trimmed.upper().startswith("BEGIN"):
+            in_compound_block = True
+
         current_stmt.append(line)
-        if trimmed.endswith(";"):
+
+        if in_compound_block and trimmed.upper() == "END;":
+            in_compound_block = False
+            stmt_text = "\n".join(current_stmt).strip()
+            # Remove trailing semicolon for Spark SQL engine
+            if stmt_text.endswith(";"):
+                stmt_text = stmt_text[:-1].strip()
+            if stmt_text:
+                statements.append(stmt_text)
+            current_stmt = []
+        elif not in_compound_block and trimmed.endswith(";"):
             stmt_text = "\n".join(current_stmt).strip()
             # Remove trailing semicolon for Spark SQL engine
             if stmt_text.endswith(";"):
@@ -116,14 +131,16 @@ def main():
     parser = argparse.ArgumentParser(description="Helios Databricks Schema Deployment")
     parser.add_argument("--catalog", default=os.getenv("DATABRICKS_CATALOG", "helios_catalog"))
     parser.add_argument("--dry-run", action="store_true", help="Parse and validate SQL files without executing")
+    parser.add_argument("--script", help="Path to single SQL script to execute (relative to database directory)")
     args = parser.parse_args()
 
     base_dir = Path(__file__).resolve().parent
+    scripts_to_run = [args.script] if args.script else SQL_EXECUTION_ORDER
     print(f"Starting Helios Schema Deployment (Target Catalog: {args.catalog})...")
 
     if args.dry_run:
         print("[DRY RUN] Validating SQL file paths and statements:")
-        for rel_path in SQL_EXECUTION_ORDER:
+        for rel_path in scripts_to_run:
             full_path = base_dir / rel_path
             assert full_path.exists(), f"Missing file: {rel_path}"
             with open(full_path, "r", encoding="utf-8") as f:
@@ -147,7 +164,7 @@ def main():
         access_token=access_token,
     ) as conn:
         with conn.cursor() as cursor:
-            for rel_path in SQL_EXECUTION_ORDER:
+            for rel_path in scripts_to_run:
                 file_path = base_dir / rel_path
                 print(f"Executing {rel_path}...")
                 passed, failed = execute_script(cursor, file_path, args.catalog)

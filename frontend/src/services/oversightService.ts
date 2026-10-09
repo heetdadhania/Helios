@@ -13,9 +13,9 @@ export const oversightService = {
    */
   async getTenantDashboard(
     tenantId: number | string,
-    days?: number
+    days?: number | null
   ): Promise<TenantDashboardViewAs> {
-    const params = days ? { days } : {};
+    const params = days && days > 0 ? { days } : {};
     const response = await api.get<TenantDashboardViewAs>(
       `/oversight/dashboard/${tenantId}`,
       { params }

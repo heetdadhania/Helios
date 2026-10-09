@@ -63,14 +63,20 @@ def get_tenant_dashboard_view_as(
     ),
 )
 def get_tenant_health(
+    days: Optional[int] = Query(None, ge=1, le=365, description="Lookback window in calendar days (all-time if omitted)"),
     current_user: UserOut = Depends(require_role("admin")),
     cursor: Cursor = Depends(get_db_cursor),
 ) -> TenantHealthListResponse:
     """
     Return system-wide tenant health assessments and breach explanations.
     """
+    dashboard_repo = DashboardRepository(cursor)
     oversight_repo = OversightRepository(cursor)
-    return OversightService.get_tenant_health(oversight_repo=oversight_repo)
+    return OversightService.get_tenant_health(
+        oversight_repo=oversight_repo,
+        dashboard_repo=dashboard_repo,
+        days=days,
+    )
 
 
 @router.post(

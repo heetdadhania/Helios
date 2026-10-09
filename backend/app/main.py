@@ -101,6 +101,14 @@ def create_application() -> FastAPI:
     from app.api.oversight import router as oversight_router
     app.include_router(oversight_router, prefix="/api/oversight", tags=["Admin Oversight"])
 
+    # Include Tenants Router (/api/tenants)
+    from app.api.tenants import router as tenants_router
+    app.include_router(tenants_router, prefix="/api/tenants", tags=["Tenants"])
+
+    # Include Team Members Router (/api/team-members)
+    from app.api.team import router as team_router
+    app.include_router(team_router, prefix="/api/team-members", tags=["Team Members"])
+
     # Include Versioned API Routers
     app.include_router(api_router, prefix=settings.API_V1_STR)
 

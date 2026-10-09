@@ -5,6 +5,7 @@ import {
   ConfirmSchemaPayload,
   ConfirmSchemaResponse,
   CreateTeamMemberPayload,
+  CreateTeamMemberResponse,
   CreateTenantPayload,
   DataQualityLogItem,
   PendingUpload,
@@ -320,16 +321,36 @@ export const adminService = {
    */
   async createTenant(payload: CreateTenantPayload): Promise<Tenant> {
     try {
-      const response = await api.post<Tenant>('/api/v1/tenants', payload);
+      const response = await api.post<Tenant>('/api/tenants', payload);
       return response.data;
-    } catch {
+    } catch (err: any) {
+      if (err?.response?.status) {
+        throw err;
+      }
+      const businessName = payload.business_name || payload.name || 'New Business';
       const newTenant: Tenant = {
         tenant_id: String(Date.now()),
-        name: payload.name,
-        slug: payload.slug,
+        business_name: businessName,
+        name: businessName,
+        slug: payload.slug || businessName.toLowerCase().replace(/\s+/g, '_'),
         catalog_name: payload.catalog_name || 'helios_catalog',
-        schema_name: payload.schema_name || payload.slug,
+        schema_name: payload.schema_name || 'default',
         tier: payload.tier || 'Growth',
+        industry: payload.industry,
+        contact_person_name: payload.contact_person_name,
+        contact_email: payload.contact_email,
+        phone_number: payload.phone_number,
+        address_line1: payload.address_line1,
+        address_line2: payload.address_line2,
+        city: payload.city,
+        state: payload.state,
+        postal_code: payload.postal_code,
+        country: payload.country,
+        website_url: payload.website_url,
+        tax_id: payload.tax_id,
+        assigned_team_member_id: payload.assigned_team_member_id,
+        temporary_password: 'TempPassword123!',
+        owner_email: payload.owner_email || payload.contact_email,
         is_active: true,
         created_at: new Date().toISOString(),
         active_pipelines: 1,
@@ -361,29 +382,54 @@ export const adminService = {
    */
   async getTeamMembers(): Promise<TeamMember[]> {
     try {
-      const response = await api.get<TeamMember[]>('/api/v1/users');
+      const response = await api.get<TeamMember[]>('/api/team-members');
       return response.data;
     } catch {
-      return [...mockTeamMembers];
+      try {
+        const response = await api.get<TeamMember[]>('/team-members');
+        return response.data;
+      } catch {
+        return [...mockTeamMembers];
+      }
     }
   },
 
   /**
    * Team Members: Create an operations team member account. ADMIN ONLY.
+   * Returns created member with generated temporary password.
    */
-  async createTeamMember(payload: CreateTeamMemberPayload): Promise<TeamMember> {
+  async createTeamMember(payload: CreateTeamMemberPayload): Promise<CreateTeamMemberResponse> {
     try {
-      const response = await api.post<TeamMember>('/api/v1/users', payload);
-      return response.data;
-    } catch {
-      const newMember: TeamMember = {
-        user_id: `u-${Date.now()}`,
+      const formattedPayload = {
         name: payload.name,
         email: payload.email,
+        phone_number: payload.phone_number,
         role: payload.role,
+        staff_id: payload.staff_id || null,
+        designation: payload.designation || null,
+        tenant_ids: payload.tenant_ids || (payload.assigned_tenants ? payload.assigned_tenants.map(Number).filter(n => !isNaN(n)) : []),
+      };
+      const response = await api.post<CreateTeamMemberResponse>('/api/team-members', formattedPayload);
+      return response.data;
+    } catch (err: any) {
+      if (err?.response?.status) {
+        throw err;
+      }
+      const newMember: CreateTeamMemberResponse = {
+        user_id: `u-${Date.now()}`,
+        id: `u-${Date.now()}`,
+        name: payload.name,
+        email: payload.email,
+        phone_number: payload.phone_number,
+        role: payload.role,
+        staff_id: payload.staff_id || null,
+        designation: payload.designation || null,
         is_active: true,
         created_at: new Date().toISOString(),
-        assigned_tenants: payload.assigned_tenants || [],
+        assigned_tenants: payload.assigned_tenants || (payload.tenant_ids ? payload.tenant_ids.map(String) : []),
+        tenant_ids: payload.tenant_ids || [],
+        must_change_password: true,
+        temporary_password: 'TempPassword123!',
       };
       mockTeamMembers = [newMember, ...mockTeamMembers];
       return newMember;
@@ -391,7 +437,50 @@ export const adminService = {
   },
 
   /**
-   * Team Members: Assign a tenant to a team member. ADMIN ONLY.
+   * Team Members: Replace tenant assignments for a team member. ADMIN ONLY.
+   */
+  async replaceAssignments(userId: string | number, tenantIds: number[]): Promise<TeamMember> {
+    try {
+      const response = await api.put<TeamMember>(`/api/team-members/${userId}/assignments`, {
+        tenant_ids: tenantIds,
+      });
+      return response.data;
+    } catch (err: any) {
+      if (err?.response?.status) {
+        throw err;
+      }
+      const member = mockTeamMembers.find((m) => String(m.user_id) === String(userId));
+      if (member) {
+        member.assigned_tenants = tenantIds.map(String);
+        member.tenant_ids = tenantIds;
+      }
+      return member || ({} as TeamMember);
+    }
+  },
+
+  /**
+   * Team Members: Activate or deactivate a team member account. ADMIN ONLY.
+   */
+  async toggleTeamMemberActive(userId: string | number, isActive: boolean): Promise<TeamMember> {
+    try {
+      const response = await api.patch<TeamMember>(`/api/team-members/${userId}/active`, {
+        is_active: isActive,
+      });
+      return response.data;
+    } catch (err: any) {
+      if (err?.response?.status) {
+        throw err;
+      }
+      const member = mockTeamMembers.find((m) => String(m.user_id) === String(userId));
+      if (member) {
+        member.is_active = isActive;
+      }
+      return member || ({} as TeamMember);
+    }
+  },
+
+  /**
+   * Team Members: Legacy assign single tenant (for compatibility).
    */
   async assignTenant(payload: AssignTenantPayload): Promise<{ success: boolean; user_id: string; tenant_id: string }> {
     try {
@@ -400,11 +489,11 @@ export const adminService = {
       });
       return response.data;
     } catch {
-      const member = mockTeamMembers.find((m) => m.user_id === payload.user_id);
-      if (member && !member.assigned_tenants.includes(payload.tenant_id)) {
-        member.assigned_tenants.push(payload.tenant_id);
+      const member = mockTeamMembers.find((m) => String(m.user_id) === String(payload.user_id));
+      if (member && !member.assigned_tenants.map(String).includes(String(payload.tenant_id))) {
+        member.assigned_tenants.push(String(payload.tenant_id));
       }
-      return { success: true, user_id: payload.user_id, tenant_id: payload.tenant_id };
+      return { success: true, user_id: String(payload.user_id), tenant_id: String(payload.tenant_id) };
     }
   },
 

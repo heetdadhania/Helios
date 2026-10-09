@@ -18,6 +18,7 @@ class TenantDashboardViewAs(BaseModel):
     tenant_id: int = Field(..., description="Target tenant ID")
     tenant_name: str = Field(..., description="Target tenant business display name")
     days: Optional[int] = Field(None, description="Lookback window in calendar days (None if all-time)")
+    data_as_of: Optional[str] = Field(None, description="Anchor date for lookback window in ISO format YYYY-MM-DD")
     revenue_trend: RevenueTrendResponse = Field(..., description="Daily revenue trend metrics")
     top_products: TopProductsResponse = Field(..., description="Ranked top-selling products")
     late_delivery_risk: LateDeliveryRiskResponse = Field(..., description="Fulfillment SLA and delivery metrics")
@@ -83,6 +84,7 @@ class TenantComparisonMetric(BaseModel):
     total_shipments: int = Field(0, description="Total shipments processed")
     late_delivery_pct: float = Field(0.0, description="Percentage of shipments delayed past SLA")
     avg_shipping_days: float = Field(0.0, description="Mean shipping transit duration in days")
+    data_as_of: Optional[str] = Field(None, description="Anchor date for lookback window in ISO format YYYY-MM-DD")
 
 
 class TenantCompareResponse(BaseModel):

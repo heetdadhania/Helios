@@ -19,6 +19,7 @@ import { TopProductsWidget } from '@/components/dashboard/TopProductsWidget';
 import { LateDeliveryWidget } from '@/components/dashboard/LateDeliveryWidget';
 import { DiscountProfitWidget } from '@/components/dashboard/DiscountProfitWidget';
 import { ShippingModeWidget } from '@/components/dashboard/ShippingModeWidget';
+import { formatDateAsOf } from '@/utils/formatters';
 
 interface DashboardError {
   status?: number;
@@ -144,6 +145,21 @@ export const TenantDashboardView: React.FC = () => {
     return hasTrend || hasProducts || hasShipments || hasBands || hasModes;
   }, [data]);
 
+  // Read data_as_of from the responses
+  const dataAsOf = useMemo(() => {
+    return (
+      data?.data_as_of ??
+      data?.revenue_trend?.data_as_of ??
+      data?.top_products?.data_as_of ??
+      data?.late_delivery_risk?.data_as_of ??
+      data?.discount_vs_profit?.data_as_of ??
+      data?.shipping_modes?.data_as_of ??
+      null
+    );
+  }, [data]);
+
+  const formattedDataAsOf = useMemo(() => formatDateAsOf(dataAsOf), [dataAsOf]);
+
   return (
     <div className="space-y-6">
       {/* Top Banner / Breadcrumb & Controls */}
@@ -157,7 +173,7 @@ export const TenantDashboardView: React.FC = () => {
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-helios-accent-blue/10 text-helios-accent-blue border border-helios-accent-blue/20">
                 <Eye className="w-3.5 h-3.5" />
                 <span>Admin View-As Mode</span>
@@ -165,6 +181,14 @@ export const TenantDashboardView: React.FC = () => {
               <span className="text-xs text-slate-400 font-mono">
                 Tenant #{parsedTenantId ?? tenantId}
               </span>
+              {formattedDataAsOf && (
+                <>
+                  <span className="text-slate-400 dark:text-slate-600 text-xs">•</span>
+                  <span className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-medium">
+                    Data as of {formattedDataAsOf}
+                  </span>
+                </>
+              )}
             </div>
             <h1 className="text-xl font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark mt-1 flex items-center gap-2">
               <Building2 className="w-5 h-5 text-helios-accent-blue" />
@@ -177,18 +201,22 @@ export const TenantDashboardView: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           {/* Day range selectors */}
           <div className="flex items-center bg-helios-card-light dark:bg-helios-card-dark rounded-xl border border-helios-border-light dark:border-helios-border-dark p-1">
-            {[7, 30, 90, 365].map((d) => (
+            {[
+              { val: 7, label: '7d' },
+              { val: 30, label: '30d' },
+              { val: 0, label: 'All' },
+            ].map((d) => (
               <button
-                key={d}
-                onClick={() => handleDaysChange(d)}
+                key={d.val}
+                onClick={() => handleDaysChange(d.val)}
                 disabled={isLoading}
                 className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
-                  selectedDays === d
+                  selectedDays === d.val
                     ? 'bg-helios-accent-blue text-white shadow-sm'
                     : 'text-slate-500 hover:text-helios-text-primary-light dark:hover:text-helios-text-primary-dark'
                 }`}
               >
-                {d}d
+                {d.label}
               </button>
             ))}
           </div>
@@ -318,15 +346,15 @@ export const TenantDashboardView: React.FC = () => {
             <span className="text-[11px] opacity-75 font-mono">Scope: Gold Layer Fact/Dim</span>
           </div>
 
-          {/* Empty State Banner (if tenant genuinely has no Gold data yet) */}
-          {!isLoading && !hasAnyData && (
+          {/* Empty State Banner (if data_as_of is null or tenant genuinely has no Gold data yet) */}
+          {!isLoading && (dataAsOf === null || !hasAnyData) && (
             <div className="p-8 rounded-2xl border-2 border-dashed border-helios-border-light dark:border-helios-border-dark bg-helios-card-light dark:bg-helios-card-dark text-center space-y-3 shadow-sm animate-fadeIn">
               <div className="w-12 h-12 mx-auto rounded-xl bg-helios-accent-blue/10 flex items-center justify-center text-helios-accent-blue">
                 <Database className="w-6 h-6" />
               </div>
               <div className="max-w-md mx-auto">
                 <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                  No Analytical Records Ingested Yet
+                  No data yet for this business.
                 </h3>
                 <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1 leading-relaxed">
                   Tenant #{parsedTenantId ?? tenantId} has no completed orders or shipments recorded in the Gold layer. Charts are showing zeroed baseline states.

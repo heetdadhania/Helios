@@ -7,10 +7,11 @@ export interface RevenueTrendPoint {
 }
 
 export interface RevenueTrendResponse {
-  days: number;
+  days: number | null;
   total_revenue: number;
   total_orders: number;
   points: RevenueTrendPoint[];
+  data_as_of?: string | null;
 }
 
 export interface TopProductItem {
@@ -24,7 +25,9 @@ export interface TopProductItem {
 
 export interface TopProductsResponse {
   limit: number;
+  days?: number | null;
   products: TopProductItem[];
+  data_as_of?: string | null;
 }
 
 export interface DeliveryRiskBreakdownItem {
@@ -40,7 +43,9 @@ export interface LateDeliveryRiskResponse {
   on_time_shipments: number;
   late_rate_pct: number;
   avg_shipping_days: number;
+  days?: number | null;
   status_breakdown: DeliveryRiskBreakdownItem[];
+  data_as_of?: string | null;
 }
 
 export interface DiscountProfitBand {
@@ -55,7 +60,9 @@ export interface DiscountProfitBand {
 export interface DiscountVsProfitResponse {
   overall_profit_margin_pct: number;
   overall_discount_rate_pct: number;
+  days?: number | null;
   bands: DiscountProfitBand[];
+  data_as_of?: string | null;
 }
 
 export interface ShippingModeComparisonItem {
@@ -68,7 +75,9 @@ export interface ShippingModeComparisonItem {
 }
 
 export interface ShippingModeComparisonResponse {
+  days?: number | null;
   modes: ShippingModeComparisonItem[];
+  data_as_of?: string | null;
 }
 
 export interface SimplifiedUploadStatus {

@@ -17,6 +17,7 @@ import { DiscountProfitWidget } from '@/components/dashboard/DiscountProfitWidge
 import { ShippingModeWidget } from '@/components/dashboard/ShippingModeWidget';
 import { dashboardService } from '@/services/dashboardService';
 import { DashboardData } from '@/types/dashboard';
+import { formatDateAsOf } from '@/utils/formatters';
 
 interface WidgetLoadingStates {
   revenueTrend: boolean;
@@ -87,7 +88,7 @@ export const Dashboard: React.FC = () => {
         }
       });
 
-    const pProducts = dashboardService.getTopProducts(10)
+    const pProducts = dashboardService.getTopProducts(10, lookbackDays)
       .then((res) => {
         if (currentRequestIdRef.current === requestId) {
           setData((prev) => ({ ...prev, topProducts: res }));
@@ -100,7 +101,7 @@ export const Dashboard: React.FC = () => {
         }
       });
 
-    const pLate = dashboardService.getLateDeliveryRisk()
+    const pLate = dashboardService.getLateDeliveryRisk(lookbackDays)
       .then((res) => {
         if (currentRequestIdRef.current === requestId) {
           setData((prev) => ({ ...prev, lateDeliveryRisk: res }));
@@ -113,7 +114,7 @@ export const Dashboard: React.FC = () => {
         }
       });
 
-    const pDiscount = dashboardService.getDiscountVsProfit()
+    const pDiscount = dashboardService.getDiscountVsProfit(lookbackDays)
       .then((res) => {
         if (currentRequestIdRef.current === requestId) {
           setData((prev) => ({ ...prev, discountVsProfit: res }));
@@ -126,7 +127,7 @@ export const Dashboard: React.FC = () => {
         }
       });
 
-    const pShipping = dashboardService.getShippingModeComparison()
+    const pShipping = dashboardService.getShippingModeComparison(lookbackDays)
       .then((res) => {
         if (currentRequestIdRef.current === requestId) {
           setData((prev) => ({ ...prev, shippingModes: res }));
@@ -173,6 +174,20 @@ export const Dashboard: React.FC = () => {
   const isAnyLoading = useMemo(() => {
     return Object.values(loadingStates).some(Boolean);
   }, [loadingStates]);
+
+  // Read data_as_of from the responses
+  const dataAsOf = useMemo(() => {
+    return (
+      data.revenueTrend?.data_as_of ??
+      data.topProducts?.data_as_of ??
+      data.lateDeliveryRisk?.data_as_of ??
+      data.discountVsProfit?.data_as_of ??
+      data.shippingModes?.data_as_of ??
+      null
+    );
+  }, [data]);
+
+  const formattedDataAsOf = useMemo(() => formatDateAsOf(dataAsOf), [dataAsOf]);
 
   // Determine if tenant has any data yet
   const hasAnyData = useMemo(() => {
@@ -236,9 +251,19 @@ export const Dashboard: React.FC = () => {
             </h1>
             {renderSimplifiedStatusBadge()}
           </div>
-          <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1">
-            Gold-layer dimensional metrics scoped to <strong>{user?.name || 'Your Store'}</strong>. Updated automatically with live ingestion.
-          </p>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
+              Gold-layer dimensional metrics scoped to <strong>{user?.name || 'Your Store'}</strong>. Updated automatically with live ingestion.
+            </p>
+            {formattedDataAsOf && (
+              <>
+                <span className="text-slate-400 dark:text-slate-600 text-xs">•</span>
+                <span className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-medium">
+                  Data as of {formattedDataAsOf}
+                </span>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Action Controls: Refresh + Export */}
@@ -275,15 +300,15 @@ export const Dashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Empty State Banner (if no data has been connected/synced yet) */}
-      {!isAnyLoading && !hasAnyData && (
+      {/* Empty State Banner (if data_as_of is null or tenant has no data) */}
+      {!isAnyLoading && (dataAsOf === null || !hasAnyData) && (
         <div className="p-8 rounded-2xl border-2 border-dashed border-helios-border-light dark:border-helios-border-dark bg-helios-card-light dark:bg-helios-card-dark text-center space-y-4 shadow-sm animate-fadeIn">
           <div className="w-14 h-14 mx-auto rounded-2xl bg-helios-accent-blue/10 flex items-center justify-center text-helios-accent-blue">
             <Database className="w-7 h-7" />
           </div>
           <div className="max-w-md mx-auto">
             <h3 className="text-base font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-              Connect a data source to see insights
+              No data yet for this business.
             </h3>
             <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1.5 leading-relaxed">
               You haven't synchronized any sales or order data yet. Upload a spreadsheet, connect a live database, or use the ingestion API to populate your private lakehouse.

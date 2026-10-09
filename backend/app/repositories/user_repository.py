@@ -148,3 +148,25 @@ class UserRepository(BaseRepository):
         if not created_user:
             raise RuntimeError(f"User creation failed for {clean_email}")
         return created_user
+
+    def update_password(
+        self,
+        user_id: int,
+        password_hash: str,
+        must_change_password: bool = False,
+    ) -> None:
+        """Update password hash and reset must_change_password flag for a user."""
+        query = f"""
+            UPDATE {self.table}
+            SET password_hash = :password_hash,
+                must_change_password = :must_change_password
+            WHERE user_id = :user_id
+        """
+        self.execute_non_query(
+            query,
+            {
+                "user_id": user_id,
+                "password_hash": password_hash,
+                "must_change_password": must_change_password,
+            },
+        )

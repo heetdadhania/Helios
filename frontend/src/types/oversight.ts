@@ -11,6 +11,7 @@ export interface TenantDashboardViewAs {
   tenant_id: number;
   tenant_name: string;
   days: number | null;
+  data_as_of?: string | null;
   revenue_trend: RevenueTrendResponse;
   top_products: TopProductsResponse;
   late_delivery_risk: LateDeliveryRiskResponse;
@@ -59,6 +60,7 @@ export interface TenantComparisonMetric {
   total_shipments: number;
   late_delivery_pct: number;
   avg_shipping_days: number;
+  data_as_of?: string | null;
 }
 
 export interface TenantCompareResponse {

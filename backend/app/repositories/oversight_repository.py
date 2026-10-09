@@ -1,6 +1,6 @@
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     from databricks.sql.client import Cursor
@@ -120,38 +120,56 @@ class OversightRepository:
         tenant_ids: List[int],
         date_col: str = "date_id",
     ) -> Dict[int, Any]:
-        """Fetch max date per tenant to anchor lookback windows across tenants in a single query."""
+        """Fetch max date per tenant from gold.fact_orders_daily_summary joined to gold.dim_date."""
         if not tenant_ids:
             return {}
         ids = [int(i) for i in tenant_ids]
         ids_str = ", ".join(str(i) for i in ids)
-        query = f"SELECT tenant_id, max({date_col}) AS max_date FROM {table} WHERE tenant_id IN ({ids_str}) GROUP BY tenant_id"
-        rows = self._fetch_all(query)
-        return {int(r["tenant_id"]): r.get("max_date") for r in rows if r.get("tenant_id") is not None}
+        query = f"""
+            SELECT s.tenant_id, max(d.full_date) AS max_date
+            FROM {self.summary_table} s
+            JOIN `{self.catalog}`.`gold`.`dim_date` d ON s.date_id = d.date_id
+            WHERE s.tenant_id IN ({ids_str})
+            GROUP BY s.tenant_id
+        """
+        try:
+            rows = self._fetch_all(query)
+            return {int(r["tenant_id"]): r.get("max_date") for r in rows if r.get("tenant_id") is not None}
+        except Exception:
+            fallback_q = f"SELECT tenant_id, max({date_col}) AS max_date FROM {table} WHERE tenant_id IN ({ids_str}) GROUP BY tenant_id"
+            rows = self._fetch_all(fallback_q)
+            return {int(r["tenant_id"]): r.get("max_date") for r in rows if r.get("tenant_id") is not None}
 
-    def _resolve_start_date_id(self, anchor_val: Any, days: Optional[int]) -> Optional[int]:
-        """Convert anchor date value to start date_id integer (YYYYMMDD)."""
-        if days is None:
-            return None
+    def _resolve_start_date_id(self, anchor_val: Any, days: Optional[int]) -> Tuple[Optional[int], Optional[int]]:
+        """Convert anchor date value to (start_date_id, end_date_id) integer tuple (YYYYMMDD)."""
+        if days is None or anchor_val is None:
+            return (None, None)
         anchor_date = None
-        if anchor_val is not None:
-            val_str = str(anchor_val)
+        if isinstance(anchor_val, (date, datetime)):
+            anchor_date = anchor_val if isinstance(anchor_val, date) else anchor_val.date()
+        else:
+            val_str = str(anchor_val).strip()
             if val_str.isdigit() and len(val_str) == 8:
                 try:
                     anchor_date = datetime.strptime(val_str, "%Y%m%d").date()
                 except ValueError:
                     pass
-            elif hasattr(anchor_val, "strftime"):
-                anchor_date = anchor_val if not hasattr(anchor_val, "date") else anchor_val.date()
+            elif "-" in val_str:
+                try:
+                    anchor_date = datetime.strptime(val_str[:10], "%Y-%m-%d").date()
+                except ValueError:
+                    pass
         if anchor_date is None:
-            anchor_date = datetime.now(timezone.utc).date()
+            return (None, None)
         start = anchor_date - timedelta(days=days - 1)
-        return int(start.strftime("%Y%m%d"))
+        end = anchor_date
+        return (int(start.strftime("%Y%m%d")), int(end.strftime("%Y%m%d")))
 
     def get_comparison_revenue_metrics(
         self,
         tenant_ids: List[int],
         days: Optional[int],
+        anchor_dates: Optional[Dict[int, Any]] = None,
     ) -> Dict[int, Dict[str, Any]]:
         """
         Fetch total revenue and orders for multiple tenants in a single set-based query,
@@ -164,13 +182,16 @@ class OversightRepository:
 
         where_sql = f"tenant_id IN ({ids_str})"
         if days is not None:
-            anchors = self._get_comparison_anchor_dates(self.summary_table, ids, "date_id")
+            anchors = anchor_dates if anchor_dates is not None else self._get_comparison_anchor_dates(self.summary_table, ids, "date_id")
             tenant_clauses = []
             for tid in ids:
-                start_date_id = self._resolve_start_date_id(anchors.get(tid), days)
-                tenant_clauses.append(f"(tenant_id = {tid} AND date_id >= {start_date_id})")
+                start_date_id, end_date_id = self._resolve_start_date_id(anchors.get(tid), days)
+                if start_date_id is not None and end_date_id is not None:
+                    tenant_clauses.append(f"(tenant_id = {tid} AND date_id >= {start_date_id} AND date_id <= {end_date_id})")
             if tenant_clauses:
                 where_sql = " OR ".join(tenant_clauses)
+            else:
+                where_sql = "1 = 0"
 
         query = f"""
             SELECT 
@@ -192,6 +213,7 @@ class OversightRepository:
         self,
         tenant_ids: List[int],
         days: Optional[int],
+        anchor_dates: Optional[Dict[int, Any]] = None,
     ) -> Dict[int, Dict[str, Any]]:
         """
         Fetch shipment totals, late shipments, and average shipping days for multiple tenants
@@ -204,13 +226,16 @@ class OversightRepository:
 
         where_sql = f"tenant_id IN ({ids_str})"
         if days is not None:
-            anchors = self._get_comparison_anchor_dates(self.shipments_table, ids, "date_id")
+            anchors = anchor_dates if anchor_dates is not None else self._get_comparison_anchor_dates(self.summary_table, ids, "date_id")
             tenant_clauses = []
             for tid in ids:
-                start_date_id = self._resolve_start_date_id(anchors.get(tid), days)
-                tenant_clauses.append(f"(tenant_id = {tid} AND date_id >= {start_date_id})")
+                start_date_id, end_date_id = self._resolve_start_date_id(anchors.get(tid), days)
+                if start_date_id is not None and end_date_id is not None:
+                    tenant_clauses.append(f"(tenant_id = {tid} AND date_id >= {start_date_id} AND date_id <= {end_date_id})")
             if tenant_clauses:
                 where_sql = " OR ".join(tenant_clauses)
+            else:
+                where_sql = "1 = 0"
 
         query = f"""
             SELECT 
@@ -280,11 +305,34 @@ class OversightRepository:
                     result[tid] = r
             return result
 
-    def get_tenant_late_delivery_rates(self) -> Dict[int, Dict[str, Any]]:
+    def get_tenant_late_delivery_rates(
+        self,
+        tenant_ids: Optional[List[int]] = None,
+        days: Optional[int] = None,
+        anchor_dates: Optional[Dict[int, Any]] = None,
+    ) -> Dict[int, Dict[str, Any]]:
         """
         Fetch late delivery percentage and shipment counts per tenant.
         Returns a mapping of tenant_id -> shipment metrics.
         """
+        where_clauses = []
+        if tenant_ids:
+            ids_str = ", ".join(str(int(i)) for i in tenant_ids)
+            where_clauses.append(f"tenant_id IN ({ids_str})")
+
+        if days is not None and anchor_dates:
+            tenant_clauses = []
+            for tid, anchor in anchor_dates.items():
+                start_id, end_id = self._resolve_start_date_id(anchor, days)
+                if start_id is not None and end_id is not None:
+                    tenant_clauses.append(f"(tenant_id = {tid} AND date_id >= {start_id} AND date_id <= {end_id})")
+            if tenant_clauses:
+                where_clauses.append(f"({' OR '.join(tenant_clauses)})")
+            elif tenant_ids:
+                where_clauses.append("1 = 0")
+
+        where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+
         query = f"""
             SELECT 
                 tenant_id,
@@ -293,6 +341,7 @@ class OversightRepository:
                 round(sum(CASE WHEN late_flag THEN 1.0 ELSE 0.0 END) / nullif(count(*), 0) * 100.0, 2) AS late_rate_pct,
                 round(avg(coalesce(shipping_days, 0)), 2) AS avg_shipping_days
             FROM {self.shipments_table}
+            {where_sql}
             GROUP BY tenant_id
         """
         try:

@@ -1,0 +1,29 @@
+# Secrets & Credentials
+.env
+.env.*
+*.env
+token.txt
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Git & IDE files
+.git/
+.gitignore
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

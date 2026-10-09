@@ -7,6 +7,7 @@ export interface User {
   role: UserRole;
   tenant_id?: number | null;
   avatarUrl?: string;
+  must_change_password?: boolean;
 }
 
 export interface LoginCredentials {
@@ -29,4 +30,5 @@ export interface AuthContextType {
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<User>;
   logout: () => void;
+  updateUser: (updated: Partial<User>) => void;
 }

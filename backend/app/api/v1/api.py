@@ -10,11 +10,14 @@ from app.api.history import router as history_router
 from app.api.support import router as support_router
 from app.api.oversight import router as oversight_router
 
+from app.api.team import router as team_router
+
 api_router = APIRouter()
 
 api_router.include_router(health.router, prefix="/health", tags=["Health"])
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 api_router.include_router(tenants.router, prefix="/tenants", tags=["Tenants"])
+api_router.include_router(team_router, prefix="/team-members", tags=["Team Members"])
 api_router.include_router(datasets.router, prefix="/datasets", tags=["Datasets"])
 api_router.include_router(db_connections_router, prefix="/db-connections", tags=["Database Connections"])
 api_router.include_router(api_ingest_router, prefix="/ingest", tags=["API Ingestion"])

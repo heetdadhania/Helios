@@ -28,6 +28,7 @@ const TenantDashboardView = lazy(() => import('@/pages/admin/TenantDashboardView
 const TenantHealth = lazy(() => import('@/pages/admin/TenantHealth').then((m) => ({ default: m.TenantHealth })));
 const TenantComparison = lazy(() => import('@/pages/admin/TenantComparison').then((m) => ({ default: m.TenantComparison })));
 const UsageDashboard = lazy(() => import('@/pages/admin/UsageDashboard').then((m) => ({ default: m.UsageDashboard })));
+const ChangePassword = lazy(() => import('@/pages/auth/ChangePassword').then((m) => ({ default: m.ChangePassword })));
 
 const RouteLoadingFallback: React.FC = () => (
   <div className="min-h-[50vh] flex flex-col items-center justify-center p-8 text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
@@ -40,11 +41,26 @@ const RootRedirect: React.FC = () => {
   const { isAuthenticated, user, isLoading } = useAuth();
   if (isLoading) return null;
   if (!isAuthenticated || !user) return <Navigate to="/login" replace />;
+  if (user.must_change_password) return <Navigate to="/change-password" replace />;
   return user.role === 'smb_owner' ? (
     <Navigate to="/client/select-source" replace />
   ) : (
     <Navigate to="/admin/uploads" replace />
   );
+};
+
+const ChangePasswordGuard: React.FC = () => {
+  const { isAuthenticated, user, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (!isAuthenticated || !user) return <Navigate to="/login" replace />;
+  if (!user.must_change_password) {
+    return user.role === 'smb_owner' ? (
+      <Navigate to="/client/dashboard" replace />
+    ) : (
+      <Navigate to="/admin/uploads" replace />
+    );
+  }
+  return <ChangePassword />;
 };
 
 const HistoryRouteSelector: React.FC = () => {
@@ -61,6 +77,9 @@ export const AppRoutes: React.FC = () => {
 
       {/* Public Login Route */}
       <Route path="/login" element={<Login />} />
+
+      {/* Mandatory First-Login Password Change Route */}
+      <Route path="/change-password" element={<ChangePasswordGuard />} />
 
       {/* Client Portal Route Group (SMB Owners & Admins) - Ingestion removed */}
       <Route element={<ProtectedRoute allowedRoles={['smb_owner', 'admin']} />}>

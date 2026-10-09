@@ -52,6 +52,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
   };
 
+  const updateUser = (updated: Partial<User>) => {
+    setUser((prev) => {
+      if (!prev) return null;
+      const next = { ...prev, ...updated };
+      try {
+        localStorage.setItem('helios_user', JSON.stringify(next));
+      } catch {
+        // Ignore localStorage quota errors
+      }
+      return next;
+    });
+  };
+
   const role: UserRole | null = user?.role || null;
   const isAuthenticated = !!token && !!user;
 
@@ -65,6 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         login,
         logout,
+        updateUser,
       }}
     >
       {children}

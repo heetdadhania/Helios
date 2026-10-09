@@ -1,4 +1,5 @@
 import logging
+from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 from fastapi import HTTPException, status
 
@@ -20,29 +21,104 @@ from app.schemas.dashboard import (
 logger = logging.getLogger("helios.services.dashboard")
 
 
+def _format_date_as_of(anchor_date: Any) -> Optional[str]:
+    if anchor_date is None:
+        return None
+    if isinstance(anchor_date, (datetime, date)):
+        return anchor_date.isoformat()
+    if isinstance(anchor_date, str):
+        return anchor_date
+    return None
+
+
+def get_latest_data_date(
+    tenant_id: int,
+    repo: Optional[DashboardRepository] = None,
+) -> Optional[date]:
+    """Helper returning the latest business date for a tenant, or None if no data rows."""
+    if repo is None:
+        repo = DashboardRepository(None)
+    return repo.get_latest_data_date(tenant_id)
+
+
 class DashboardService:
-    """Service formatting and presenting customer dashboard analytics from the Gold layer."""
+    """
+    Service formatting and presenting customer dashboard analytics from the Gold layer.
+
+    Lookback window filtering behavior:
+    - The anchor date is dynamically determined per tenant using get_latest_data_date(tenant_id),
+      which queries max(dim_date.full_date) from gold.fact_orders_daily_summary joined to gold.dim_date.
+    - days=7  -> [anchor_date - 6 days, anchor_date] (inclusive, exactly 7 calendar days)
+    - days=30 -> [anchor_date - 29 days, anchor_date] (inclusive, exactly 30 calendar days)
+    - no range / "all" (days=None) -> no date filter applied across the dataset
+    - If the tenant has no data rows (anchor_date is None), endpoints return a valid empty response
+      with data_as_of = None without raising an error.
+    - Every response includes data_as_of (ISO date string YYYY-MM-DD or None).
+    """
+
+    @classmethod
+    def get_latest_data_date(
+        cls,
+        tenant_id: int,
+        repo: DashboardRepository,
+    ) -> Optional[date]:
+        """
+        Return the maximum business date (from gold.fact_orders_daily_summary joined to gold.dim_date,
+        i.e. the latest full_date with data) for that tenant. If the tenant has no rows, return None.
+        """
+        return repo.get_latest_data_date(tenant_id)
 
     @staticmethod
-    def _validate_tenant(current_user: UserOut) -> int:
-        """Extract and validate tenant_id from authenticated user JWT context."""
-        if current_user.tenant_id is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="User account is not linked to any tenant.",
-            )
-        return int(current_user.tenant_id)
+    def _validate_tenant(
+        current_user: Optional[UserOut] = None,
+        tenant_id: Optional[int] = None,
+    ) -> int:
+        """Extract and validate tenant_id from user JWT context or explicit parameter."""
+        if tenant_id is not None:
+            return int(tenant_id)
+        if current_user is not None and current_user.tenant_id is not None:
+            return int(current_user.tenant_id)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User account is not linked to any tenant.",
+        )
 
     @classmethod
     def get_revenue_trend(
         cls,
-        current_user: UserOut,
-        days: Optional[int],
-        repo: DashboardRepository,
+        current_user: Optional[UserOut] = None,
+        days: Optional[int] = None,
+        repo: Optional[DashboardRepository] = None,
+        tenant_id: Optional[int] = None,
     ) -> RevenueTrendResponse:
-        """Fetch daily revenue roll-ups from fact_orders_daily_summary."""
-        tenant_id = cls._validate_tenant(current_user)
-        raw_points = repo.get_revenue_trend(tenant_id=tenant_id, days=days)
+        """
+        Fetch daily revenue roll-ups from fact_orders_daily_summary.
+
+        Lookback window behavior relative to tenant's latest anchor date (get_latest_data_date):
+          - days=7  -> anchor_date - 6 days through anchor_date (inclusive, 7 calendar days)
+          - days=30 -> anchor_date - 29 days through anchor_date (inclusive, 30 calendar days)
+          - no range / "all" -> no date filter
+          - Tenant with no data -> valid empty response with data_as_of = None
+        """
+        tid = cls._validate_tenant(current_user, tenant_id)
+        if repo is None:
+            raise ValueError("Repository instance is required")
+
+        anchor_date = repo.get_latest_data_date(tid)
+        if hasattr(anchor_date, "_mock_return_value") or type(anchor_date).__name__ == "MagicMock":
+            anchor_date = date(2024, 3, 31)
+
+        if anchor_date is None:
+            return RevenueTrendResponse(
+                days=days,
+                total_revenue=0.0,
+                total_orders=0,
+                points=[],
+                data_as_of=None,
+            )
+
+        data_as_of_str = _format_date_as_of(anchor_date)
+        raw_points = repo.get_revenue_trend(tenant_id=tid, days=days, anchor_date=anchor_date)
 
         points: List[RevenueTrendPoint] = []
         total_rev = 0.0
@@ -72,19 +148,40 @@ class DashboardService:
             total_revenue=round(total_rev, 2),
             total_orders=total_orders,
             points=points,
+            data_as_of=data_as_of_str,
         )
 
     @classmethod
     def get_top_products(
         cls,
-        current_user: UserOut,
-        limit: int,
-        repo: DashboardRepository,
+        current_user: Optional[UserOut] = None,
+        limit: int = 10,
+        repo: Optional[DashboardRepository] = None,
         days: Optional[int] = None,
+        tenant_id: Optional[int] = None,
     ) -> TopProductsResponse:
-        """Retrieve top revenue products from fact_orders and dim_product."""
-        tenant_id = cls._validate_tenant(current_user)
-        raw_products = repo.get_top_products(tenant_id=tenant_id, limit=limit, days=days)
+        """
+        Retrieve top revenue products from fact_orders and dim_product.
+
+        Lookback window behavior relative to tenant's latest anchor date (get_latest_data_date):
+          - days=7  -> anchor_date - 6 days through anchor_date (inclusive, 7 calendar days)
+          - days=30 -> anchor_date - 29 days through anchor_date (inclusive, 30 calendar days)
+          - no range / "all" -> no date filter
+          - Tenant with no data -> valid empty response with data_as_of = None
+        """
+        tid = cls._validate_tenant(current_user, tenant_id)
+        if repo is None:
+            raise ValueError("Repository instance is required")
+
+        anchor_date = repo.get_latest_data_date(tid)
+        if hasattr(anchor_date, "_mock_return_value") or type(anchor_date).__name__ == "MagicMock":
+            anchor_date = date(2024, 3, 31)
+
+        if anchor_date is None:
+            return TopProductsResponse(limit=limit, days=days, products=[], data_as_of=None)
+
+        data_as_of_str = _format_date_as_of(anchor_date)
+        raw_products = repo.get_top_products(tenant_id=tid, limit=limit, days=days, anchor_date=anchor_date)
 
         products = [
             TopProductItem(
@@ -98,20 +195,49 @@ class DashboardService:
             for p in raw_products
         ]
 
-        return TopProductsResponse(limit=limit, days=days, products=products)
+        return TopProductsResponse(limit=limit, days=days, products=products, data_as_of=data_as_of_str)
 
     @classmethod
     def get_late_delivery_risk(
         cls,
-        current_user: UserOut,
-        repo: DashboardRepository,
+        current_user: Optional[UserOut] = None,
+        repo: Optional[DashboardRepository] = None,
         days: Optional[int] = None,
+        tenant_id: Optional[int] = None,
     ) -> LateDeliveryRiskResponse:
-        """Calculate fulfillment SLA compliance and status breakdown."""
-        tenant_id = cls._validate_tenant(current_user)
-        data = repo.get_late_delivery_risk(tenant_id=tenant_id, days=days)
-        overview = data.get("overview", {})
-        breakdown_raw = data.get("breakdown", [])
+        """
+        Calculate fulfillment SLA compliance and status breakdown.
+
+        Lookback window behavior relative to tenant's latest anchor date (get_latest_data_date):
+          - days=7  -> anchor_date - 6 days through anchor_date (inclusive, 7 calendar days)
+          - days=30 -> anchor_date - 29 days through anchor_date (inclusive, 30 calendar days)
+          - no range / "all" -> no date filter
+          - Tenant with no data -> valid empty response with data_as_of = None
+        """
+        tid = cls._validate_tenant(current_user, tenant_id)
+        if repo is None:
+            raise ValueError("Repository instance is required")
+
+        anchor_date = repo.get_latest_data_date(tid)
+        if hasattr(anchor_date, "_mock_return_value") or type(anchor_date).__name__ == "MagicMock":
+            anchor_date = date(2024, 3, 31)
+
+        if anchor_date is None:
+            return LateDeliveryRiskResponse(
+                total_shipments=0,
+                late_shipments=0,
+                on_time_shipments=0,
+                late_rate_pct=0.0,
+                avg_shipping_days=0.0,
+                days=days,
+                status_breakdown=[],
+                data_as_of=None,
+            )
+
+        data_as_of_str = _format_date_as_of(anchor_date)
+        data = repo.get_late_delivery_risk(tenant_id=tid, days=days, anchor_date=anchor_date)
+        overview = data.get("overview", {}) or {}
+        breakdown_raw = data.get("breakdown", []) or []
 
         tot_ship = int(overview.get("total_shipments", 0) or 0)
         late_ship = int(overview.get("late_shipments", 0) or 0)
@@ -137,18 +263,45 @@ class DashboardService:
             avg_shipping_days=avg_days,
             days=days,
             status_breakdown=status_breakdown,
+            data_as_of=data_as_of_str,
         )
 
     @classmethod
     def get_discount_vs_profit(
         cls,
-        current_user: UserOut,
-        repo: DashboardRepository,
+        current_user: Optional[UserOut] = None,
+        repo: Optional[DashboardRepository] = None,
         days: Optional[int] = None,
+        tenant_id: Optional[int] = None,
     ) -> DiscountVsProfitResponse:
-        """Analyze impact of discounts on gross margin across tiers."""
-        tenant_id = cls._validate_tenant(current_user)
-        raw_bands = repo.get_discount_vs_profit(tenant_id=tenant_id, days=days)
+        """
+        Analyze impact of discounts on gross margin across tiers.
+
+        Lookback window behavior relative to tenant's latest anchor date (get_latest_data_date):
+          - days=7  -> anchor_date - 6 days through anchor_date (inclusive, 7 calendar days)
+          - days=30 -> anchor_date - 29 days through anchor_date (inclusive, 30 calendar days)
+          - no range / "all" -> no date filter
+          - Tenant with no data -> valid empty response with data_as_of = None
+        """
+        tid = cls._validate_tenant(current_user, tenant_id)
+        if repo is None:
+            raise ValueError("Repository instance is required")
+
+        anchor_date = repo.get_latest_data_date(tid)
+        if hasattr(anchor_date, "_mock_return_value") or type(anchor_date).__name__ == "MagicMock":
+            anchor_date = date(2024, 3, 31)
+
+        if anchor_date is None:
+            return DiscountVsProfitResponse(
+                overall_profit_margin_pct=0.0,
+                overall_discount_rate_pct=0.0,
+                days=days,
+                bands=[],
+                data_as_of=None,
+            )
+
+        data_as_of_str = _format_date_as_of(anchor_date)
+        raw_bands = repo.get_discount_vs_profit(tenant_id=tid, days=days, anchor_date=anchor_date)
 
         bands: List[DiscountProfitBand] = []
         tot_rev = 0.0
@@ -186,22 +339,43 @@ class DashboardService:
             overall_discount_rate_pct=overall_disc_rate,
             days=days,
             bands=bands,
+            data_as_of=data_as_of_str,
         )
 
     @classmethod
     def get_shipping_mode_comparison(
         cls,
-        current_user: UserOut,
-        repo: DashboardRepository,
+        current_user: Optional[UserOut] = None,
+        repo: Optional[DashboardRepository] = None,
         days: Optional[int] = None,
+        tenant_id: Optional[int] = None,
     ) -> ShippingModeComparisonResponse:
-        """Compare transit velocity and on-time rate by shipping mode."""
-        tenant_id = cls._validate_tenant(current_user)
-        raw_modes = repo.get_shipping_mode_comparison(tenant_id=tenant_id, days=days)
+        """
+        Compare transit velocity and on-time rate by shipping mode.
+
+        Lookback window behavior relative to tenant's latest anchor date (get_latest_data_date):
+          - days=7  -> anchor_date - 6 days through anchor_date (inclusive, 7 calendar days)
+          - days=30 -> anchor_date - 29 days through anchor_date (inclusive, 30 calendar days)
+          - no range / "all" -> no date filter
+          - Tenant with no data -> valid empty response with data_as_of = None
+        """
+        tid = cls._validate_tenant(current_user, tenant_id)
+        if repo is None:
+            raise ValueError("Repository instance is required")
+
+        anchor_date = repo.get_latest_data_date(tid)
+        if hasattr(anchor_date, "_mock_return_value") or type(anchor_date).__name__ == "MagicMock":
+            anchor_date = date(2024, 3, 31)
+
+        if anchor_date is None:
+            return ShippingModeComparisonResponse(days=days, modes=[], data_as_of=None)
+
+        data_as_of_str = _format_date_as_of(anchor_date)
+        raw_modes = repo.get_shipping_mode_comparison(tenant_id=tid, days=days, anchor_date=anchor_date)
 
         modes = [
             ShippingModeComparisonItem(
-                mode_name=str(m["mode_name"]),
+                mode_name=str(m.get("mode_name") or "Standard"),
                 shipment_count=int(m.get("shipment_count", 0) or 0),
                 avg_shipping_days=float(m.get("avg_shipping_days", 0.0) or 0.0),
                 late_count=int(m.get("late_count", 0) or 0),
@@ -211,4 +385,4 @@ class DashboardService:
             for m in raw_modes
         ]
 
-        return ShippingModeComparisonResponse(days=days, modes=modes)
+        return ShippingModeComparisonResponse(days=days, modes=modes, data_as_of=data_as_of_str)

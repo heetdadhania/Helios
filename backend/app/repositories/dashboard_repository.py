@@ -1,7 +1,7 @@
 import logging
 import time
 from datetime import date, datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     from databricks.sql.client import Cursor
@@ -14,6 +14,44 @@ from app.db.base import databricks_cursor
 logger = logging.getLogger("helios.repositories.dashboard")
 
 
+def calculate_date_window(
+    anchor_date: Optional[date],
+    days: Optional[int],
+) -> Tuple[Optional[int], Optional[int]]:
+    """
+    Calculate start_date_id and end_date_id in integer YYYYMMDD format for the lookback window.
+
+    Lookback window definitions relative to anchor_date:
+      - days=7:  anchor_date - 6 days through anchor_date (inclusive, 7 calendar days)
+      - days=30: anchor_date - 29 days through anchor_date (inclusive, 30 calendar days)
+      - days=N:  anchor_date - (N - 1) days through anchor_date (inclusive, N calendar days)
+      - days=None ("all" / no range): (None, None) -> no date filter
+
+    If anchor_date is None, returns (None, None).
+    """
+    if anchor_date is None or days is None:
+        return (None, None)
+
+    start_date = anchor_date - timedelta(days=days - 1)
+    end_date = anchor_date
+    return (int(start_date.strftime("%Y%m%d")), int(end_date.strftime("%Y%m%d")))
+
+
+def get_latest_data_date(
+    tenant_id: int,
+    cursor: Optional[Cursor] = None,
+    repo: Optional["DashboardRepository"] = None,
+) -> Optional[date]:
+    """
+    Standalone helper returning the latest business date (MAX date_id / full_date)
+    for a tenant from gold.fact_orders_daily_summary joined to gold.dim_date.
+    If the tenant has no rows, returns None.
+    """
+    if repo is None:
+        repo = DashboardRepository(cursor)
+    return repo.get_latest_data_date(tenant_id)
+
+
 class DashboardRepository:
     """
     Repository handling all read queries against the Gold layer for customer dashboard charts.
@@ -21,8 +59,10 @@ class DashboardRepository:
     Lookback window filtering behavior:
       - When `days` is specified (e.g., 7, 30), metrics are strictly filtered to the window
         [anchor_date - (days - 1), anchor_date], where anchor_date is dynamically determined
-        as the most recent business date present in the tenant's data (MAX date_id).
-        If the table contains no data for the tenant, anchor_date falls back to the current UTC date.
+        as the most recent business date present in the tenant's data (MAX full_date from
+        fact_orders_daily_summary joined to dim_date).
+      - If the table contains no data for the tenant, anchor_date is None and valid empty
+        structures are returned with data_as_of = None.
       - When `days` is None, all-time records are queried without any date boundary constraint.
 
     Includes retry-with-backoff on query execution to absorb warehouse cold starts and transient connection drops.
@@ -129,26 +169,43 @@ class DashboardRepository:
             raise last_exception
         return {}
 
-    def _get_anchor_date(self, table: str, tenant_id: int, date_col: str = "date_id") -> date:
+    def get_latest_data_date(self, tenant_id: int) -> Optional[date]:
         """
-        Determine the anchor date for the lookback window.
-        Uses the most recent date present in the tenant's data (MAX date_id).
-        Falls back to current UTC date if the table contains no data.
+        Return the maximum business date (from gold.fact_orders_daily_summary joined to gold.dim_date,
+        i.e. the latest full_date with data) for that tenant. If the tenant has no rows, return None.
         """
-        query = f"SELECT max({date_col}) AS max_date FROM {table} WHERE tenant_id = :tenant_id"
+        query = f"""
+            SELECT max(d.full_date) AS max_date
+            FROM {self.daily_summary_table} s
+            JOIN {self.dim_date_table} d ON s.date_id = d.date_id
+            WHERE s.tenant_id = :tenant_id
+        """
         row = self._execute_single_with_retry(query, {"tenant_id": tenant_id})
         val = row.get("max_date") if row else None
         if val is None and row and len(row) > 0:
             val = next(iter(row.values()))
-        if val is not None:
-            if isinstance(val, int) or (isinstance(val, str) and str(val).isdigit() and len(str(val)) == 8):
-                try:
-                    return datetime.strptime(str(val), "%Y%m%d").date()
-                except ValueError:
-                    pass
-            elif hasattr(val, "strftime"):
-                return val if isinstance(val, date) else val.date()
-        return datetime.now(timezone.utc).date()
+        if val is None:
+            return None
+        if isinstance(val, datetime):
+            return val.date()
+        if isinstance(val, date):
+            return val
+        val_str = str(val).strip()
+        if val_str.isdigit() and len(val_str) == 8:
+            try:
+                return datetime.strptime(val_str, "%Y%m%d").date()
+            except ValueError:
+                pass
+        if "-" in val_str:
+            try:
+                return datetime.strptime(val_str[:10], "%Y-%m-%d").date()
+            except ValueError:
+                pass
+        return None
+
+    def _get_anchor_date(self, table: str, tenant_id: int, date_col: str = "date_id") -> Optional[date]:
+        """Determine the anchor date for the lookback window using the tenant's latest business date."""
+        return self.get_latest_data_date(tenant_id)
 
     def _calculate_date_bounds(
         self,
@@ -159,20 +216,30 @@ class DashboardRepository:
     ) -> Optional[int]:
         """
         Calculate start date_id in YYYYMMDD format for the lookback window.
-        Returns None if days is None (all-time range).
+        Returns None if days is None (all-time range) or if the tenant has no data rows.
         """
         if days is None:
             return None
-        anchor = self._get_anchor_date(table, tenant_id, date_col)
+        anchor = self.get_latest_data_date(tenant_id)
+        if anchor is None:
+            return None
         start_date = anchor - timedelta(days=days - 1)
         return int(start_date.strftime("%Y%m%d"))
 
-    def get_revenue_trend(self, tenant_id: int, days: Optional[int] = 30) -> List[Dict[str, Any]]:
+    def get_revenue_trend(
+        self,
+        tenant_id: int,
+        days: Optional[int] = 30,
+        anchor_date: Optional[date] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Query pre-aggregated gold.fact_orders_daily_summary joined with dim_date
         strictly scoped to tenant_id for the given lookback window.
         """
-        start_date_id = self._calculate_date_bounds(self.daily_summary_table, tenant_id, days)
+        if anchor_date is None and days is not None:
+            anchor_date = self.get_latest_data_date(tenant_id)
+
+        start_date_id, end_date_id = calculate_date_window(anchor_date, days)
 
         where_clauses = ["s.tenant_id = :tenant_id"]
         params: Dict[str, Any] = {"tenant_id": tenant_id}
@@ -182,6 +249,9 @@ class DashboardRepository:
         if start_date_id is not None:
             where_clauses.append("s.date_id >= :start_date_id")
             params["start_date_id"] = start_date_id
+        if end_date_id is not None:
+            where_clauses.append("s.date_id <= :end_date_id")
+            params["end_date_id"] = end_date_id
 
         where_sql = " AND ".join(where_clauses)
         query = f"""
@@ -203,12 +273,16 @@ class DashboardRepository:
         tenant_id: int,
         limit: int = 10,
         days: Optional[int] = None,
+        anchor_date: Optional[date] = None,
     ) -> List[Dict[str, Any]]:
         """
         Query fact_orders and dim_product for top revenue products scoped to tenant_id
         within the requested lookback window (or all-time if days is None).
         """
-        start_date_id = self._calculate_date_bounds(self.fact_orders_table, tenant_id, days)
+        if anchor_date is None and days is not None:
+            anchor_date = self.get_latest_data_date(tenant_id)
+
+        start_date_id, end_date_id = calculate_date_window(anchor_date, days)
 
         where_clauses = ["fo.tenant_id = :tenant_id"]
         params: Dict[str, Any] = {"tenant_id": tenant_id, "limit": limit}
@@ -218,6 +292,9 @@ class DashboardRepository:
         if start_date_id is not None:
             where_clauses.append("fo.date_id >= :start_date_id")
             params["start_date_id"] = start_date_id
+        if end_date_id is not None:
+            where_clauses.append("fo.date_id <= :end_date_id")
+            params["end_date_id"] = end_date_id
 
         where_sql = " AND ".join(where_clauses)
         query = f"""
@@ -243,12 +320,16 @@ class DashboardRepository:
         self,
         tenant_id: int,
         days: Optional[int] = None,
+        anchor_date: Optional[date] = None,
     ) -> Dict[str, Any]:
         """
         Query fact_shipments and dim_delivery_status for overall late delivery rate and status breakdown
         within the requested lookback window (or all-time if days is None).
         """
-        start_date_id = self._calculate_date_bounds(self.fact_shipments_table, tenant_id, days)
+        if anchor_date is None and days is not None:
+            anchor_date = self.get_latest_data_date(tenant_id)
+
+        start_date_id, end_date_id = calculate_date_window(anchor_date, days)
 
         where_clauses_ov = ["tenant_id = :tenant_id"]
         params: Dict[str, Any] = {"tenant_id": tenant_id}
@@ -258,6 +339,9 @@ class DashboardRepository:
         if start_date_id is not None:
             where_clauses_ov.append("date_id >= :start_date_id")
             params["start_date_id"] = start_date_id
+        if end_date_id is not None:
+            where_clauses_ov.append("date_id <= :end_date_id")
+            params["end_date_id"] = end_date_id
 
         where_sql_ov = " AND ".join(where_clauses_ov)
         overview_q = f"""
@@ -274,6 +358,8 @@ class DashboardRepository:
         where_clauses_bd = ["fs.tenant_id = :tenant_id"]
         if start_date_id is not None:
             where_clauses_bd.append("fs.date_id >= :start_date_id")
+        if end_date_id is not None:
+            where_clauses_bd.append("fs.date_id <= :end_date_id")
         where_sql_bd = " AND ".join(where_clauses_bd)
 
         breakdown_q = f"""
@@ -299,12 +385,16 @@ class DashboardRepository:
         self,
         tenant_id: int,
         days: Optional[int] = None,
+        anchor_date: Optional[date] = None,
     ) -> List[Dict[str, Any]]:
         """
         Query fact_orders to group sales and gross profit by discount bands
         within the requested lookback window (or all-time if days is None).
         """
-        start_date_id = self._calculate_date_bounds(self.fact_orders_table, tenant_id, days)
+        if anchor_date is None and days is not None:
+            anchor_date = self.get_latest_data_date(tenant_id)
+
+        start_date_id, end_date_id = calculate_date_window(anchor_date, days)
 
         where_clauses = ["tenant_id = :tenant_id"]
         params: Dict[str, Any] = {"tenant_id": tenant_id}
@@ -314,6 +404,9 @@ class DashboardRepository:
         if start_date_id is not None:
             where_clauses.append("date_id >= :start_date_id")
             params["start_date_id"] = start_date_id
+        if end_date_id is not None:
+            where_clauses.append("date_id <= :end_date_id")
+            params["end_date_id"] = end_date_id
 
         where_sql = " AND ".join(where_clauses)
         query = f"""
@@ -340,12 +433,16 @@ class DashboardRepository:
         self,
         tenant_id: int,
         days: Optional[int] = None,
+        anchor_date: Optional[date] = None,
     ) -> List[Dict[str, Any]]:
         """
         Query fact_shipments and dim_shipping_mode for volume and SLA performance across channels
         within the requested lookback window (or all-time if days is None).
         """
-        start_date_id = self._calculate_date_bounds(self.fact_shipments_table, tenant_id, days)
+        if anchor_date is None and days is not None:
+            anchor_date = self.get_latest_data_date(tenant_id)
+
+        start_date_id, end_date_id = calculate_date_window(anchor_date, days)
 
         where_clauses = ["fs.tenant_id = :tenant_id"]
         params: Dict[str, Any] = {"tenant_id": tenant_id}
@@ -355,6 +452,9 @@ class DashboardRepository:
         if start_date_id is not None:
             where_clauses.append("fs.date_id >= :start_date_id")
             params["start_date_id"] = start_date_id
+        if end_date_id is not None:
+            where_clauses.append("fs.date_id <= :end_date_id")
+            params["end_date_id"] = end_date_id
 
         where_sql = " AND ".join(where_clauses)
         query = f"""
