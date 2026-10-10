@@ -35,6 +35,62 @@ services:
     networks:
       - helios-network
 
+  # ---------------------------------------------------------------------------
+  # Demo Source Databases for Live Database Connection Ingestion
+  # ---------------------------------------------------------------------------
+  # NOTE: Microsoft SQL Server is supported in application code
+  # but is not containerized here due to heavy image size (>1.5 GB).
+  # ---------------------------------------------------------------------------
+
+  demo-postgres:
+    image: postgres:15-alpine
+    container_name: helios-demo-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DEMO_PG_USER}
+      POSTGRES_PASSWORD: ${DEMO_PG_PASSWORD}
+      POSTGRES_DB: ${DEMO_PG_DB}
+    ports:
+      - "5433:5432"
+    volumes:
+      - demo_postgres_data:/var/lib/postgresql/data
+      - ./demo-db/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DEMO_PG_USER} -d ${DEMO_PG_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - helios-network
+
+  demo-mysql:
+    image: mysql:8.0
+    container_name: helios-demo-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DEMO_MYSQL_ROOT_PASSWORD:-helios_demo_mysql_root_secret}
+      MYSQL_USER: ${DEMO_MYSQL_USER}
+      MYSQL_PASSWORD: ${DEMO_MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${DEMO_MYSQL_DB}
+    ports:
+      - "3307:3306"
+    volumes:
+      - demo_mysql_data:/var/lib/mysql
+      - ./demo-db/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD} || mysqladmin ping -h localhost -u $${MYSQL_USER} -p$${MYSQL_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - helios-network
+
+volumes:
+  demo_postgres_data:
+  demo_mysql_data:
+
 networks:
   helios-network:
     driver: bridge
