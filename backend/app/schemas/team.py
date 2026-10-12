@@ -46,7 +46,7 @@ class TeamMemberOut(BaseModel):
     created_at: Optional[datetime] = Field(None, description="Account creation timestamp")
     tenant_ids: List[int] = Field(default_factory=list, description="List of currently assigned tenant IDs")
     assigned_tenants: List[int] = Field(default_factory=list, description="Alias for assigned tenant IDs")
-    must_change_password: bool = Field(default=False, description="Flag indicating if user must change password upon next login")
+    must_change_password: Optional[bool] = Field(default=False, description="Flag indicating if user must change password upon next login")
 
     # Compatibility alias
     id: Optional[int] = None
@@ -65,6 +65,10 @@ class TeamMemberOut(BaseModel):
                 data["assigned_tenants"] = data["tenant_ids"]
             elif "assigned_tenants" in data and not data.get("tenant_ids"):
                 data["tenant_ids"] = data["assigned_tenants"]
+            if data.get("must_change_password") is None:
+                data["must_change_password"] = False
+            if data.get("is_active") is None:
+                data["is_active"] = True
         return data
 
 

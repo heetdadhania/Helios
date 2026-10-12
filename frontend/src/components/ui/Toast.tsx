@@ -87,7 +87,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const showToast = useCallback((toast: Omit<ToastItem, 'id'>) => {
-    const id = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const id = `${Date.now()}-${performance.now()}`;
     setToasts((prev) => [...prev, { ...toast, id }]);
   }, []);
 

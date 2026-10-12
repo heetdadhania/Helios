@@ -2,6 +2,7 @@ import api from './api';
 import {
   AssignTenantPayload,
   BatchCompleteness,
+  ColumnMapping,
   ConfirmSchemaPayload,
   ConfirmSchemaResponse,
   CreateTeamMemberPayload,
@@ -16,240 +17,73 @@ import {
 import { PipelineRun } from '@/types/pipelineHealth';
 import { pipelineHealthService } from './pipelineHealthService';
 
-// Default mock pending uploads
-const initialPendingUploads: PendingUpload[] = [
-  {
-    batch_id: 'batch-upl-901',
-    tenant_id: '1',
-    tenant_name: 'Summit Athletics',
-    source_type: 'upload',
-    filename: 'q3_sales_transactions.csv',
-    file_size_bytes: 4488200,
-    row_count: 14200,
-    status: 'pending_confirmation',
-    created_at: new Date(Date.now() - 1000 * 60 * 18).toISOString(),
-  },
-  {
-    batch_id: 'batch-db-902',
-    tenant_id: '2',
-    tenant_name: 'Nordic Outfitters',
-    source_type: 'db_connection',
-    filename: 'orders_export_pg_replica',
-    file_size_bytes: 18230000,
-    row_count: 58400,
-    status: 'pending_confirmation',
-    created_at: new Date(Date.now() - 1000 * 60 * 42).toISOString(),
-  },
-  {
-    batch_id: 'batch-api-903',
-    tenant_id: '3',
-    tenant_name: 'Bluebird Home Decor',
-    source_type: 'api_push',
-    filename: 'stream_events_channel',
-    file_size_bytes: 1200000,
-    row_count: 3100,
-    status: 'pending_confirmation',
-    created_at: new Date(Date.now() - 1000 * 60 * 95).toISOString(),
-  },
-];
-
-// Default mock schema previews
-const mockPreviews: Record<string, SchemaPreview> = {
-  'batch-upl-901': {
-    batch_id: 'batch-upl-901',
-    tenant_id: '1',
-    tenant_name: 'Summit Athletics',
-    source_type: 'upload',
-    inferred_template: 'retail_orders_ecommerce',
-    confidence_score: 98.4,
-    suggested_silver_table: 'silver.fact_orders',
-    column_mappings: [
-      { source_column: 'order_id', target_column: 'order_id', inferred_type: 'BIGINT', confidence_score: 1.0, is_nullable: false },
-      { source_column: 'customer_id', target_column: 'customer_id', inferred_type: 'BIGINT', confidence_score: 1.0, is_nullable: false },
-      { source_column: 'order_date', target_column: 'order_timestamp', inferred_type: 'TIMESTAMP', confidence_score: 0.96, is_nullable: false },
-      { source_column: 'product_id', target_column: 'product_id', inferred_type: 'BIGINT', confidence_score: 1.0, is_nullable: false },
-      { source_column: 'quantity', target_column: 'units_sold', inferred_type: 'INT', confidence_score: 0.94, is_nullable: false },
-      { source_column: 'order_amount', target_column: 'total_revenue', inferred_type: 'DECIMAL(10,2)', confidence_score: 0.98, is_nullable: false },
-      { source_column: 'promo_discount', target_column: 'discount_amount', inferred_type: 'DECIMAL(10,2)', confidence_score: 0.92, is_nullable: true },
-      { source_column: 'delivery_status', target_column: 'status_code', inferred_type: 'VARCHAR(50)', confidence_score: 0.91, is_nullable: true },
-    ],
-    sample_rows: [
-      { order_id: 1001, customer_id: 840, order_date: '2026-09-01T10:14:00', product_id: 401, quantity: 2, order_amount: 148.50, promo_discount: 10.00, delivery_status: 'Delivered' },
-      { order_id: 1002, customer_id: 912, order_date: '2026-09-01T11:22:15', product_id: 402, quantity: 1, order_amount: 89.00, promo_discount: 0.00, delivery_status: 'Shipped' },
-      { order_id: 1003, customer_id: 544, order_date: '2026-09-01T12:05:40', product_id: 403, quantity: 4, order_amount: 320.00, promo_discount: 25.00, delivery_status: 'Delivered' },
-    ],
-    internal_notes: 'Initial automated inference completed with 98.4% confidence score. Validated standard ecommerce orders template.',
-  },
-};
-
-// Default mock tenants
-let mockTenants: Tenant[] = [
-  {
-    tenant_id: '1',
-    name: 'Summit Athletics',
-    slug: 'summit_athletics',
-    catalog_name: 'helios_catalog',
-    schema_name: 'summit_athletics',
-    tier: 'Enterprise',
-    is_active: true,
-    created_at: '2026-08-10T10:00:00Z',
-    active_pipelines: 6,
-  },
-  {
-    tenant_id: '2',
-    name: 'Nordic Outfitters',
-    slug: 'nordic_outfitters',
-    catalog_name: 'helios_catalog',
-    schema_name: 'nordic_outfitters',
-    tier: 'Growth',
-    is_active: true,
-    created_at: '2026-08-25T14:30:00Z',
-    active_pipelines: 4,
-  },
-  {
-    tenant_id: '3',
-    name: 'Bluebird Home Decor',
-    slug: 'bluebird_home_decor',
-    catalog_name: 'helios_catalog',
-    schema_name: 'bluebird_home',
-    tier: 'Starter',
-    is_active: true,
-    created_at: '2026-09-02T09:15:00Z',
-    active_pipelines: 2,
-  },
-  {
-    tenant_id: '4',
-    name: 'Cascade Provisions',
-    slug: 'cascade_provisions',
-    catalog_name: 'helios_catalog',
-    schema_name: 'cascade_provisions',
-    tier: 'Starter',
-    is_active: false,
-    created_at: '2026-07-15T12:00:00Z',
-    active_pipelines: 0,
-  },
-];
-
-// Default mock team members
-let mockTeamMembers: TeamMember[] = [
-  {
-    user_id: 'u-101',
-    name: 'Sarah Connor',
-    email: 'admin@helios.io',
-    role: 'admin',
-    is_active: true,
-    created_at: '2026-06-01T08:00:00Z',
-    assigned_tenants: ['1', '2', '3', '4'],
-  },
-  {
-    user_id: 'u-102',
-    name: 'David Miller',
-    email: 'team@helios.io',
-    role: 'team_member',
-    is_active: true,
-    created_at: '2026-07-14T11:20:00Z',
-    assigned_tenants: ['1', '2'], // Summit & Nordic only
-  },
-  {
-    user_id: 'u-103',
-    name: 'Elena Rostova',
-    email: 'elena@helios.io',
-    role: 'team_member',
-    is_active: true,
-    created_at: '2026-08-01T09:45:00Z',
-    assigned_tenants: ['3'], // Bluebird only
-  },
-];
-
-// Default mock data quality logs
-let mockDataQualityLogs: DataQualityLogItem[] = [
-  {
-    id: 'dql-501',
-    batch_id: 'batch-7f91a2-2026',
-    tenant_id: '1',
-    tenant_name: 'Summit Athletics',
-    table_name: 'silver.fact_orders',
-    rejection_reason: 'CurrencyFormatError: Invalid ISO currency symbol "US$" on row 142 in column "order_total"',
-    timestamp: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
-    error_category: 'Type Mismatch',
-  },
-  {
-    id: 'dql-502',
-    batch_id: 'batch-e8921f-2026',
-    tenant_id: '1',
-    tenant_name: 'Summit Athletics',
-    table_name: 'bronze.raw_transactions',
-    rejection_reason: 'Corrupt header row encountered; file encoding UTF-16LE incompatible with CSV parser.',
-    timestamp: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-    error_category: 'Schema Drift',
-  },
-  {
-    id: 'dql-503',
-    batch_id: 'batch-b8104c-2026',
-    tenant_id: '2',
-    tenant_name: 'Nordic Outfitters',
-    table_name: 'silver.dim_customer',
-    rejection_reason: 'NullRateThresholdExceeded: Column "customer_email" null rate (14.2%) exceeded strict SLA of 5.0%',
-    timestamp: new Date(Date.now() - 1000 * 60 * 240).toISOString(),
-    error_category: 'Null Threshold Exceeded',
-  },
-  {
-    id: 'dql-504',
-    batch_id: 'batch-d2091a-2026',
-    tenant_id: '3',
-    tenant_name: 'Bluebird Home Decor',
-    table_name: 'silver.fact_shipments',
-    rejection_reason: 'DuplicateKeyConstraint: Primary key (tenant_id, shipment_id)=(3, 40182) already committed in Delta transaction 18',
-    timestamp: new Date(Date.now() - 1000 * 60 * 420).toISOString(),
-    error_category: 'Duplicate Key',
-  },
-];
-
 export const adminService = {
   /**
    * Module 8: Get list of pending uploads awaiting schema confirmation.
    * Scoped to assigned tenants for Team Members, all tenants for Admins.
    */
   async getPendingUploads(): Promise<PendingUpload[]> {
-    try {
-      const response = await api.get<PendingUpload[]>('/uploads/pending');
-      return response.data;
-    } catch {
-      return initialPendingUploads;
-    }
+    const response = await api.get<PendingUpload[]>('/uploads/pending');
+    return response.data;
   },
 
   /**
    * Module 8: Preview inferred schema and sample rows for a pending batch.
    */
   async getPreview(batchId: string): Promise<SchemaPreview> {
-    try {
-      const response = await api.get<SchemaPreview>(`/uploads/${batchId}/preview`);
-      return response.data;
-    } catch {
-      if (mockPreviews[batchId]) {
-        return mockPreviews[batchId];
-      }
-      return {
-        batch_id: batchId,
-        tenant_id: '1',
-        tenant_name: 'Summit Athletics',
-        source_type: 'upload',
-        inferred_template: 'retail_orders_ecommerce',
-        confidence_score: 95.0,
-        suggested_silver_table: 'silver.fact_orders',
-        column_mappings: [
-          { source_column: 'order_id', target_column: 'order_id', inferred_type: 'BIGINT', confidence_score: 1.0, is_nullable: false },
-          { source_column: 'customer_id', target_column: 'customer_id', inferred_type: 'BIGINT', confidence_score: 1.0, is_nullable: false },
-          { source_column: 'order_date', target_column: 'order_timestamp', inferred_type: 'TIMESTAMP', confidence_score: 0.95, is_nullable: false },
-          { source_column: 'amount', target_column: 'total_revenue', inferred_type: 'DECIMAL(10,2)', confidence_score: 0.95, is_nullable: false },
-        ],
-        sample_rows: [
-          { order_id: 1, customer_id: 101, order_date: '2026-09-01T12:00:00', amount: 99.99 },
-          { order_id: 2, customer_id: 102, order_date: '2026-09-01T12:30:00', amount: 149.50 },
-        ],
-      };
+    const response = await api.get<any>(`/uploads/${batchId}/preview`);
+    const data = response.data || {};
+
+    const rawMapping = data.column_mapping || data.column_mappings || {};
+    let mappingsArray: ColumnMapping[] = [];
+
+    if (Array.isArray(rawMapping)) {
+      mappingsArray = rawMapping.map((item: any) => ({
+        source_column: item.source_column || item.incoming_column || '',
+        target_field: item.target_field ?? item.target_column ?? null,
+        target_column: item.target_field ?? item.target_column ?? '',
+        inferred_type: item.inferred_type || 'string',
+        similarity_score: item.similarity_score ?? item.confidence_score ?? (item.score ? item.score / 100 : 0),
+        confidence_score: item.similarity_score ?? item.confidence_score ?? 0,
+        is_exact: Boolean(item.is_exact),
+        is_nullable: item.is_nullable ?? true,
+      }));
+    } else if (rawMapping && typeof rawMapping === 'object') {
+      mappingsArray = Object.entries(rawMapping).map(([key, val]: [string, any]) => {
+        const isObj = val && typeof val === 'object';
+        const sourceCol = isObj ? (val.incoming_column || key) : key;
+        const targetField = isObj ? (val.target_field ?? null) : (val ?? null);
+        const inferredType = isObj ? (val.inferred_type || 'string') : 'string';
+        const simScore = isObj ? (val.similarity_score ?? 0) : 1.0;
+        const isExact = isObj ? Boolean(val.is_exact) : false;
+
+        return {
+          source_column: sourceCol,
+          target_field: targetField,
+          target_column: targetField || '',
+          inferred_type: inferredType,
+          similarity_score: typeof simScore === 'number' && simScore > 1 ? simScore / 100 : Number(simScore || 0),
+          confidence_score: typeof simScore === 'number' && simScore > 1 ? simScore / 100 : Number(simScore || 0),
+          is_exact: isExact,
+          is_nullable: true,
+        };
+      });
     }
+
+    return {
+      batch_id: data.batch_id || batchId,
+      tenant_id: String(data.tenant_id || ''),
+      tenant_name: data.tenant_name,
+      source_type: data.source_type || 'upload',
+      inferred_template: data.detected_template || data.inferred_template || 'template_orders',
+      detected_template: data.detected_template || data.inferred_template || 'template_orders',
+      confidence_score: typeof data.confidence_score === 'number' ? data.confidence_score : 0,
+      suggested_silver_table: data.suggested_silver_table || (data.detected_template === 'template_shipping' ? 'silver.shipping_clean' : 'silver.orders_clean'),
+      column_mappings: mappingsArray,
+      sample_rows: Array.isArray(data.sample_rows) ? data.sample_rows : [],
+      internal_notes: data.internal_notes || null,
+      unmapped_required_fields: Array.isArray(data.unmapped_required_fields) ? data.unmapped_required_fields : [],
+    };
   },
 
   /**
@@ -259,42 +93,33 @@ export const adminService = {
     batchId: string,
     payload: ConfirmSchemaPayload
   ): Promise<ConfirmSchemaResponse> {
-    try {
-      const response = await api.post<ConfirmSchemaResponse>(
-        `/uploads/${batchId}/confirm`,
-        {
-          confirmed_template: payload.confirmed_template || 'template_orders',
-          corrected_mapping: payload.column_mappings,
-          internal_notes: payload.internal_notes || payload.notes,
-          ...payload,
-        }
-      );
-      return response.data;
-    } catch {
-      return {
-        batch_id: batchId,
-        silver_job_run_id: `run-silver-${Date.now()}`,
-        status: 'silver_triggered',
-        confirmed_at: new Date().toISOString(),
-      };
-    }
+    const response = await api.post<ConfirmSchemaResponse>(
+      `/uploads/${batchId}/confirm`,
+      {
+        confirmed_template: payload.confirmed_template || 'template_orders',
+        corrected_mapping: payload.column_mappings,
+        internal_notes: payload.internal_notes || payload.notes,
+        ...payload,
+      }
+    );
+    return response.data;
   },
+
+  /**
+   * Reject a pending upload with a mandatory reason.
+   */
+  async rejectUpload(batchId: string, reason: string): Promise<any> {
+    const response = await api.post(`/uploads/${batchId}/reject`, { reason });
+    return response.data;
+  },
+
 
   /**
    * Module 9: Fetch data completeness indicator for a batch after Silver stage.
    */
   async getCompleteness(batchId: string): Promise<BatchCompleteness> {
-    try {
-      const response = await api.get<BatchCompleteness>(`/uploads/${batchId}/completeness`);
-      return response.data;
-    } catch {
-      return {
-        total_rows: 100,
-        accepted_rows: 94,
-        rejected_rows: 6,
-        completeness_percentage: 94.0,
-      };
-    }
+    const response = await api.get<BatchCompleteness>(`/uploads/${batchId}/completeness`);
+    return response.data;
   },
 
   /**
@@ -308,90 +133,32 @@ export const adminService = {
    * Tenants: List tenants.
    */
   async getTenants(): Promise<Tenant[]> {
-    try {
-      const response = await api.get<Tenant[]>('/api/v1/tenants');
-      return response.data;
-    } catch {
-      return [...mockTenants];
-    }
+    const response = await api.get<Tenant[]>('/tenants');
+    return response.data;
   },
 
   /**
    * Tenants: Create a new tenant. Available to BOTH Team Members and Admins.
    */
   async createTenant(payload: CreateTenantPayload): Promise<Tenant> {
-    try {
-      const response = await api.post<Tenant>('/api/tenants', payload);
-      return response.data;
-    } catch (err: any) {
-      if (err?.response?.status) {
-        throw err;
-      }
-      const businessName = payload.business_name || payload.name || 'New Business';
-      const newTenant: Tenant = {
-        tenant_id: String(Date.now()),
-        business_name: businessName,
-        name: businessName,
-        slug: payload.slug || businessName.toLowerCase().replace(/\s+/g, '_'),
-        catalog_name: payload.catalog_name || 'helios_catalog',
-        schema_name: payload.schema_name || 'default',
-        tier: payload.tier || 'Growth',
-        industry: payload.industry,
-        contact_person_name: payload.contact_person_name,
-        contact_email: payload.contact_email,
-        phone_number: payload.phone_number,
-        address_line1: payload.address_line1,
-        address_line2: payload.address_line2,
-        city: payload.city,
-        state: payload.state,
-        postal_code: payload.postal_code,
-        country: payload.country,
-        website_url: payload.website_url,
-        tax_id: payload.tax_id,
-        assigned_team_member_id: payload.assigned_team_member_id,
-        temporary_password: 'TempPassword123!',
-        owner_email: payload.owner_email || payload.contact_email,
-        is_active: true,
-        created_at: new Date().toISOString(),
-        active_pipelines: 1,
-      };
-      mockTenants = [newTenant, ...mockTenants];
-      return newTenant;
-    }
+    const response = await api.post<Tenant>('/tenants', payload);
+    return response.data;
   },
 
   /**
    * Tenants: Deactivate a tenant organization. ADMIN ONLY.
    */
   async deactivateTenant(tenantId: string): Promise<{ success: boolean; tenant_id: string; is_active: boolean }> {
-    try {
-      const response = await api.patch(`/api/v1/tenants/${tenantId}/deactivate`);
-      return response.data;
-    } catch {
-      const tenant = mockTenants.find((t) => String(t.tenant_id) === String(tenantId));
-      if (tenant) {
-        tenant.is_active = !tenant.is_active;
-        return { success: true, tenant_id: tenantId, is_active: tenant.is_active };
-      }
-      return { success: true, tenant_id: tenantId, is_active: false };
-    }
+    const response = await api.patch<{ success: boolean; tenant_id: string; is_active: boolean }>(`/tenants/${tenantId}/deactivate`);
+    return response.data;
   },
 
   /**
    * Team Members: List operations team members. ADMIN ONLY.
    */
   async getTeamMembers(): Promise<TeamMember[]> {
-    try {
-      const response = await api.get<TeamMember[]>('/api/team-members');
-      return response.data;
-    } catch {
-      try {
-        const response = await api.get<TeamMember[]>('/team-members');
-        return response.data;
-      } catch {
-        return [...mockTeamMembers];
-      }
-    }
+    const response = await api.get<TeamMember[]>('/team-members');
+    return response.data;
   },
 
   /**
@@ -399,114 +166,65 @@ export const adminService = {
    * Returns created member with generated temporary password.
    */
   async createTeamMember(payload: CreateTeamMemberPayload): Promise<CreateTeamMemberResponse> {
-    try {
-      const formattedPayload = {
-        name: payload.name,
-        email: payload.email,
-        phone_number: payload.phone_number,
-        role: payload.role,
-        staff_id: payload.staff_id || null,
-        designation: payload.designation || null,
-        tenant_ids: payload.tenant_ids || (payload.assigned_tenants ? payload.assigned_tenants.map(Number).filter(n => !isNaN(n)) : []),
-      };
-      const response = await api.post<CreateTeamMemberResponse>('/api/team-members', formattedPayload);
-      return response.data;
-    } catch (err: any) {
-      if (err?.response?.status) {
-        throw err;
-      }
-      const newMember: CreateTeamMemberResponse = {
-        user_id: `u-${Date.now()}`,
-        id: `u-${Date.now()}`,
-        name: payload.name,
-        email: payload.email,
-        phone_number: payload.phone_number,
-        role: payload.role,
-        staff_id: payload.staff_id || null,
-        designation: payload.designation || null,
-        is_active: true,
-        created_at: new Date().toISOString(),
-        assigned_tenants: payload.assigned_tenants || (payload.tenant_ids ? payload.tenant_ids.map(String) : []),
-        tenant_ids: payload.tenant_ids || [],
-        must_change_password: true,
-        temporary_password: 'TempPassword123!',
-      };
-      mockTeamMembers = [newMember, ...mockTeamMembers];
-      return newMember;
-    }
+    const formattedPayload = {
+      name: payload.name,
+      email: payload.email,
+      phone_number: payload.phone_number,
+      role: payload.role,
+      staff_id: payload.staff_id || null,
+      designation: payload.designation || null,
+      tenant_ids: payload.tenant_ids || (payload.assigned_tenants ? payload.assigned_tenants.map(Number).filter((n) => !isNaN(n)) : []),
+    };
+    const response = await api.post<CreateTeamMemberResponse>('/team-members', formattedPayload);
+    return response.data;
   },
 
   /**
    * Team Members: Replace tenant assignments for a team member. ADMIN ONLY.
    */
   async replaceAssignments(userId: string | number, tenantIds: number[]): Promise<TeamMember> {
-    try {
-      const response = await api.put<TeamMember>(`/api/team-members/${userId}/assignments`, {
-        tenant_ids: tenantIds,
-      });
-      return response.data;
-    } catch (err: any) {
-      if (err?.response?.status) {
-        throw err;
-      }
-      const member = mockTeamMembers.find((m) => String(m.user_id) === String(userId));
-      if (member) {
-        member.assigned_tenants = tenantIds.map(String);
-        member.tenant_ids = tenantIds;
-      }
-      return member || ({} as TeamMember);
-    }
+    const response = await api.put<TeamMember>(`/team-members/${userId}/assignments`, {
+      tenant_ids: tenantIds,
+    });
+    return response.data;
   },
 
   /**
    * Team Members: Activate or deactivate a team member account. ADMIN ONLY.
    */
   async toggleTeamMemberActive(userId: string | number, isActive: boolean): Promise<TeamMember> {
-    try {
-      const response = await api.patch<TeamMember>(`/api/team-members/${userId}/active`, {
-        is_active: isActive,
-      });
-      return response.data;
-    } catch (err: any) {
-      if (err?.response?.status) {
-        throw err;
-      }
-      const member = mockTeamMembers.find((m) => String(m.user_id) === String(userId));
-      if (member) {
-        member.is_active = isActive;
-      }
-      return member || ({} as TeamMember);
-    }
+    const response = await api.patch<TeamMember>(`/team-members/${userId}/active`, {
+      is_active: isActive,
+    });
+    return response.data;
   },
 
   /**
    * Team Members: Legacy assign single tenant (for compatibility).
    */
   async assignTenant(payload: AssignTenantPayload): Promise<{ success: boolean; user_id: string; tenant_id: string }> {
-    try {
-      const response = await api.post(`/api/v1/users/${payload.user_id}/assign-tenant`, {
-        tenant_id: payload.tenant_id,
-      });
-      return response.data;
-    } catch {
-      const member = mockTeamMembers.find((m) => String(m.user_id) === String(payload.user_id));
-      if (member && !member.assigned_tenants.map(String).includes(String(payload.tenant_id))) {
-        member.assigned_tenants.push(String(payload.tenant_id));
-      }
-      return { success: true, user_id: String(payload.user_id), tenant_id: String(payload.tenant_id) };
-    }
+    const response = await api.post<{ success: boolean; user_id: string; tenant_id: string }>(`/team-members/${payload.user_id}/assign-tenant`, {
+      tenant_id: payload.tenant_id,
+    });
+    return response.data;
   },
 
   /**
    * Data Quality: Retrieve rejected rows and schema hygiene audit log items.
-   * Filterable by tenant.
+   * Filterable by tenant and batch. Connected to real GET /api/data-quality/logs.
    */
-  async getDataQualityLogs(tenantFilter?: string): Promise<DataQualityLogItem[]> {
+  async getDataQualityLogs(tenantFilter?: string, batchId?: string): Promise<DataQualityLogItem[]> {
+    const params: Record<string, any> = {};
     if (tenantFilter && tenantFilter !== 'all') {
-      return mockDataQualityLogs.filter(
-        (log) => log.tenant_id === tenantFilter || log.tenant_name.toLowerCase() === tenantFilter.toLowerCase()
-      );
+      const num = Number(tenantFilter);
+      if (!isNaN(num)) {
+        params.tenant_id = num;
+      }
     }
-    return [...mockDataQualityLogs];
+    if (batchId) {
+      params.batch_id = batchId;
+    }
+    const response = await api.get<DataQualityLogItem[]>('/data-quality/logs', { params });
+    return response.data;
   },
 };

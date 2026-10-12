@@ -216,6 +216,7 @@ class TestConfirmationService(unittest.TestCase):
 
     def setUp(self):
         self.mock_repo = MagicMock(spec=ConfirmationRepository)
+        self.mock_repo.is_tenant_running_batch.return_value = False
         self.team_user = UserOut(
             id=10,
             name="Alice Support",

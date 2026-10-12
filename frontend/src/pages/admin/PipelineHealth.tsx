@@ -19,6 +19,7 @@ import {
   RotateCcw,
   Search,
   X,
+  XCircle,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { StageStatusBadge } from '@/components/admin/StageStatusBadge';
@@ -184,18 +185,19 @@ export const PipelineHealth: React.FC = () => {
   const metrics = useMemo(() => {
     const total = runs.length;
     const failed = runs.filter((r) => r.status.toLowerCase() === 'failed').length;
-    const running = runs.filter(
-      (r) => {
-        const norm = r.status.toLowerCase();
-        return norm.includes('running') || norm === 'processing' || norm === 'in_progress';
-      }
-    ).length;
+    const running = runs.filter((r) => {
+      const norm = r.status.toLowerCase();
+      return norm.includes('running') || norm === 'processing' || norm === 'in_progress' || norm === 'ingesting';
+    }).length;
     const success = runs.filter((r) => {
       const norm = r.status.toLowerCase();
       return norm === 'success' || norm === 'completed';
     }).length;
+    const cancelled = runs.filter((r) => r.status.toLowerCase() === 'cancelled').length;
+    const rejected = runs.filter((r) => r.status.toLowerCase() === 'rejected').length;
+    const stalled = runs.filter((r) => r.status.toLowerCase() === 'stalled').length;
     const restartRequired = runs.filter((r) => r.status.toLowerCase() === 'restart_required').length;
-    return { total, failed, running, success, restartRequired };
+    return { total, failed, running, success, cancelled, rejected, stalled, restartRequired };
   }, [runs]);
 
   // Helper filter function for search query
@@ -213,7 +215,7 @@ export const PipelineHealth: React.FC = () => {
   const runningRuns = useMemo(() => {
     return runs.filter((r) => {
       const norm = r.status.toLowerCase();
-      const isRunning = norm.includes('running') || norm === 'processing' || norm === 'in_progress';
+      const isRunning = norm.includes('running') || norm === 'processing' || norm === 'in_progress' || norm === 'ingesting';
       return isRunning && matchesSearch(r);
     });
   }, [runs, searchQuery]);
@@ -231,11 +233,43 @@ export const PipelineHealth: React.FC = () => {
     });
   }, [runs, searchQuery]);
 
+  const stalledRuns = useMemo(() => {
+    return runs.filter((r) => {
+      return r.status.toLowerCase() === 'stalled' && matchesSearch(r);
+    });
+  }, [runs, searchQuery]);
+
+  const cancelledRuns = useMemo(() => {
+    return runs.filter((r) => {
+      return r.status.toLowerCase() === 'cancelled' && matchesSearch(r);
+    });
+  }, [runs, searchQuery]);
+
+  const rejectedRuns = useMemo(() => {
+    return runs.filter((r) => {
+      return r.status.toLowerCase() === 'rejected' && matchesSearch(r);
+    });
+  }, [runs, searchQuery]);
+
   const restartRequiredRuns = useMemo(() => {
     return runs.filter((r) => {
       return r.status.toLowerCase() === 'restart_required' && matchesSearch(r);
     });
   }, [runs, searchQuery]);
+
+  const handleCancelRun = useCallback(async (batchId: string) => {
+    try {
+      await pipelineHealthService.cancelRun(batchId);
+      await fetchRuns();
+      if (selectedBatchId === batchId) {
+        const updated = await pipelineHealthService.getRunDetail(batchId);
+        setDetail(updated);
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to cancel pipeline run.');
+    }
+  }, [selectedBatchId]);
+
 
   const handleInspect = useCallback((batchId: string) => {
     setSelectedBatchId(batchId);
@@ -366,6 +400,23 @@ export const PipelineHealth: React.FC = () => {
         </div>
       </div>
 
+      {/* Error state */}
+      {error && (
+        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+          <button
+            type="button"
+            onClick={fetchRuns}
+            className="px-3 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 font-bold transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark">
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
@@ -375,6 +426,9 @@ export const PipelineHealth: React.FC = () => {
             { id: 'running', label: 'Running', count: metrics.running },
             { id: 'failed', label: 'Failed', count: metrics.failed, alert: metrics.failed > 0 },
             { id: 'success', label: 'Success', count: metrics.success },
+            { id: 'stalled', label: 'Stalled', count: metrics.stalled, alert: metrics.stalled > 0 },
+            { id: 'cancelled', label: 'Cancelled', count: metrics.cancelled },
+            { id: 'rejected', label: 'Rejected', count: metrics.rejected },
             { id: 'restart_required', label: 'Restart Required', count: metrics.restartRequired },
           ].map((tab) => (
             <button
@@ -417,7 +471,7 @@ export const PipelineHealth: React.FC = () => {
         </div>
       </div>
 
-      {/* INDEPENDENT SECTIONS: Running, Failed, Success, Restart Required */}
+      {/* INDEPENDENT SECTIONS: Running, Failed, Success, Stalled, Cancelled, Rejected, Restart Required */}
       <div className="space-y-6">
         {/* 1. RUNNING & IN-PROGRESS SECTION */}
         {(selectedStatus === 'all' || selectedStatus === 'running') && (
@@ -439,6 +493,7 @@ export const PipelineHealth: React.FC = () => {
               </div>
             }
             onInspect={handleInspect}
+            onCancel={handleCancelRun}
           />
         )}
 
@@ -488,7 +543,76 @@ export const PipelineHealth: React.FC = () => {
           />
         )}
 
-        {/* 4. RESTART REQUIRED SECTION */}
+        {/* 4. STALLED PIPELINES SECTION */}
+        {(selectedStatus === 'all' || selectedStatus === 'stalled') && (
+          <PipelineSection
+            id="stalled"
+            title="Stalled Pipelines"
+            subtitle="Batches with no worker heartbeat update within timeout threshold"
+            icon={<AlertTriangle className="w-5 h-5 text-orange-500 flex-shrink-0" />}
+            count={stalledRuns.length}
+            variant="amber"
+            runs={stalledRuns}
+            isLoading={isLoading}
+            searchQuery={searchQuery}
+            emptyTitle="No stalled runs"
+            emptyDescription="No pipeline batches currently experiencing stalled heartbeat timeouts."
+            emptyIcon={
+              <div className="w-12 h-12 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+            }
+            onInspect={handleInspect}
+          />
+        )}
+
+        {/* 5. CANCELLED PIPELINES SECTION */}
+        {(selectedStatus === 'all' || selectedStatus === 'cancelled') && (
+          <PipelineSection
+            id="cancelled"
+            title="Cancelled Pipelines"
+            subtitle="Batches where execution was cleanly halted via cancellation"
+            icon={<XCircle className="w-5 h-5 text-zinc-500 flex-shrink-0" />}
+            count={cancelledRuns.length}
+            variant="slate"
+            runs={cancelledRuns}
+            isLoading={isLoading}
+            searchQuery={searchQuery}
+            emptyTitle="No cancelled runs"
+            emptyDescription="No pipeline batches have been cancelled."
+            emptyIcon={
+              <div className="w-12 h-12 rounded-full bg-zinc-500/10 border border-zinc-500/20 flex items-center justify-center text-zinc-500">
+                <XCircle className="w-6 h-6" />
+              </div>
+            }
+            onInspect={handleInspect}
+          />
+        )}
+
+        {/* 6. REJECTED PIPELINES SECTION */}
+        {(selectedStatus === 'all' || selectedStatus === 'rejected') && (
+          <PipelineSection
+            id="rejected"
+            title="Rejected Pipelines"
+            subtitle="Batches rejected during review; Bronze rows preserved for compliance"
+            icon={<XCircle className="w-5 h-5 text-rose-500 flex-shrink-0" />}
+            count={rejectedRuns.length}
+            variant="rose"
+            runs={rejectedRuns}
+            isLoading={isLoading}
+            searchQuery={searchQuery}
+            emptyTitle="No rejected runs"
+            emptyDescription="No pending uploads or batches have been rejected."
+            emptyIcon={
+              <div className="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500">
+                <XCircle className="w-6 h-6" />
+              </div>
+            }
+            onInspect={handleInspect}
+          />
+        )}
+
+        {/* 7. RESTART REQUIRED SECTION */}
         {(selectedStatus === 'all' || selectedStatus === 'restart_required') && (
           <PipelineSection
             id="restart_required"
@@ -511,6 +635,7 @@ export const PipelineHealth: React.FC = () => {
           />
         )}
       </div>
+
 
       {/* DETAIL MODAL / DRAWER */}
       {selectedBatchId && (
@@ -610,17 +735,32 @@ export const PipelineHealth: React.FC = () => {
                   )}
 
                   {/* Error Callout if Failed */}
-                  {detail?.error_message && (
+                  {(detail?.error_message || detail?.failure_message || detail?.failed_stage) && (
                     <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 space-y-2">
                       <div className="flex items-center gap-2 font-semibold text-rose-600 dark:text-rose-400 text-xs">
                         <AlertCircle className="w-4 h-4 text-rose-500" />
                         <span>Execution Stopped Due To Error:</span>
                       </div>
-                      <pre className="p-3 rounded-lg bg-black/40 text-rose-300 font-mono text-[11px] overflow-x-auto whitespace-pre-wrap leading-relaxed">
-                        {detail.error_message}
-                      </pre>
+                      {detail?.failed_stage && (
+                        <div className="text-xs">
+                          <span className="font-semibold text-rose-600 dark:text-rose-400">Failed Stage: </span>
+                          <span className="font-mono text-slate-700 dark:text-slate-200">{detail.failed_stage}</span>
+                        </div>
+                      )}
+                      {(detail?.failure_message || detail?.error_message) && (
+                        <pre className="p-3 rounded-lg bg-black/40 text-rose-300 font-mono text-[11px] overflow-x-auto whitespace-pre-wrap leading-relaxed">
+                          {detail?.failure_message || detail?.error_message}
+                        </pre>
+                      )}
+                      {detail?.failure_next_step && (
+                        <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 text-xs">
+                          <span className="font-semibold">Recommended Next Step: </span>
+                          <span>{detail.failure_next_step}</span>
+                        </div>
+                      )}
                     </div>
                   )}
+
 
                   {/* Stage-by-Stage History Timeline */}
                   <div>
@@ -737,7 +877,35 @@ export const PipelineHealth: React.FC = () => {
                   Close
                 </button>
 
+                {detail?.status && (detail.status.toLowerCase().includes('running') || detail.status.toLowerCase() === 'processing' || detail.status.toLowerCase() === 'in_progress' || detail.status.toLowerCase() === 'ingesting') && (
+                  <button
+                    type="button"
+                    disabled={actionLoading !== null}
+                    onClick={async () => {
+                      if (!detail) return;
+                      setActionLoading('cancel' as any);
+                      setActionError(null);
+                      try {
+                        await pipelineHealthService.cancelRun(detail.batch_id);
+                        setActionSuccess('Pipeline run cancelled successfully.');
+                        const updated = await pipelineHealthService.getRunDetail(detail.batch_id);
+                        setDetail(updated);
+                        fetchRuns();
+                      } catch (err: any) {
+                        setActionError(err?.message || 'Failed to cancel pipeline run.');
+                      } finally {
+                        setActionLoading(null);
+                      }
+                    }}
+                    className="px-3.5 py-2 rounded-lg border border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 text-xs font-semibold transition-colors flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                  >
+                    <XCircle className="w-3.5 h-3.5" />
+                    <span>Cancel Run</span>
+                  </button>
+                )}
+
                 {detail?.status.toLowerCase() === 'failed' && (
+
                   <>
                     {/* Escalation Action: Flag for Admin */}
                     <FlagForAdminButton

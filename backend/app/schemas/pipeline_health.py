@@ -16,6 +16,9 @@ class PipelineRunOut(BaseModel):
     started_at: Optional[datetime] = Field(None, description="Batch initiation timestamp")
     updated_at: Optional[datetime] = Field(None, description="Last status modification timestamp")
     error_message: Optional[str] = Field(None, description="Failure reason if run stopped")
+    failed_stage: Optional[str] = Field(None, description="Stage where pipeline execution failed")
+    failure_message: Optional[str] = Field(None, description="Detailed error message")
+    failure_next_step: Optional[str] = Field(None, description="Remediation next step")
 
     model_config = {"from_attributes": True}
 
@@ -80,3 +83,12 @@ class RestartResponse(BaseModel):
     status: str = Field("restart_required", description="Pipeline status")
     message: str = Field(..., description="Instructions detailing required re-upload")
     notification_sent: bool = Field(True, description="Whether SMB Owner was notified")
+
+
+class CancelResponse(BaseModel):
+    """Response returned when cancelling a running batch."""
+
+    batch_id: str = Field(..., description="Batch identifier cancelled")
+    status: str = Field("cancelled", description="Pipeline status")
+    message: str = Field(..., description="Cancellation outcome message")
+

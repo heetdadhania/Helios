@@ -94,6 +94,10 @@ class TeamRepository(BaseRepository):
         assigned = self.get_assigned_tenant_ids(user_id)
         user["tenant_ids"] = assigned
         user["assigned_tenants"] = assigned
+        if user.get("must_change_password") is None:
+            user["must_change_password"] = False
+        if user.get("is_active") is None:
+            user["is_active"] = True
         return user
 
     def get_assigned_tenant_ids(self, user_id: int) -> List[int]:
@@ -134,6 +138,10 @@ class TeamRepository(BaseRepository):
             assigned = user_tenants_map.get(u_id, [])
             user["tenant_ids"] = assigned
             user["assigned_tenants"] = assigned
+            if user.get("must_change_password") is None:
+                user["must_change_password"] = False
+            if user.get("is_active") is None:
+                user["is_active"] = True
 
         return users
 

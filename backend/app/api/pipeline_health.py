@@ -11,6 +11,7 @@ from app.core.dependencies import get_db_cursor, require_team_or_admin
 from app.repositories.pipeline_health_repository import PipelineHealthRepository
 from app.schemas.auth import UserOut
 from app.schemas.pipeline_health import (
+    CancelResponse,
     PipelineRunDetailOut,
     PipelineRunOut,
     RestartResponse,
@@ -106,3 +107,25 @@ def full_restart_batch(
         current_user=current_user,
         repo=repo,
     )
+
+
+@router.post(
+    "/runs/{batch_id}/cancel",
+    response_model=CancelResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Cancel Pipeline Run",
+    description="Cancel an actively running pipeline run.",
+)
+def cancel_pipeline_run(
+    batch_id: str,
+    current_user: UserOut = Depends(require_team_or_admin),
+    cursor: Cursor = Depends(get_db_cursor),
+) -> CancelResponse:
+    """Request clean cancellation of an actively running pipeline batch."""
+    repo = PipelineHealthRepository(cursor)
+    return PipelineHealthService.cancel_run(
+        batch_id=batch_id,
+        current_user=current_user,
+        repo=repo,
+    )
+

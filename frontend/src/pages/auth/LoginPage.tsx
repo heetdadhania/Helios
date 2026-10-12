@@ -48,9 +48,10 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const setDemoRole = (email: string) => {
-    setValue('email', email);
-    setValue('password', 'password123');
+  const setDemoRole = (email: string, password: string) => {
+    setErrorMsg(null);
+    setValue('email', email, { shouldValidate: true });
+    setValue('password', password, { shouldValidate: true });
   };
 
   return (
@@ -168,14 +169,21 @@ export const LoginPage: React.FC = () => {
           </span>
           <button
             type="button"
-            onClick={() => setDemoRole('owner@store.com')}
+            onClick={() => setDemoRole('smb-owner-1@helios-test.dev', 'HeliosTest2026!')}
             className="text-[10px] px-2 py-0.5 rounded bg-black/5 dark:bg-white/5 text-helios-accent-teal hover:underline font-mono"
           >
             Client
           </button>
           <button
             type="button"
-            onClick={() => setDemoRole('admin@helios.io')}
+            onClick={() => setDemoRole('team-member-1@helios-test.dev', 'HeliosTest2026!')}
+            className="text-[10px] px-2 py-0.5 rounded bg-black/5 dark:bg-white/5 text-purple-400 hover:underline font-mono"
+          >
+            Team
+          </button>
+          <button
+            type="button"
+            onClick={() => setDemoRole('admin@helios.io', 'HeliosDemo2026!')}
             className="text-[10px] px-2 py-0.5 rounded bg-black/5 dark:bg-white/5 text-helios-accent-blue hover:underline font-mono"
           >
             Admin

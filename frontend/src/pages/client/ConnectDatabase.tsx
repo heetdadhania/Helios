@@ -72,7 +72,7 @@ export const ConnectDatabase: React.FC = () => {
   const [toasts, setToasts] = useState<ToastNotification[]>([]);
 
   const addToast = (type: 'success' | 'error' | 'info' | 'warning', title: string, message: string) => {
-    const id = Date.now().toString() + Math.random().toString(36).substring(2, 6);
+    const id = `${Date.now()}-${performance.now()}`;
     setToasts((prev) => [...prev, { id, type, title, message }]);
     setTimeout(() => {
       removeToast(id);

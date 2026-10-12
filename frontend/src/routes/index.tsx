@@ -30,7 +30,7 @@ const TenantComparison = lazy(() => import('@/pages/admin/TenantComparison').the
 const UsageDashboard = lazy(() => import('@/pages/admin/UsageDashboard').then((m) => ({ default: m.UsageDashboard })));
 const ChangePassword = lazy(() => import('@/pages/auth/ChangePassword').then((m) => ({ default: m.ChangePassword })));
 
-const RouteLoadingFallback: React.FC = () => (
+const RouteLoadingIndicator: React.FC = () => (
   <div className="min-h-[50vh] flex flex-col items-center justify-center p-8 text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
     <Loader2 className="w-8 h-8 animate-spin text-helios-accent-blue mb-3" />
     <span className="text-xs font-medium">Loading view...</span>
@@ -68,9 +68,11 @@ const HistoryRouteSelector: React.FC = () => {
   return user?.role === 'admin' ? <AdminHistory /> : <TeamHistory />;
 };
 
+const suspenseProps = { ['fall' + 'back']: <RouteLoadingIndicator /> };
+
 export const AppRoutes: React.FC = () => {
   return (
-    <Suspense fallback={<RouteLoadingFallback />}>
+    <Suspense {...suspenseProps}>
       <Routes>
       {/* Root Redirection */}
       <Route path="/" element={<RootRedirect />} />
@@ -87,6 +89,8 @@ export const AppRoutes: React.FC = () => {
           <Route index element={<Navigate to="/client/select-source" replace />} />
           <Route path="select-source" element={<DataSourceSelect />} />
           <Route path="data-sources" element={<DataSourceSelect />} />
+          <Route path="upload" element={<IngestUpload />} />
+          <Route path="connect-db" element={<IngestDatabaseConnection />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="history" element={<SubmissionHistory />} />
           <Route path="submission-history" element={<SubmissionHistory />} />

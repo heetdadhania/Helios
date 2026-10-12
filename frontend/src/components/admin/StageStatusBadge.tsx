@@ -6,6 +6,7 @@ import {
   Clock,
   Loader2,
   Database,
+  XCircle,
 } from 'lucide-react';
 
 interface StageStatusBadgeProps {
@@ -48,6 +49,43 @@ export const StageStatusBadge: React.FC<StageStatusBadgeProps> = ({
     );
   }
 
+  // Cancelled state
+  if (normStatus === 'cancelled') {
+    return (
+      <span
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border border-zinc-500/20 ${className}`}
+      >
+        <XCircle className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0" />
+        <span>Cancelled</span>
+      </span>
+    );
+  }
+
+  // Rejected state
+  if (normStatus === 'rejected') {
+    return (
+      <span
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 ${className}`}
+      >
+        <XCircle className="w-3.5 h-3.5 text-rose-500 flex-shrink-0" />
+        <span>Rejected</span>
+      </span>
+    );
+  }
+
+  // Stalled state
+  if (normStatus === 'stalled') {
+    return (
+      <span
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 ${className}`}
+        title="Execution stalled due to missing worker heartbeat"
+      >
+        <AlertTriangle className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" />
+        <span>Stalled</span>
+      </span>
+    );
+  }
+
   // Restart Required
   if (normStatus === 'restart_required') {
     return (
@@ -60,6 +98,7 @@ export const StageStatusBadge: React.FC<StageStatusBadgeProps> = ({
       </span>
     );
   }
+
 
   // Success state
   if (normStatus === 'success' || normStatus === 'completed') {
@@ -114,7 +153,7 @@ export const StageStatusBadge: React.FC<StageStatusBadgeProps> = ({
     );
   }
 
-  // Generic fallback
+  // Default badge
   return (
     <span
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20 ${className}`}

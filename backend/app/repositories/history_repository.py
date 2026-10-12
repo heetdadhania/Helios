@@ -48,7 +48,7 @@ class HistoryRepository:
         s = (status_raw or "").strip().lower()
         if s in ("success", "completed", "ready"):
             return "Ready"
-        elif s in ("failed", "rejected", "error"):
+        elif s in ("failed", "rejected", "error", "cancelled", "restart_required", "stalled"):
             return "Needs attention — please resend"
         return "Processing"
 

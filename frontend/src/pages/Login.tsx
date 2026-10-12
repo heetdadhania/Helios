@@ -65,9 +65,10 @@ export const Login: React.FC = () => {
     }
   };
 
-  const handleDemoFill = (email: string) => {
-    setValue('email', email);
-    setValue('password', 'password123');
+  const handleDemoFill = (email: string, password: string) => {
+    setErrorMessage(null);
+    setValue('email', email, { shouldValidate: true });
+    setValue('password', password, { shouldValidate: true });
   };
 
   return (
@@ -101,7 +102,7 @@ export const Login: React.FC = () => {
             </div>
           </div>
 
-          {/* Stylized / blurred mockup of the dashboard peeking up from the bottom */}
+          {/* Stylized / blurred preview of the dashboard peeking up from the bottom */}
           <div className="relative z-0 mt-6 -mb-12 -mr-10 opacity-90 transition-transform duration-500 hover:scale-[1.02]">
             <div className="w-[120%] p-4 rounded-card bg-helios-card-dark/80 backdrop-blur-md border border-white/20 shadow-2xl space-y-3">
               <div className="flex items-center justify-between border-b border-white/10 pb-2">
@@ -245,21 +246,21 @@ export const Login: React.FC = () => {
                 </span>
                 <button
                   type="button"
-                  onClick={() => handleDemoFill('owner@store.com')}
+                  onClick={() => handleDemoFill('smb-owner-1@helios-test.dev', 'HeliosTest2026!')}
                   className="text-[10px] px-2 py-0.5 rounded bg-black/5 dark:bg-white/5 text-helios-accent-teal hover:underline font-mono"
                 >
                   SMB Owner
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleDemoFill('team@helios.io')}
+                  onClick={() => handleDemoFill('team-member-1@helios-test.dev', 'HeliosTest2026!')}
                   className="text-[10px] px-2 py-0.5 rounded bg-black/5 dark:bg-white/5 text-purple-400 hover:underline font-mono"
                 >
                   Team
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleDemoFill('admin@helios.io')}
+                  onClick={() => handleDemoFill('admin@helios.io', 'HeliosDemo2026!')}
                   className="text-[10px] px-2 py-0.5 rounded bg-black/5 dark:bg-white/5 text-helios-accent-blue hover:underline font-mono"
                 >
                   Admin

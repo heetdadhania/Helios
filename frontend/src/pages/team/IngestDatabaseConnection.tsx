@@ -99,7 +99,7 @@ export const IngestDatabaseConnection: React.FC = () => {
   const [toasts, setToasts] = useState<ToastNotification[]>([]);
 
   const addToast = (type: 'success' | 'error' | 'info' | 'warning', title: string, message: string) => {
-    const id = Date.now().toString() + Math.random().toString(36).substring(2, 6);
+    const id = `${Date.now()}-${performance.now()}`;
     setToasts((prev) => [...prev, { id, type, title, message }]);
     setTimeout(() => {
       removeToast(id);
@@ -117,7 +117,13 @@ export const IngestDatabaseConnection: React.FC = () => {
         setIsLoadingTenants(true);
         const data = await adminService.getTenants();
 
-        if (isAdmin) {
+        if (user?.role === 'smb_owner' && user?.tenant_id) {
+          const myTenant = data.filter(
+            (t) => String(t.tenant_id) === String(user.tenant_id)
+          );
+          setTenants(myTenant.length > 0 ? myTenant : data);
+          setSelectedTenantId(String(user.tenant_id));
+        } else if (isAdmin) {
           setTenants(data);
           if (data.length > 0) {
             setSelectedTenantId(String(data[0].tenant_id));
@@ -135,15 +141,12 @@ export const IngestDatabaseConnection: React.FC = () => {
                 assigned = me.assigned_tenants;
               }
             } catch {
-              // fallback
+              assigned = [];
             }
           }
-          if (!assigned || assigned.length === 0) {
-            assigned = ['1', '2'];
-          }
-
+          const assignedList = assigned || [];
           const filtered = data.filter(
-            (t) => assigned.includes(String(t.tenant_id)) || assigned.includes(t.slug)
+            (t) => assignedList.includes(String(t.tenant_id)) || assignedList.includes(t.slug)
           );
           setTenants(filtered);
           if (filtered.length > 0) {

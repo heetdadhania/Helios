@@ -40,16 +40,31 @@ def handle_nulls_orders(records: List[Dict[str, Any]]) -> Tuple[List[Dict[str, A
         total = r.get("total")
         unit_price = r.get("unit_price")
 
+        if total is not None and str(total).strip() == "":
+            total = None
+            r["total"] = None
+        if unit_price is not None and str(unit_price).strip() == "":
+            unit_price = None
+            r["unit_price"] = None
+
         if total is None:
             if unit_price is not None:
-                r["total"] = round(float(unit_price) * r["quantity"] - float(r["discount"]), 4)
+                try:
+                    r["total"] = round(float(unit_price) * r["quantity"] - float(r["discount"]), 4)
+                except (ValueError, TypeError):
+                    r["rejection_reason"] = "null_total: cannot calculate order total"
+                    rejected.append(r)
+                    continue
             else:
                 r["rejection_reason"] = "null_total: cannot calculate order total"
                 rejected.append(r)
                 continue
 
         if unit_price is None and r.get("total") is not None and r["quantity"] > 0:
-            r["unit_price"] = round((float(r["total"]) + float(r["discount"])) / r["quantity"], 4)
+            try:
+                r["unit_price"] = round((float(r["total"]) + float(r["discount"])) / r["quantity"], 4)
+            except (ValueError, TypeError):
+                pass
 
         valid.append(r)
 

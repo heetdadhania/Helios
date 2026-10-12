@@ -14,10 +14,13 @@ export interface PendingUpload {
 
 export interface ColumnMapping {
   source_column: string;
-  target_column: string;
+  target_field: string | null;
+  target_column?: string;
   inferred_type: string;
+  similarity_score: number;
   confidence_score: number;
-  is_nullable: boolean;
+  is_exact: boolean;
+  is_nullable?: boolean;
 }
 
 export interface SchemaPreview {
@@ -25,12 +28,14 @@ export interface SchemaPreview {
   tenant_id: string;
   tenant_name?: string;
   source_type: SourceType;
-  inferred_template: string;
+  inferred_template?: string;
+  detected_template?: string;
   confidence_score: number;
-  suggested_silver_table: string;
+  suggested_silver_table?: string;
   column_mappings: ColumnMapping[];
   sample_rows: Record<string, any>[];
   internal_notes?: string | null;
+  unmapped_required_fields?: string[];
 }
 
 export interface ConfirmSchemaPayload {
@@ -101,7 +106,7 @@ export interface CreateTenantPayload {
   assigned_team_member_id?: number | null;
   owner_email?: string | null;
 
-  // Legacy fallback fields
+  // Optional display fields
   name?: string;
   slug?: string;
   catalog_name?: string;

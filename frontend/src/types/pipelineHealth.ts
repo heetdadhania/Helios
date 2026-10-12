@@ -33,6 +33,9 @@ export interface PipelineRun {
   started_at?: string | null;
   updated_at?: string | null;
   error_message?: string | null;
+  failed_stage?: string | null;
+  failure_message?: string | null;
+  failure_next_step?: string | null;
 }
 
 export interface EtlAuditLog {

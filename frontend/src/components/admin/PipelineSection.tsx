@@ -5,6 +5,7 @@ import {
   Database,
   Radio,
   UploadCloud,
+  XCircle,
 } from 'lucide-react';
 import { PipelineRun, IngestionSourceType } from '@/types/pipelineHealth';
 import { StageStatusBadge } from '@/components/admin/StageStatusBadge';
@@ -50,6 +51,7 @@ export interface PipelineSectionProps {
   emptyDescription: string;
   emptyIcon?: React.ReactNode;
   onInspect: (batchId: string) => void;
+  onCancel?: (batchId: string) => void;
 }
 
 export const PipelineSection: React.FC<PipelineSectionProps> = React.memo(({
@@ -66,7 +68,9 @@ export const PipelineSection: React.FC<PipelineSectionProps> = React.memo(({
   emptyDescription,
   emptyIcon,
   onInspect,
+  onCancel,
 }) => {
+
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 10;
 
@@ -171,7 +175,9 @@ export const PipelineSection: React.FC<PipelineSectionProps> = React.memo(({
               {runs
                 .slice((currentPage - 1) * pageSize, currentPage * pageSize)
                 .map((run) => {
-                const isFailed = run.status.toLowerCase() === 'failed';
+                const normStatus = run.status.toLowerCase();
+                const isFailed = normStatus === 'failed';
+                const isRunning = normStatus.includes('running') || normStatus === 'processing' || normStatus === 'in_progress';
                 return (
                   <tr
                     key={run.batch_id}
@@ -187,6 +193,28 @@ export const PipelineSection: React.FC<PipelineSectionProps> = React.memo(({
                       <div className="font-mono text-[10px] text-slate-400 truncate max-w-[150px]">
                         {run.batch_id}
                       </div>
+                      {isFailed && (run.failed_stage || run.failure_message || run.error_message || run.failure_next_step) && (
+                        <div className="mt-2 p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-[11px] space-y-1 text-left">
+                          {(run.failed_stage || run.current_stage) && (
+                            <div>
+                              <span className="font-semibold text-rose-600 dark:text-rose-400">Failed Stage: </span>
+                              <span className="font-mono text-slate-700 dark:text-slate-200">{run.failed_stage || run.current_stage}</span>
+                            </div>
+                          )}
+                          {(run.failure_message || run.error_message) && (
+                            <div>
+                              <span className="font-semibold text-rose-600 dark:text-rose-400">Cause: </span>
+                              <span className="font-mono text-[10px] text-slate-600 dark:text-slate-300 break-all">{run.failure_message || run.error_message}</span>
+                            </div>
+                          )}
+                          {run.failure_next_step && (
+                            <div>
+                              <span className="font-semibold text-amber-600 dark:text-amber-400">Next Step: </span>
+                              <span className="font-medium text-amber-700 dark:text-amber-300">{run.failure_next_step}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </td>
 
                     <td className="py-3 px-4">
@@ -218,24 +246,41 @@ export const PipelineSection: React.FC<PipelineSectionProps> = React.memo(({
                     </td>
 
                     <td className="py-3 px-4 text-right">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onInspect(run.batch_id);
-                        }}
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold transition-colors ${
-                          isFailed
-                            ? 'bg-rose-500/10 text-rose-600 hover:bg-rose-500/20'
-                            : 'bg-black/5 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-black/10'
-                        }`}
-                      >
-                        <span>Inspect</span>
-                        <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        {onCancel && isRunning && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onCancel(run.batch_id);
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 border border-rose-500/20 transition-colors"
+                            title="Cancel this running execution"
+                          >
+                            <XCircle className="w-3 h-3" />
+                            <span>Cancel</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onInspect(run.batch_id);
+                          }}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold transition-colors ${
+                            isFailed
+                              ? 'bg-rose-500/10 text-rose-600 hover:bg-rose-500/20'
+                              : 'bg-black/5 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-black/10'
+                          }`}
+                        >
+                          <span>Inspect</span>
+                          <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
               })}
+
             </tbody>
           </table>
           <Pagination

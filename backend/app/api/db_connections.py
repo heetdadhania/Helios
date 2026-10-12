@@ -39,6 +39,14 @@ class DbConnectionSyncRequest(BaseModel):
         None,
         description="Target tenant ID on whose behalf the connection is synced",
     )
+    override_duplicate: bool = Field(
+        default=False,
+        description="Whether to override duplicate submission check",
+    )
+    override_reason: Optional[str] = Field(
+        default=None,
+        description="Audit reason for duplicate override (min 5 characters)",
+    )
 
 
 def verify_team_member_tenant_access(
@@ -151,6 +159,7 @@ def create_connection(
 )
 def list_connections(
     tenant_id: Optional[int] = Query(None, description="Target tenant ID"),
+    active_only: bool = Query(True, description="Filter for active connections only"),
     current_user: UserOut = Depends(require_role("team_member", "admin")),
     cursor: Cursor = Depends(get_db_cursor),
 ) -> List[DbConnectionOut]:
@@ -164,7 +173,7 @@ def list_connections(
     verify_team_member_tenant_access(cursor, current_user, tenant_id)
 
     repo = DbConnectionRepository(cursor)
-    records = repo.list_by_tenant(tenant_id=tenant_id)
+    records = repo.list_by_tenant(tenant_id=tenant_id, active_only=active_only)
     return [
         DbConnectionOut(
             connection_id=int(r["connection_id"]),
@@ -193,6 +202,8 @@ def list_connections(
 def sync_connection(
     connection_id: int,
     tenant_id: Optional[int] = Query(None, description="Target tenant ID on whose behalf sync is executed"),
+    override_duplicate: bool = Query(False, description="Whether to override duplicate check"),
+    override_reason: Optional[str] = Query(None, description="Override audit reason"),
     payload: Optional[DbConnectionSyncRequest] = None,
     current_user: UserOut = Depends(require_role("team_member", "admin")),
     cursor: Cursor = Depends(get_db_cursor),
@@ -207,6 +218,9 @@ def sync_connection(
 
     verify_team_member_tenant_access(cursor, current_user, target_tenant_id)
 
+    effective_override = (payload.override_duplicate if payload else False) or override_duplicate
+    effective_reason = (payload.override_reason if payload else None) or override_reason
+
     repo = DbConnectionRepository(cursor)
     upload_repo = UploadRepository(cursor)
 
@@ -216,4 +230,6 @@ def sync_connection(
         user_id=current_user.id,
         repo=repo,
         upload_repo=upload_repo,
+        override_duplicate=effective_override,
+        override_reason=effective_reason,
     )

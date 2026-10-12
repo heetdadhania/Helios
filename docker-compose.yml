@@ -8,6 +8,8 @@ services:
     env_file: .env
     ports:
       - "8000:8000"
+    volumes:
+      - ./backend/app:/app/app
     networks:
       - helios-network
     healthcheck:

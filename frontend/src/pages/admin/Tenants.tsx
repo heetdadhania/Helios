@@ -149,16 +149,17 @@ export const Tenants: React.FC = () => {
   // Load tenants
   const loadTenants = async () => {
     setIsLoading(true);
+    setGeneralError(null);
     try {
       const data = await adminService.getTenants();
       if (!isAdmin && user) {
-        const assigned = (user as any).assigned_tenants || ['1', '2'];
-        setTenants(data.filter((t) => assigned.includes(t.tenant_id) || assigned.includes(t.slug)));
+        const assigned = (user as any).assigned_tenants || [];
+        setTenants(data.filter((t) => assigned.includes(String(t.tenant_id)) || assigned.includes(t.slug)));
       } else {
         setTenants(data);
       }
-    } catch {
-      // Handled by service
+    } catch (err: any) {
+      setGeneralError(err?.response?.data?.detail || err.message || 'Failed to load tenants.');
     } finally {
       setIsLoading(false);
     }
@@ -173,7 +174,7 @@ export const Tenants: React.FC = () => {
           setTeamMembers(members.filter((m) => m.role === 'team_member' && m.is_active));
         })
         .catch(() => {
-          // Graceful fallback
+          setTeamMembers([]);
         });
     }
   }, [isAdmin]);
@@ -389,6 +390,19 @@ export const Tenants: React.FC = () => {
                   <td colSpan={isAdmin ? 7 : 6} className="py-12 text-center text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
                     <RefreshCw className="w-5 h-5 mx-auto animate-spin mb-2 text-helios-accent-blue" />
                     <span>Loading tenant directory...</span>
+                  </td>
+                </tr>
+              ) : generalError ? (
+                <tr>
+                  <td colSpan={isAdmin ? 7 : 6} className="py-12 text-center text-rose-500">
+                    <p className="font-semibold text-sm">{generalError}</p>
+                    <button
+                      type="button"
+                      onClick={loadTenants}
+                      className="mt-3 px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20"
+                    >
+                      Retry
+                    </button>
                   </td>
                 </tr>
               ) : paginatedTenants.length === 0 ? (

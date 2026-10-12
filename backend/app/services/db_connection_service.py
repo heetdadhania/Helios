@@ -248,8 +248,8 @@ class DbConnectionService:
         conn: Any,
         db_type: str,
         table_or_query: str,
-    ) -> Tuple[bytes, int]:
-        """Execute extraction query and serialize results to CSV bytes."""
+    ) -> Tuple[bytes, List[Dict[str, Any]]]:
+        """Execute extraction query and serialize results to CSV bytes and dict records."""
         sql = cls._build_select_query(db_type, table_or_query)
         cursor = conn.cursor()
         cursor.execute(sql)
@@ -257,22 +257,26 @@ class DbConnectionService:
         description = cursor.description
         if not description:
             cursor.close()
-            return b"", 0
+            return b"", []
 
         columns = [col[0] for col in description]
         rows = cursor.fetchall()
         cursor.close()
 
+        records: List[Dict[str, Any]] = []
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow(columns)
         for r in rows:
             if isinstance(r, dict):
+                rec = r
                 writer.writerow([r.get(c) for c in columns])
             else:
+                rec = dict(zip(columns, r))
                 writer.writerow(list(r))
+            records.append(rec)
 
-        return output.getvalue().encode("utf-8"), len(rows)
+        return output.getvalue().encode("utf-8"), records
 
     @classmethod
     def sync_now(
@@ -284,14 +288,17 @@ class DbConnectionService:
         upload_repo: UploadRepository = None,  # type: ignore
         secrets_client: Optional[WorkspaceClient] = None,
         uploaded_by: Optional[int] = None,
+        override_duplicate: bool = False,
+        override_reason: Optional[str] = None,
     ) -> UploadResponse:
         """Fetch password ephemerally, pull table/query rows, and ingest into Bronze."""
         initiator_id = user_id if user_id is not None else uploaded_by
         logger.info(
-            "Initiating DB sync for connection %s, tenant %s by user %s",
+            "Initiating DB sync for connection %s, tenant %s by user %s (override=%s)",
             connection_id,
             tenant_id,
             initiator_id,
+            override_duplicate,
         )
 
         conn_record = repo.get_by_id(connection_id=connection_id, tenant_id=tenant_id)
@@ -315,7 +322,7 @@ class DbConnectionService:
                 username=str(conn_record["username"]),
                 password=raw_password,
             ) as ext_conn:
-                csv_bytes, row_count = cls._extract_rows_to_csv(
+                csv_bytes, records = cls._extract_rows_to_csv(
                     conn=ext_conn,
                     db_type=str(conn_record["db_type"]),
                     table_or_query=str(conn_record["table_or_query"]),
@@ -326,6 +333,27 @@ class DbConnectionService:
         batch_id = str(uuid.uuid4())
         ts = int(datetime.now(timezone.utc).timestamp())
         file_name = f"db_sync_{connection_id}_{ts}.csv"
+
+        from app.services.duplicate_detector import DuplicateDetector
+        from app.core.config import settings
+
+        file_hash = DuplicateDetector.compute_rows_hash(records)
+        order_ids = DuplicateDetector.extract_order_ids_from_records(records)
+        catalog = getattr(settings, "DATABRICKS_CATALOG", "helios_catalog")
+
+        DuplicateDetector.check_and_handle_duplicate(
+            cursor=upload_repo.cursor,
+            catalog=catalog,
+            tenant_id=tenant_id,
+            file_hash=file_hash,
+            incoming_order_ids=order_ids,
+            total_rows=len(records),
+            override_duplicate=override_duplicate,
+            override_reason=override_reason,
+            acting_user_id=initiator_id,
+            acting_user_role="team_member" if initiator_id else "system",
+            new_batch_id=batch_id,
+        )
 
         volume_path = UploadService.save_file(
             content=csv_bytes,
@@ -341,14 +369,15 @@ class DbConnectionService:
             file_path=volume_path,
             uploaded_by=initiator_id,
             status="pending",
+            file_hash=file_hash,
         )
 
         upload_repo.create_pipeline_status(
             batch_id=batch_id,
             tenant_id=tenant_id,
             upload_id=int(upload_record["upload_id"]),
-            stage="received",
-            status="ingested",
+            stage="bronze_ingest",
+            status="ingesting",
         )
 
         try:
@@ -365,8 +394,13 @@ class DbConnectionService:
 
         repo.update_last_synced(connection_id=connection_id, tenant_id=tenant_id)
 
+        # Trigger shared ingestion and schema inference in the background
+        from pipeline.runner import pipeline_executor
+        from pipeline.submission import ingest_and_infer
+        pipeline_executor.submit(ingest_and_infer, tenant_id, batch_id)
+
         return UploadResponse(
             upload_id=int(upload_record["upload_id"]),
             batch_id=batch_id,
-            status=str(upload_record["status"]),
+            status="pending",
         )

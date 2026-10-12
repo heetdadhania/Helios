@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS helios.gold.fact_shipments (
   scheduled_days INT COMMENT 'Target or promised delivery duration in days',
   late_flag BOOLEAN NOT NULL DEFAULT false COMMENT 'True if actual delivery exceeded scheduled delivery deadline',
   source_order_id STRING COMMENT 'Natural source order reference',
+  source_order_line_key STRING COMMENT 'Natural source order line identifier',
   batch_id STRING NOT NULL COMMENT 'Ingestion batch UUID linking through silver and bronze',
   created_at TIMESTAMP NOT NULL DEFAULT current_timestamp() COMMENT 'Record insertion timestamp into gold layer',
   CONSTRAINT pk_fact_shipments PRIMARY KEY (shipment_id)

@@ -155,7 +155,7 @@ class TestApiIngestService(unittest.TestCase):
         )
 
         self.assertEqual(resp.records_received, 2)
-        self.assertEqual(resp.status, "ingested")
+        self.assertEqual(resp.status, "ingesting")
         mock_upload_repo.create_upload.assert_called_once()
         # Verify tagged with source_type='api_push'
         self.assertEqual(

@@ -8,8 +8,12 @@ class PendingUploadOut(BaseModel):
 
     batch_id: str = Field(..., description="Unique ingestion batch UUID")
     tenant_id: int = Field(..., description="ID of the tenant data owner")
+    tenant_name: Optional[str] = Field(None, description="Display name of the tenant")
     upload_id: Optional[int] = Field(None, description="Optional foreign key to platform.pending_uploads")
     source_type: str = Field("upload", description="Ingestion channel: upload, db_connection, api_push")
+    filename: Optional[str] = Field("upload.data", description="Original filename")
+    file_size_bytes: Optional[int] = Field(None, description="Size of file in bytes")
+    row_count: Optional[int] = Field(0, description="Estimated or loaded row count")
     stage: str = Field("schema_inference", description="Current pipeline stage")
     status: str = Field("awaiting_confirmation", description="Current pipeline status")
     detected_template: Optional[str] = Field(None, description="Inferred template name (e.g. template_orders)")
@@ -39,6 +43,10 @@ class SchemaPreviewOut(BaseModel):
     internal_notes: Optional[str] = Field(
         default=None,
         description="Optional internal notes recorded during schema confirmation",
+    )
+    unmapped_required_fields: List[str] = Field(
+        default_factory=list,
+        description="List of required canonical fields not mapped in the incoming dataset",
     )
 
     model_config = {"from_attributes": True}
@@ -79,3 +87,18 @@ class CompletenessResponse(BaseModel):
     completeness_percentage: float = Field(..., description="Completeness percentage: (accepted_rows / total_rows) * 100")
 
     model_config = {"from_attributes": True}
+
+
+class RejectRequest(BaseModel):
+    """Payload for rejecting an ingestion batch."""
+
+    reason: str = Field(..., min_length=5, description="Mandatory reason explaining batch rejection (min 5 chars)")
+
+
+class RejectResponse(BaseModel):
+    """Response returned upon rejecting an ingestion batch."""
+
+    batch_id: str
+    status: str
+    message: str
+    reason: str

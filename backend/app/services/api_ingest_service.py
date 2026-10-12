@@ -3,7 +3,7 @@ import io
 import logging
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException, status
 
@@ -72,6 +72,8 @@ class ApiIngestService:
         records: List[Dict[str, Any]],
         tenant_id: int,
         upload_repo: UploadRepository,
+        override_duplicate: bool = False,
+        override_reason: Optional[str] = None,
     ) -> ApiIngestResponse:
         """Validate records, land in Unity Catalog Volume, and tag tracking rows as 'api_push'."""
         cls.validate_payload_shape(records)
@@ -80,6 +82,27 @@ class ApiIngestService:
         batch_id = str(uuid.uuid4())
         ts = int(datetime.now(timezone.utc).timestamp())
         file_name = f"api_push_{ts}.csv"
+
+        from app.services.duplicate_detector import DuplicateDetector
+        from app.core.config import settings
+
+        file_hash = DuplicateDetector.compute_rows_hash(records)
+        order_ids = DuplicateDetector.extract_order_ids_from_records(records)
+        catalog = getattr(settings, "DATABRICKS_CATALOG", "helios_catalog")
+
+        DuplicateDetector.check_and_handle_duplicate(
+            cursor=upload_repo.cursor,
+            catalog=catalog,
+            tenant_id=tenant_id,
+            file_hash=file_hash,
+            incoming_order_ids=order_ids,
+            total_rows=len(records),
+            override_duplicate=override_duplicate,
+            override_reason=override_reason,
+            acting_user_id=None,
+            acting_user_role="api_key",
+            new_batch_id=batch_id,
+        )
 
         volume_path = UploadService.save_file(
             content=csv_bytes,
@@ -95,14 +118,15 @@ class ApiIngestService:
             file_path=volume_path,
             uploaded_by=None,
             status="pending",
+            file_hash=file_hash,
         )
 
         upload_repo.create_pipeline_status(
             batch_id=batch_id,
             tenant_id=tenant_id,
             upload_id=int(upload_record["upload_id"]),
-            stage="received",
-            status="ingested",
+            stage="bronze_ingest",
+            status="ingesting",
         )
 
         try:
@@ -124,8 +148,13 @@ class ApiIngestService:
             batch_id,
         )
 
+        # Trigger shared ingestion and schema inference in the background
+        from pipeline.runner import pipeline_executor
+        from pipeline.submission import ingest_and_infer
+        pipeline_executor.submit(ingest_and_infer, tenant_id, batch_id)
+
         return ApiIngestResponse(
             batch_id=batch_id,
-            status="ingested",
+            status="ingesting",
             records_received=len(records),
         )

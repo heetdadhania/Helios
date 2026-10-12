@@ -1,5 +1,5 @@
 import api from './api';
-import { LoginCredentials, TokenResponse, User, UserRole } from '@/types/auth';
+import { LoginCredentials, TokenResponse, User } from '@/types/auth';
 
 export const authService = {
   /**
@@ -14,16 +14,12 @@ export const authService = {
       });
       return response.data;
     } catch (error: any) {
-      // Fallback demo authentication for development when backend SQL warehouse is spinning up or offline
-      if (
-        !error.response ||
-        error.code === 'ERR_NETWORK' ||
-        error.response.status === 404 ||
-        error.response.status === 500
-      ) {
-        return this._getDemoFallback(credentials);
-      }
-      throw error;
+      const errMsg =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message ||
+        'Authentication failed. Please check your credentials.';
+      throw new Error(errMsg);
     }
   },
 
@@ -56,7 +52,6 @@ export const authService = {
       });
       return response.data;
     } catch (err: any) {
-      // If /api/v1/auth/change-password returned 404, fallback to /api/auth/change-password directly
       if (err.response?.status === 404) {
         const response = await api.post<{ success: boolean; message: string }>('/api/auth/change-password', {
           current_password: currentPassword,
@@ -64,41 +59,12 @@ export const authService = {
         });
         return response.data;
       }
-      throw err;
+      const errMsg =
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
+        err.message ||
+        'Failed to change password.';
+      throw new Error(errMsg);
     }
-  },
-
-  /**
-   * Helper fallback simulating authentic response if offline.
-   */
-  _getDemoFallback(credentials: LoginCredentials): TokenResponse {
-    let role: UserRole = 'smb_owner';
-    let name = 'Store Owner';
-    let tenantId: number | null = 101;
-
-    const email = credentials.email.toLowerCase();
-    if (email.includes('admin')) {
-      role = 'admin';
-      name = 'Admin Operator';
-      tenantId = null;
-    } else if (email.includes('team')) {
-      role = 'team_member';
-      name = 'Team Specialist';
-      tenantId = null;
-    }
-
-    const mockUser: User = {
-      id: Math.floor(Math.random() * 1000) + 1,
-      email: credentials.email,
-      name,
-      role,
-      tenant_id: tenantId,
-    };
-
-    return {
-      access_token: 'mock_jwt_token_helios_' + Date.now(),
-      token_type: 'bearer',
-      user: mockUser,
-    };
   },
 };

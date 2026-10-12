@@ -39,6 +39,7 @@ class ConfirmationRepository:
                 SELECT 
                     ps.batch_id,
                     ps.tenant_id,
+                    t.business_name AS tenant_name,
                     ps.upload_id,
                     ps.stage,
                     ps.status,
@@ -46,11 +47,13 @@ class ConfirmationRepository:
                     ps.updated_at,
                     inf.detected_template,
                     inf.confidence_score,
-                    COALESCE(pu.source_type, 'upload') AS source_type
+                    COALESCE(pu.source_type, 'upload') AS source_type,
+                    COALESCE(pu.file_name, 'upload.data') AS filename
                 FROM {self.pipeline_table} ps
+                LEFT JOIN `{self.catalog}`.`platform`.`tenants` t ON ps.tenant_id = t.tenant_id
                 LEFT JOIN {self.inferred_table} inf ON ps.batch_id = inf.batch_id
                 LEFT JOIN {self.pending_table} pu ON ps.upload_id = pu.upload_id
-                WHERE ps.status = 'awaiting_confirmation'
+                WHERE ps.status IN ('ingesting', 'pending_review', 'awaiting_confirmation')
                 ORDER BY ps.created_at DESC
             """
             self.cursor.execute(query)
@@ -59,6 +62,7 @@ class ConfirmationRepository:
                 SELECT 
                     ps.batch_id,
                     ps.tenant_id,
+                    t.business_name AS tenant_name,
                     ps.upload_id,
                     ps.stage,
                     ps.status,
@@ -66,12 +70,14 @@ class ConfirmationRepository:
                     ps.updated_at,
                     inf.detected_template,
                     inf.confidence_score,
-                    COALESCE(pu.source_type, 'upload') AS source_type
+                    COALESCE(pu.source_type, 'upload') AS source_type,
+                    COALESCE(pu.file_name, 'upload.data') AS filename
                 FROM {self.pipeline_table} ps
                 INNER JOIN {self.team_table} ta ON ps.tenant_id = ta.tenant_id AND ta.user_id = :user_id
+                LEFT JOIN `{self.catalog}`.`platform`.`tenants` t ON ps.tenant_id = t.tenant_id
                 LEFT JOIN {self.inferred_table} inf ON ps.batch_id = inf.batch_id
                 LEFT JOIN {self.pending_table} pu ON ps.upload_id = pu.upload_id
-                WHERE ps.status = 'awaiting_confirmation'
+                WHERE ps.status IN ('ingesting', 'pending_review', 'awaiting_confirmation')
                 ORDER BY ps.created_at DESC
             """
             self.cursor.execute(query, {"user_id": user_id})
@@ -163,15 +169,28 @@ class ConfirmationRepository:
             except Exception:
                 mapping = {}
 
+        # Determine unmapped required fields for detected template
+        from pipeline.schema_inference.template_definitions import get_template
+        detected_template_name = meta.get("detected_template") or "template_orders"
+        template_obj = get_template(detected_template_name)
+        required_fields = template_obj.get("required_fields", [])
+        mapped_targets = set()
+        for v in mapping.values():
+            tf = v.get("target_field") if isinstance(v, dict) else str(v)
+            if tf and str(tf).lower() not in ("__ignore__", "ignore", "ignore this column", "null", "none"):
+                mapped_targets.add(tf)
+        unmapped_required = [req for req in required_fields if req not in mapped_targets]
+
         return {
             "batch_id": meta["batch_id"],
             "tenant_id": meta["tenant_id"],
-            "detected_template": meta.get("detected_template") or "template_orders",
+            "detected_template": detected_template_name,
             "confidence_score": float(meta.get("confidence_score") or 0.0),
             "source_type": source_type,
             "column_mapping": mapping,
             "sample_rows": samples,
             "internal_notes": meta.get("internal_notes"),
+            "unmapped_required_fields": unmapped_required,
         }
 
     def save_confirmation(
@@ -211,11 +230,12 @@ class ConfirmationRepository:
         """
         self.cursor.execute(update_schema_q, params)
 
-        # 2. Update pipeline_status to silver_running
+        # 2. Update pipeline_status to running
         update_status_q = f"""
             UPDATE {self.pipeline_table}
-            SET stage = 'silver_clean',
-                status = 'silver_running',
+            SET stage = 'silver_running',
+                status = 'running',
+                last_heartbeat_at = current_timestamp(),
                 updated_at = current_timestamp()
             WHERE batch_id = :batch_id
         """
@@ -224,15 +244,96 @@ class ConfirmationRepository:
         # 3. Update pending_uploads if associated
         update_upload_q = f"""
             UPDATE {self.pending_table}
-            SET status = 'approved'
+            SET status = 'approved',
+                decision = 'approved',
+                decided_by = :confirmed_by,
+                decided_at = current_timestamp()
             WHERE upload_id IN (
                 SELECT upload_id FROM {self.pipeline_table} WHERE batch_id = :batch_id AND upload_id IS NOT NULL
             )
         """
         try:
-            self.cursor.execute(update_upload_q, {"batch_id": batch_id})
+            self.cursor.execute(update_upload_q, {"batch_id": batch_id, "confirmed_by": confirmed_by})
         except Exception as exc:
             logger.warning("Could not update pending_uploads status for batch %s: %s", batch_id, exc)
+
+    def is_tenant_running_batch(self, tenant_id: int, exclude_batch_id: str) -> bool:
+        """Check if any other batch for this tenant is currently executing."""
+        q = f"""
+            SELECT batch_id FROM {self.pipeline_table}
+            WHERE tenant_id = :tenant_id 
+              AND status IN ('running', 'silver_running', 'gold_running')
+              AND batch_id != :exclude_batch_id
+            LIMIT 1
+        """
+        self.cursor.execute(q, {"tenant_id": tenant_id, "exclude_batch_id": exclude_batch_id})
+        row = self.cursor.fetchone()
+        return bool(row)
+
+    def write_audit_trail(
+        self,
+        actor_user_id: Optional[int],
+        actor_role: str,
+        action: str,
+        tenant_id: int,
+        batch_id: str,
+        reason: Optional[str] = None,
+        details_json: Optional[str] = None,
+    ) -> None:
+        """Insert immutable event into meta.audit_trail."""
+        q = f"""
+            INSERT INTO `{self.catalog}`.`meta`.`audit_trail` (
+                occurred_at, actor_user_id, actor_role, action, tenant_id, batch_id, reason, details_json
+            )
+            VALUES (
+                current_timestamp(), :actor_user_id, :actor_role, :action, :tenant_id, :batch_id, :reason, :details_json
+            )
+        """
+        try:
+            self.cursor.execute(
+                q,
+                {
+                    "actor_user_id": actor_user_id,
+                    "actor_role": actor_role,
+                    "action": action,
+                    "tenant_id": tenant_id,
+                    "batch_id": batch_id,
+                    "reason": reason,
+                    "details_json": details_json,
+                },
+            )
+        except Exception as e:
+            logger.warning("Failed to insert audit trail: %s", e)
+
+    def reject_batch(self, batch_id: str, reason: str, user_id: int, tenant_id: int) -> None:
+        """Mark batch as rejected, update pending uploads decision, and leave Bronze rows in place."""
+        # Update pipeline_status
+        q_status = f"""
+            UPDATE {self.pipeline_table}
+            SET status = 'rejected',
+                stage = 'rejected',
+                error_message = :reason,
+                updated_at = current_timestamp()
+            WHERE batch_id = :batch_id
+        """
+        self.cursor.execute(q_status, {"batch_id": batch_id, "reason": reason})
+
+        # Update pending_uploads
+        q_upload = f"""
+            UPDATE {self.pending_table}
+            SET status = 'rejected',
+                decision = 'rejected',
+                decision_reason = :reason,
+                decided_by = :user_id,
+                decided_at = current_timestamp()
+            WHERE upload_id IN (
+                SELECT upload_id FROM {self.pipeline_table} WHERE batch_id = :batch_id AND upload_id IS NOT NULL
+            )
+        """
+        try:
+            self.cursor.execute(q_upload, {"batch_id": batch_id, "reason": reason, "user_id": user_id})
+        except Exception as e:
+            logger.warning("Failed to update pending_uploads on reject: %s", e)
 
     def get_completeness_metrics(
         self,

@@ -25,16 +25,17 @@ class UploadRepository(BaseRepository):
         file_path: str,
         uploaded_by: Optional[int] = None,
         status: str = "pending",
+        file_hash: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Insert a new upload record into platform.pending_uploads and return the persisted record.
         """
         insert_query = f"""
             INSERT INTO {self.pending_table} (
-                tenant_id, source_type, file_name, file_path, uploaded_by, status, uploaded_at
+                tenant_id, source_type, file_name, file_path, uploaded_by, status, file_hash, uploaded_at
             )
             VALUES (
-                :tenant_id, :source_type, :file_name, :file_path, :uploaded_by, :status, current_timestamp()
+                :tenant_id, :source_type, :file_name, :file_path, :uploaded_by, :status, :file_hash, current_timestamp()
             )
         """
         params = {
@@ -44,11 +45,12 @@ class UploadRepository(BaseRepository):
             "file_path": file_path,
             "uploaded_by": uploaded_by,
             "status": status,
+            "file_hash": file_hash,
         }
         self.execute_non_query(insert_query, params)
 
         select_query = f"""
-            SELECT upload_id, tenant_id, source_type, file_name, file_path, uploaded_by, uploaded_at, status
+            SELECT upload_id, tenant_id, source_type, file_name, file_path, uploaded_by, uploaded_at, status, file_hash
             FROM {self.pending_table}
             WHERE tenant_id = :tenant_id AND file_path = :file_path
             ORDER BY upload_id DESC

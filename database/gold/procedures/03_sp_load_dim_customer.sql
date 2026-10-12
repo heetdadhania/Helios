@@ -17,11 +17,11 @@ AS BEGIN
     USING (
         SELECT 
             tenant_id,
-            CASE 
+            coalesce(customer_name, CASE 
                 WHEN customer_id LIKE '%@%' THEN split(customer_id, '@')[0]
                 ELSE customer_id 
-            END AS customer_name,
-            'Standard' AS segment,
+            END) AS customer_name,
+            coalesce(segment, 'Consumer') AS segment,
             CASE 
                 WHEN customer_id LIKE '%@%' THEN lower(trim(customer_id))
                 ELSE NULL 
@@ -30,7 +30,9 @@ AS BEGIN
         FROM (
             SELECT DISTINCT 
                 tenant_id, 
-                customer_id
+                customer_id,
+                customer_name,
+                segment
             FROM helios.silver.orders_clean
             WHERE tenant_id = tenant_id_param 
               AND batch_id = batch_id_param 
@@ -44,9 +46,10 @@ AS BEGIN
         (source.email IS NOT NULL AND target.email = source.email)
         OR (target.customer_name = source.source_customer_ref)
    )
-    WHEN MATCHED AND (target.customer_name <> source.customer_name OR (target.email IS NULL AND source.email IS NOT NULL)) THEN
+    WHEN MATCHED AND (target.customer_name <> source.customer_name OR target.segment <> source.segment OR (target.email IS NULL AND source.email IS NOT NULL)) THEN
         UPDATE SET 
             target.customer_name = coalesce(source.customer_name, target.customer_name),
+            target.segment = coalesce(source.segment, target.segment),
             target.email = coalesce(source.email, target.email),
             target.updated_at = current_timestamp()
     WHEN NOT MATCHED THEN

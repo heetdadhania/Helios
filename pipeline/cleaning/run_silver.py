@@ -10,6 +10,7 @@ except ImportError:
     Connection = Any  # type: ignore
     Cursor = Any  # type: ignore
 
+from app.core.config import settings
 from pipeline.cleaning.currency_cleaner import clean_currency_fields
 from pipeline.cleaning.date_standardizer import standardize_date_fields
 from pipeline.cleaning.dedup import deduplicate_records
@@ -126,9 +127,9 @@ def _remap_record(raw_row: Dict[str, Any], column_mapping: Dict[str, Any]) -> Di
                 if isinstance(mapping_def, dict)
                 else str(mapping_def)
             )
-            if target_field:
+            if target_field and str(target_field).lower() not in ("__ignore__", "ignore", "ignore this column"):
                 mapped[target_field] = val
-            else:
+            elif not target_field:
                 mapped[raw_col] = val
         else:
             mapped[raw_col] = val
@@ -137,7 +138,7 @@ def _remap_record(raw_row: Dict[str, Any], column_mapping: Dict[str, Any]) -> Di
 
 def run_silver_pipeline(
     batch_id: str,
-    catalog: str = "helios",
+    catalog: Optional[str] = None,
     cursor: Optional[Cursor] = None,
 ) -> Dict[str, Any]:
     """
@@ -151,6 +152,7 @@ def run_silver_pipeline(
     7. Logs all rejected rows to meta.data_quality_log.
     8. Updates platform.pipeline_status to 'gold_running' and logs to meta.etl_audit_log.
     """
+    catalog = catalog or getattr(settings, "DATABRICKS_CATALOG", "helios_catalog")
     started_at = datetime.now(timezone.utc)
     start_perf = time.perf_counter()
     active_cursor, owned_conn = _acquire_cursor_context(cursor, catalog)
@@ -219,7 +221,11 @@ def run_silver_pipeline(
         valid_after_nulls, rejected_nulls = handle_nulls(cleaned_stage1, template_name)
 
         # Step 6: Deduplication by natural key
-        key_fields = ("order_id",)
+        if is_shipping:
+            key_fields = ("order_id",)
+        else:
+            has_product_id = any("product_id" in r and r.get("product_id") for r in valid_after_nulls)
+            key_fields = ("order_id", "product_id") if has_product_id else ("order_id",)
         unique_valid, rejected_dupes = deduplicate_records(valid_after_nulls, key_fields=key_fields)
 
         # Combine all rejections

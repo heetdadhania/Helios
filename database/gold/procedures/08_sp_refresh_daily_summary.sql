@@ -11,7 +11,7 @@ CREATE OR REPLACE PROCEDURE helios.gold.sp_refresh_daily_summary (
 )
 LANGUAGE SQL
 SQL SECURITY DEFINER
-COMMENT 'Recalculates pre-aggregated daily sales and KPI summaries for dates affected by the batch'
+COMMENT 'Recalculates pre-aggregated daily sales and KPI summaries for dates affected by the batch from fact_orders'
 AS BEGIN
     MERGE INTO helios.gold.fact_orders_daily_summary AS target
     USING (
@@ -20,6 +20,12 @@ AS BEGIN
             FROM helios.gold.fact_orders
             WHERE tenant_id = tenant_id_param 
               AND batch_id = batch_id_param
+            UNION
+            SELECT DISTINCT cast(date_format(s.order_date, 'yyyyMMdd') AS bigint) AS date_id
+            FROM helios.silver.orders_clean s
+            WHERE s.tenant_id = tenant_id_param
+              AND s.batch_id = batch_id_param
+              AND s.is_valid = true
         ),
         daily_rollups AS (
             SELECT

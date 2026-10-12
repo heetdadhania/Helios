@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   UploadCloud,
@@ -15,12 +15,14 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { adminService } from '@/services/adminService';
-import { Tenant } from '@/types/admin';
+import { Tenant, SchemaPreview } from '@/types/admin';
 import api from '@/services/api';
 import {
   SessionProgressList,
   SessionProgressItem,
 } from '@/components/team/SessionProgressList';
+import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton';
+import { DuplicateConflictDialog } from '@/components/shared/DuplicateConflictDialog';
 
 export const IngestUpload: React.FC = () => {
   const navigate = useNavigate();
@@ -31,13 +33,14 @@ export const IngestUpload: React.FC = () => {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [selectedTenantId, setSelectedTenantId] = useState<string>('');
   const [isLoadingTenants, setIsLoadingTenants] = useState<boolean>(true);
+  const [tenantsError, setTenantsError] = useState<string | null>(null);
 
   // File state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [simulatedFileName, setSimulatedFileName] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'analyzing' | 'ready'>('idle');
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'ready'>('idle');
+  const [realPreview, setRealPreview] = useState<SchemaPreview | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<{
     type: 'success' | 'error' | 'info';
     text: string;
@@ -47,62 +50,67 @@ export const IngestUpload: React.FC = () => {
   const [sessionItems, setSessionItems] = useState<SessionProgressItem[]>([]);
   const [inlineConfirmation, setInlineConfirmation] = useState<string | null>(null);
 
+  // Duplicate conflict dialog state
+  const [conflictData, setConflictData] = useState<any | null>(null);
+  const [isConflictOpen, setIsConflictOpen] = useState<boolean>(false);
+  const [isOverriding, setIsOverriding] = useState<boolean>(false);
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const tenantSelectRef = useRef<HTMLSelectElement | null>(null);
 
-  // Load tenants on mount
-  useEffect(() => {
-    const loadTenants = async () => {
-      try {
-        setIsLoadingTenants(true);
-        const data = await adminService.getTenants();
+  const loadTenants = useCallback(async () => {
+    try {
+      setIsLoadingTenants(true);
+      setTenantsError(null);
+      const data = await adminService.getTenants();
 
-        if (isAdmin) {
-          setTenants(data);
-          if (data.length > 0) {
-            setSelectedTenantId(String(data[0].tenant_id));
-          }
-        } else {
-          // Team Member: filter to assigned tenants
-          let assigned: string[] = (user as any)?.assigned_tenants;
-          if (!assigned) {
-            try {
-              const members = await adminService.getTeamMembers();
-              const me = members.find(
-                (m) => m.email === user?.email || m.user_id === String(user?.id)
-              );
-              if (me?.assigned_tenants) {
-                assigned = me.assigned_tenants;
-              }
-            } catch {
-              // fallback
+      if (user?.role === 'smb_owner' && user?.tenant_id) {
+        const myTenant = data.filter(
+          (t) => String(t.tenant_id) === String(user.tenant_id)
+        );
+        setTenants(myTenant);
+        setSelectedTenantId(String(user.tenant_id));
+      } else if (isAdmin) {
+        setTenants(data);
+        if (data.length > 0) {
+          setSelectedTenantId(String(data[0].tenant_id));
+        }
+      } else {
+        // Team Member: filter to assigned tenants
+        let assigned: string[] = (user as any)?.assigned_tenants;
+        if (!assigned) {
+          try {
+            const members = await adminService.getTeamMembers();
+            const me = members.find(
+              (m) => m.email === user?.email || m.user_id === String(user?.id)
+            );
+            if (me?.assigned_tenants) {
+              assigned = me.assigned_tenants;
             }
-          }
-          if (!assigned || assigned.length === 0) {
-            assigned = ['1', '2'];
-          }
-
-          const filtered = data.filter(
-            (t) => assigned.includes(String(t.tenant_id)) || assigned.includes(t.slug)
-          );
-          setTenants(filtered);
-          if (filtered.length > 0) {
-            setSelectedTenantId(String(filtered[0].tenant_id));
+          } catch {
+            assigned = [];
           }
         }
-      } catch (err: any) {
-        console.error('Failed to load tenants:', err);
-        setFeedbackMessage({
-          type: 'error',
-          text: 'Unable to retrieve assigned tenants. Please refresh.',
-        });
-      } finally {
-        setIsLoadingTenants(false);
+        const assignedList = assigned || [];
+        const filtered = data.filter(
+          (t) => assignedList.includes(String(t.tenant_id)) || assignedList.includes(t.slug)
+        );
+        setTenants(filtered);
+        if (filtered.length > 0) {
+          setSelectedTenantId(String(filtered[0].tenant_id));
+        }
       }
-    };
-
-    loadTenants();
+    } catch (err: any) {
+      const errMsg = err?.response?.data?.detail || err.message || 'Unable to retrieve assigned tenants.';
+      setTenantsError(errMsg);
+    } finally {
+      setIsLoadingTenants(false);
+    }
   }, [isAdmin, user]);
+
+  useEffect(() => {
+    loadTenants();
+  }, [loadTenants]);
 
   const selectedTenant = useMemo(() => {
     return tenants.find((t) => String(t.tenant_id) === String(selectedTenantId));
@@ -112,13 +120,10 @@ export const IngestUpload: React.FC = () => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       setSelectedFile(file);
-      setSimulatedFileName(file.name);
-      setUploadStatus('analyzing');
+      setRealPreview(null);
+      setUploadStatus('ready');
       setFeedbackMessage(null);
       setInlineConfirmation(null);
-      setTimeout(() => {
-        setUploadStatus('ready');
-      }, 600);
     }
   };
 
@@ -138,28 +143,14 @@ export const IngestUpload: React.FC = () => {
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
       setSelectedFile(file);
-      setSimulatedFileName(file.name);
-      setUploadStatus('analyzing');
+      setRealPreview(null);
+      setUploadStatus('ready');
       setFeedbackMessage(null);
       setInlineConfirmation(null);
-      setTimeout(() => {
-        setUploadStatus('ready');
-      }, 600);
     }
   };
 
-  const handleLoadSample = (sampleName: string) => {
-    setSelectedFile(null);
-    setSimulatedFileName(sampleName);
-    setUploadStatus('analyzing');
-    setFeedbackMessage(null);
-    setInlineConfirmation(null);
-    setTimeout(() => {
-      setUploadStatus('ready');
-    }, 600);
-  };
-
-  const handleSubmitUpload = async () => {
+  const handleSubmitUpload = async (override: boolean = false, reason: string = '') => {
     if (!selectedTenantId) {
       setFeedbackMessage({
         type: 'error',
@@ -168,7 +159,7 @@ export const IngestUpload: React.FC = () => {
       return;
     }
 
-    if (!selectedFile && !simulatedFileName) {
+    if (!selectedFile) {
       setFeedbackMessage({
         type: 'error',
         text: 'Please choose or drop a file to upload.',
@@ -177,39 +168,45 @@ export const IngestUpload: React.FC = () => {
     }
 
     const currentTenantName = selectedTenant?.name || `Tenant #${selectedTenantId}`;
-    const fileLabel = selectedFile?.name || simulatedFileName || 'Data File';
+    const fileLabel = selectedFile.name;
 
     try {
-      setIsSubmitting(true);
+      if (override) {
+        setIsOverriding(true);
+      } else {
+        setIsSubmitting(true);
+      }
       setFeedbackMessage(null);
 
-      let responseBatchId = `batch-${Date.now().toString(16)}`;
-      let responseUploadId = Math.floor(Math.random() * 9000) + 1000;
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('tenant_id', selectedTenantId);
+      if (override) {
+        formData.append('override_duplicate', 'true');
+        formData.append('override_reason', reason);
+      }
 
-      if (selectedFile) {
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-        formData.append('tenant_id', selectedTenantId);
+      const res = await api.post('/uploads', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
-        try {
-          const res = await api.post('/uploads', formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          });
-          responseBatchId = res.data.batch_id || responseBatchId;
-          responseUploadId = res.data.upload_id || responseUploadId;
-        } catch (apiErr: any) {
-          // If offline / demo mock mode
-          if (apiErr.response?.data?.detail) {
-            throw new Error(apiErr.response.data.detail);
-          }
-          console.warn('Backend unavailable, using simulated ingestion record');
-        }
+      const responseBatchId = res.data.batch_id;
+      const responseUploadId = res.data.upload_id;
+      setIsConflictOpen(false);
+      setConflictData(null);
+
+      // Try fetching preview if available from API
+      try {
+        const previewData = await adminService.getPreview(responseBatchId);
+        setRealPreview(previewData);
+      } catch {
+        // Preview may not be immediately available if inference is running
       }
 
       // 1. Show inline confirmation: "Submitted for [Tenant Name] ✓"
-      setInlineConfirmation(`Submitted for ${currentTenantName} ✓`);
+      setInlineConfirmation(`Submitted for ${currentTenantName} ✓` + (override ? ' (Duplicate Override Audited)' : ''));
 
       // 2. Append to running Session Progress list
       const newSessionItem: SessionProgressItem = {
@@ -221,7 +218,7 @@ export const IngestUpload: React.FC = () => {
           minute: '2-digit',
           second: '2-digit',
         }),
-        status: 'Submitted ✓',
+        status: override ? 'Overridden ✓' : 'Submitted ✓',
         details: fileLabel,
         batchId: responseBatchId,
         uploadId: responseUploadId,
@@ -229,9 +226,8 @@ export const IngestUpload: React.FC = () => {
       };
       setSessionItems((prev) => [newSessionItem, ...prev]);
 
-      // 3. Immediately reset form
+      // 3. Reset file input
       setSelectedFile(null);
-      setSimulatedFileName(null);
       setUploadStatus('idle');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -242,12 +238,29 @@ export const IngestUpload: React.FC = () => {
         tenantSelectRef.current?.focus();
       }, 100);
     } catch (err: any) {
+      if (err?.response?.status === 409) {
+        const conflict = err.response.data?.detail || err.response.data;
+        if (conflict && (conflict.matched || conflict.overlapping_rows !== undefined)) {
+          setConflictData({
+            matched: conflict.matched || 'Duplicate submission',
+            submitted_by: conflict.submitted_by || 'Unknown',
+            submitted_at: conflict.submitted_at || 'Recently',
+            batch_id: conflict.batch_id || 'N/A',
+            overlapping_rows: conflict.overlapping_rows || 0,
+            message: conflict.message,
+          });
+          setIsConflictOpen(true);
+          return;
+        }
+      }
+      const errMsg = err?.response?.data?.detail || err.message || 'File ingestion failed. Please verify the format and tenant assignment.';
       setFeedbackMessage({
         type: 'error',
-        text: err.message || 'File ingestion failed. Please verify the format and tenant assignment.',
+        text: errMsg,
       });
     } finally {
       setIsSubmitting(false);
+      setIsOverriding(false);
     }
   };
 
@@ -375,12 +388,20 @@ export const IngestUpload: React.FC = () => {
 
           <div className="w-full sm:w-72">
             {isLoadingTenants ? (
-              <div className="flex items-center gap-2 text-xs text-slate-400 py-2">
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                <span>Loading assigned tenants...</span>
+              <LoadingSkeleton variant="rectangular" className="h-9 w-full" />
+            ) : tenantsError ? (
+              <div className="flex items-center justify-between gap-2 text-xs text-rose-500 py-1">
+                <span>{tenantsError}</span>
+                <button
+                  type="button"
+                  onClick={loadTenants}
+                  className="px-2 py-1 text-xs font-semibold rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400"
+                >
+                  Retry
+                </button>
               </div>
             ) : tenants.length === 0 ? (
-              <div className="text-xs text-amber-500 font-medium">
+              <div className="text-xs text-amber-500 font-medium py-2">
                 No assigned tenants found for your account.
               </div>
             ) : (
@@ -458,21 +479,11 @@ export const IngestUpload: React.FC = () => {
           >
             Select Local File
           </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleLoadSample('q3_sales_orders_summit.csv');
-            }}
-            className="px-3.5 py-2 text-xs font-semibold rounded-control border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-          >
-            Use Sample Orders CSV (14.2K rows)
-          </button>
         </div>
       </div>
 
-      {/* Selected File Details & Inferred Schema Preview */}
-      {simulatedFileName && (
+      {/* Selected File Details */}
+      {selectedFile && (
         <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark space-y-5 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-helios-border-light dark:border-helios-border-dark pb-4">
             <div className="flex items-center gap-3">
@@ -481,14 +492,14 @@ export const IngestUpload: React.FC = () => {
               </div>
               <div>
                 <h4 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark font-mono">
-                  {simulatedFileName}
+                  {selectedFile.name}
                 </h4>
                 <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
                   Target Tenant:{' '}
                   <strong className="text-helios-text-primary-light dark:text-helios-text-primary-dark">
                     {selectedTenant?.name || `Tenant #${selectedTenantId}`}
                   </strong>{' '}
-                  · 14,280 rows detected
+                  · {(selectedFile.size / 1024).toFixed(1)} KB
                 </p>
               </div>
             </div>
@@ -497,67 +508,48 @@ export const IngestUpload: React.FC = () => {
               {uploadStatus === 'ready' && (
                 <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-helios-accent-teal border border-emerald-500/20 flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4" />
-                  Schema Validated
+                  Ready to Ingest
                 </span>
               )}
             </div>
           </div>
 
-          {/* Inferred Column Schema Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-helios-border-light dark:border-helios-border-dark text-helios-text-secondary-light dark:text-helios-text-secondary-dark uppercase tracking-wider text-[11px]">
-                  <th className="pb-2.5 font-semibold">Column Name</th>
-                  <th className="pb-2.5 font-semibold">Inferred Type</th>
-                  <th className="pb-2.5 font-semibold">Sample Value</th>
-                  <th className="pb-2.5 font-semibold">Nullability</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark font-mono">
-                <tr>
-                  <td className="py-2.5 text-helios-text-primary-light dark:text-helios-text-primary-dark font-semibold">
-                    order_id
-                  </td>
-                  <td className="py-2.5 text-helios-accent-blue font-semibold">string</td>
-                  <td className="py-2.5 text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-sans">
-                    &quot;ORD-98214&quot;
-                  </td>
-                  <td className="py-2.5 text-helios-accent-teal font-sans">Non-nullable</td>
-                </tr>
-                <tr>
-                  <td className="py-2.5 text-helios-text-primary-light dark:text-helios-text-primary-dark font-semibold">
-                    customer_email
-                  </td>
-                  <td className="py-2.5 text-helios-accent-blue font-semibold">string</td>
-                  <td className="py-2.5 text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-sans">
-                    &quot;buyer@example.com&quot;
-                  </td>
-                  <td className="py-2.5 text-helios-accent-teal font-sans">Non-nullable</td>
-                </tr>
-                <tr>
-                  <td className="py-2.5 text-helios-text-primary-light dark:text-helios-text-primary-dark font-semibold">
-                    total_amount
-                  </td>
-                  <td className="py-2.5 text-helios-accent-blue font-semibold">decimal(10,2)</td>
-                  <td className="py-2.5 text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-sans">
-                    142.50
-                  </td>
-                  <td className="py-2.5 text-amber-500 font-sans">Nullable (0.2%)</td>
-                </tr>
-                <tr>
-                  <td className="py-2.5 text-helios-text-primary-light dark:text-helios-text-primary-dark font-semibold">
-                    ordered_at
-                  </td>
-                  <td className="py-2.5 text-helios-accent-blue font-semibold">timestamp</td>
-                  <td className="py-2.5 text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-sans">
-                    2026-09-22T14:30:00Z
-                  </td>
-                  <td className="py-2.5 text-helios-accent-teal font-sans">Non-nullable</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          {/* Real Inferred Schema Preview if returned from API */}
+          {realPreview && realPreview.column_mappings && (
+            <div className="overflow-x-auto">
+              <div className="mb-2 text-xs font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
+                Inferred Schema Preview ({realPreview.inferred_template})
+              </div>
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-helios-border-light dark:border-helios-border-dark text-helios-text-secondary-light dark:text-helios-text-secondary-dark uppercase tracking-wider text-[11px]">
+                    <th className="pb-2.5 font-semibold">Source Column</th>
+                    <th className="pb-2.5 font-semibold">Target Column</th>
+                    <th className="pb-2.5 font-semibold">Inferred Type</th>
+                    <th className="pb-2.5 font-semibold">Confidence</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark font-mono">
+                  {realPreview.column_mappings.map((col, idx) => (
+                    <tr key={idx}>
+                      <td className="py-2 text-helios-text-primary-light dark:text-helios-text-primary-dark font-semibold">
+                        {col.source_column}
+                      </td>
+                      <td className="py-2 text-helios-accent-blue font-semibold">
+                        {col.target_column}
+                      </td>
+                      <td className="py-2 text-slate-500 font-sans">
+                        {col.inferred_type}
+                      </td>
+                      <td className="py-2 text-helios-accent-teal font-sans">
+                        {Math.round(col.confidence_score * 100)}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           {/* Action Row */}
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-helios-border-light dark:border-helios-border-dark">
@@ -602,6 +594,14 @@ export const IngestUpload: React.FC = () => {
         onDone={handleDoneForNow}
         doneButtonLabel="Done for now"
         onClear={() => setSessionItems([])}
+      />
+
+      <DuplicateConflictDialog
+        isOpen={isConflictOpen}
+        conflictData={conflictData}
+        onClose={() => setIsConflictOpen(false)}
+        onOverride={(reason) => handleSubmitUpload(true, reason)}
+        isOverriding={isOverriding}
       />
     </div>
   );

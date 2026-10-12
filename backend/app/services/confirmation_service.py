@@ -23,7 +23,7 @@ def trigger_silver_stage(
     column_mapping: Dict[str, Any],
 ) -> None:
     """
-    Hook to trigger Medallion Silver transformation (Module 9).
+    Hook to trigger Medallion Silver transformation.
     Called immediately upon confirmation to process Bronze data into Silver tables.
     """
     logger.info(
@@ -32,13 +32,9 @@ def trigger_silver_stage(
         tenant_id,
         confirmed_template,
     )
-    try:
-        from pipeline.cleaning.run_silver import run_silver_pipeline
-        # If running asynchronously in background or direct execution:
-        # run_silver_pipeline(batch_id=batch_id)
-        logger.info("Silver pipeline registered and dispatched for batch %s", batch_id)
-    except Exception as exc:
-        logger.warning("Could not automatically execute Silver pipeline for batch %s: %s", batch_id, exc)
+    from pipeline.runner import submit_batch_run
+    submit_batch_run(tenant_id=tenant_id, batch_id=batch_id, start_stage="silver")
+
 
 
 class ConfirmationService:
@@ -64,10 +60,12 @@ class ConfirmationService:
                 PendingUploadOut(
                     batch_id=item["batch_id"],
                     tenant_id=int(item["tenant_id"]),
+                    tenant_name=item.get("tenant_name"),
                     upload_id=int(item["upload_id"]) if item.get("upload_id") is not None else None,
                     source_type=item.get("source_type") or "upload",
+                    filename=item.get("filename") or "upload.data",
                     stage=item.get("stage") or "schema_inference",
-                    status=item.get("status") or "awaiting_confirmation",
+                    status=item.get("status") or "pending_review",
                     detected_template=item.get("detected_template"),
                     confidence_score=float(item["confidence_score"]) if item.get("confidence_score") is not None else None,
                     created_at=item.get("created_at"),
@@ -135,10 +133,17 @@ class ConfirmationService:
             )
 
         current_status = meta.get("status")
-        if current_status != "awaiting_confirmation":
+        if current_status not in ("pending_review", "awaiting_confirmation"):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Batch '{batch_id}' cannot be confirmed because status is '{current_status}'.",
+                detail=f"Batch '{batch_id}' cannot be confirmed because status is '{current_status}'. Must be pending_review.",
+            )
+
+        # Block if another batch for the same tenant is currently running (Requirement: 409)
+        if repo.is_tenant_running_batch(tenant_id=tenant_id, exclude_batch_id=batch_id):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Another batch is already actively running for tenant {tenant_id}.",
             )
 
         # Merge corrected mapping over inferred mapping if provided
@@ -154,7 +159,7 @@ class ConfirmationService:
         if request.corrected_mapping:
             final_mapping.update(request.corrected_mapping)
 
-        # Persist confirmation, optional internal notes, and transition status
+        # Persist confirmation, optional internal notes, and transition status to running
         repo.save_confirmation(
             batch_id=batch_id,
             confirmed_template=request.confirmed_template,
@@ -163,7 +168,18 @@ class ConfirmationService:
             internal_notes=request.internal_notes,
         )
 
-        # Trigger Silver stage (Module 9)
+        # Record audit trail entry
+        repo.write_audit_trail(
+            actor_user_id=current_user.id,
+            actor_role=current_user.role.value,
+            action="batch_approved",
+            tenant_id=tenant_id,
+            batch_id=batch_id,
+            reason=request.internal_notes or "Schema approved by reviewer",
+            details_json=json.dumps({"confirmed_template": request.confirmed_template, "mapping": final_mapping}),
+        )
+
+        # Hand batch to the unified Pipeline Runner via trigger_silver_stage
         trigger_silver_stage(
             batch_id=batch_id,
             tenant_id=tenant_id,
@@ -175,8 +191,78 @@ class ConfirmationService:
             batch_id=batch_id,
             status="silver_running",
             confirmed_template=request.confirmed_template,
-            message=f"Batch '{batch_id}' successfully confirmed with template '{request.confirmed_template}'. Silver pipeline initiated.",
+            message=f"Batch '{batch_id}' successfully approved with template '{request.confirmed_template}'. Pipeline runner initiated.",
         )
+
+
+    @classmethod
+    def reject_batch(
+        cls,
+        batch_id: str,
+        reason: str,
+        current_user: UserOut,
+        repo: ConfirmationRepository,
+    ) -> Dict[str, Any]:
+        """
+        Reject an ingestion batch with a mandatory reason (min 5 chars).
+        Marks status as rejected, records audit trail, notifies submitter, and leaves Bronze data intact.
+        """
+        meta = repo.get_batch_metadata(batch_id)
+        if not meta:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Batch '{batch_id}' was not found.",
+            )
+
+        tenant_id = int(meta["tenant_id"])
+        if not repo.check_user_tenant_access(current_user.id, current_user.role.value, tenant_id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: You are not authorized to review batches for this tenant.",
+            )
+
+        cleaned_reason = (reason or "").strip()
+        if len(cleaned_reason) < 5:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Rejection reason is required and must be at least 5 characters.",
+            )
+
+        repo.reject_batch(
+            batch_id=batch_id,
+            reason=cleaned_reason,
+            user_id=current_user.id,
+            tenant_id=tenant_id,
+        )
+
+        # Record audit trail
+        repo.write_audit_trail(
+            actor_user_id=current_user.id,
+            actor_role=current_user.role.value,
+            action="batch_rejected",
+            tenant_id=tenant_id,
+            batch_id=batch_id,
+            reason=cleaned_reason,
+        )
+
+        # Notify submitter
+        try:
+            from app.services.notification_service import NotificationService
+            NotificationService.create_notification(
+                tenant_id=tenant_id,
+                message=f"Your batch {batch_id} was rejected: {cleaned_reason}",
+                notification_type="error",
+                cursor=repo.cursor,
+            )
+        except Exception:
+            pass
+
+        return {
+            "batch_id": batch_id,
+            "status": "rejected",
+            "message": f"Batch '{batch_id}' has been rejected.",
+            "reason": cleaned_reason,
+        }
 
     @staticmethod
     def get_completeness(

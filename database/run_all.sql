@@ -19,12 +19,21 @@
 %run ./platform/07_pipeline_status
 %run ./platform/08_inferred_schema
 %run ./platform/09_notification_log
+%run ./platform/10_alter_inferred_schema_internal_notes
+%run ./platform/11_support_messages
+%run ./platform/12_alter_support_messages_message_source
+%run ./platform/13_alter_tenants_details
+%run ./platform/14_alter_users_staff_details
+%run ./platform/15_alter_users_security
+%run ./platform/16_alter_pending_uploads_review
+%run ./platform/17_alter_pipeline_status_lifecycle
 %run ./platform/row_filters
 
 -- COMMAND ----------
 -- 3. Meta Layer Tables (Audit & Data Quality Logs)
 %run ./meta/01_etl_audit_log
 %run ./meta/02_data_quality_log
+%run ./meta/03_audit_trail
 
 -- COMMAND ----------
 -- 4. Bronze Layer Tables (Raw Landing Zone)

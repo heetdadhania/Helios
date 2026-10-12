@@ -58,25 +58,6 @@ export const exportService = {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(downloadUrl);
     } catch (error: any) {
-      // In offline / preview demo fallback
-      if (!error.response || error.code === 'ERR_NETWORK') {
-        const fallbackContent =
-          format === 'csv'
-            ? `Report,${report_type}\nDate,${new Date().toISOString()}\nTotal Revenue,148290\nTotal Orders,4812\n`
-            : '%PDF-1.4 Mock Demo PDF Export for Helios';
-        const mimeType = format === 'csv' ? 'text/csv' : 'application/pdf';
-        const blob = new Blob([fallbackContent], { type: mimeType });
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.setAttribute('download', `helios_${report_type}_demo.${format}`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(downloadUrl);
-        return;
-      }
-
       // If backend returned error inside blob
       if (error.response?.data instanceof Blob) {
         const text = await error.response.data.text();
@@ -88,7 +69,7 @@ export const exportService = {
         }
       }
 
-      const errMsg = error.response?.data?.detail || 'Failed to export dashboard data.';
+      const errMsg = error.response?.data?.detail || error.message || 'Failed to export dashboard data.';
       throw new Error(errMsg);
     }
   },

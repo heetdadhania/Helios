@@ -1,6 +1,14 @@
 import logging
+import sys
+from pathlib import Path
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
+
+# Ensure repo root is in sys.path so pipeline package is always importable
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -22,7 +30,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Environment: %s", settings.ENVIRONMENT)
     logger.info("Databricks Host: %s", settings.DATABRICKS_SERVER_HOSTNAME)
     logger.info("Databricks Catalog: %s", settings.DATABRICKS_CATALOG)
+    try:
+        from pipeline.runner import mark_stalled_runs_on_startup
+        mark_stalled_runs_on_startup()
+    except Exception as exc:
+        logger.warning("Failed to mark stalled runs on startup: %s", exc)
     yield
+
     logger.info("Shutting down %s...", settings.PROJECT_NAME)
     from app.db.base import close_connection_pool
     close_connection_pool()
@@ -109,6 +123,10 @@ def create_application() -> FastAPI:
     from app.api.team import router as team_router
     app.include_router(team_router, prefix="/api/team-members", tags=["Team Members"])
 
+    # Include Data Quality Router (/api/data-quality)
+    from app.api.data_quality import router as data_quality_router
+    app.include_router(data_quality_router, prefix="/api/data-quality", tags=["Data Quality"])
+
     # Include Versioned API Routers
     app.include_router(api_router, prefix=settings.API_V1_STR)
 
@@ -133,6 +151,24 @@ def create_application() -> FastAPI:
                 "details": exc.details,
                 "error_type": exc.__class__.__name__,
             },
+        )
+
+    from app.services.duplicate_detector import DuplicateSubmissionException
+
+    @app.exception_handler(DuplicateSubmissionException)
+    async def duplicate_submission_handler(request: Request, exc: DuplicateSubmissionException) -> JSONResponse:
+        """Handler for 409 duplicate submission exceptions providing full conflict details."""
+        logger.warning(
+            "Duplicate submission detected on %s %s: %s",
+            request.method,
+            request.url.path,
+            exc.conflict_data,
+        )
+        payload = dict(exc.conflict_data)
+        payload["detail"] = exc.conflict_data
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content=payload,
         )
 
     return app

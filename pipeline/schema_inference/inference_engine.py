@@ -8,6 +8,7 @@ except ImportError:
     Connection = Any  # type: ignore
     Cursor = Any  # type: ignore
 
+from app.core.config import settings
 from pipeline.schema_inference.column_matcher import (
     DEFAULT_SIMILARITY_THRESHOLD,
     match_columns_to_template,
@@ -63,29 +64,41 @@ def score_template_fit(
 
     matches = match_columns_to_template(incoming_columns, template, threshold=threshold)
 
-    matched_targets = {
-        m["target_field"] for m in matches.values() if m is not None and "target_field" in m
-    }
     template_fields = template.get("fields", {})
     required_fields = template.get("required_fields", [])
 
-    # Check required fields
-    matched_req = [req for req in required_fields if req in matched_targets]
-    req_ratio = (len(matched_req) / len(required_fields)) if required_fields else 1.0
+    matched_targets = {
+        m["target_field"] for m in matches.values() if m is not None and "target_field" in m
+    }
 
-    # Field coverage
+    # Evaluate required fields: count mapped and their match strength
+    req_match_scores: List[float] = []
+    for req in required_fields:
+        col_scores = [
+            (m["score"] / 100.0)
+            for m in matches.values()
+            if m is not None and m.get("target_field") == req
+        ]
+        req_match_scores.append(max(col_scores, default=0.0))
+
+    req_count = len(required_fields)
+    matched_req_count = sum(1 for s in req_match_scores if s > 0)
+    req_coverage = (matched_req_count / req_count) if req_count else 1.0
+    avg_req_score = (sum(req_match_scores) / req_count) if req_count else 1.0
+
+    # Total field coverage
     field_coverage = len(matched_targets) / len(template_fields) if template_fields else 0.0
 
-    # Average match similarity for matched columns
+    # Average match similarity for all matched columns
     valid_scores = [m["score"] for m in matches.values() if m is not None and "score" in m]
     avg_score_ratio = (sum(valid_scores) / (len(valid_scores) * 100.0)) if valid_scores else 0.0
 
-    # Scoring blend
-    if req_ratio < 1.0:
-        # Severe penalty if missing required key fields
-        score = (0.5 * req_ratio + 0.3 * field_coverage + 0.2 * avg_score_ratio) * req_ratio
+    # Confidence score calculation:
+    # A file with unmapped required fields cannot score high (penalized by req_coverage squared)
+    if req_coverage < 1.0:
+        score = (0.7 * avg_req_score + 0.15 * field_coverage + 0.15 * avg_score_ratio) * (req_coverage ** 2)
     else:
-        score = 0.4 * req_ratio + 0.35 * field_coverage + 0.25 * avg_score_ratio
+        score = 0.5 * avg_req_score + 0.3 * field_coverage + 0.2 * avg_score_ratio
 
     clamped_score = max(0.0, min(1.0, score))
     return round(clamped_score, 3), matches
@@ -202,7 +215,7 @@ def infer_schema_for_batch(
     tenant_id: int,
     records: List[Dict[str, Any]],
     threshold: float = DEFAULT_SIMILARITY_THRESHOLD,
-    catalog: str = "helios",
+    catalog: Optional[str] = None,
     cursor: Optional[Cursor] = None,
 ) -> Dict[str, Any]:
     """
@@ -215,6 +228,7 @@ def infer_schema_for_batch(
     6. Persists schema mapping to platform.inferred_schema (with confirmed_by=NULL).
     7. Updates platform.pipeline_status status to 'awaiting_confirmation'.
     """
+    catalog = catalog or getattr(settings, "DATABRICKS_CATALOG", "helios_catalog")
     active_cursor, owned_conn = _acquire_cursor_context(cursor, catalog)
 
     try:

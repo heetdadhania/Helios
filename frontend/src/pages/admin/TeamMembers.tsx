@@ -101,6 +101,7 @@ export const TeamMembers: React.FC = () => {
 
   const loadData = async () => {
     setIsLoading(true);
+    setGeneralError(null);
     try {
       const [membersData, tenantsData] = await Promise.all([
         adminService.getTeamMembers(),
@@ -108,8 +109,8 @@ export const TeamMembers: React.FC = () => {
       ]);
       setTeamMembers(membersData);
       setTenants(tenantsData);
-    } catch {
-      // Fallback handled in service
+    } catch (err: any) {
+      setGeneralError(err?.response?.data?.detail || err.message || 'Failed to load team members.');
     } finally {
       setIsLoading(false);
     }
@@ -324,6 +325,25 @@ export const TeamMembers: React.FC = () => {
             <div className="h-5 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
             <div className="h-10 w-full bg-slate-100 dark:bg-slate-900 rounded" />
             <div className="h-10 w-full bg-slate-100 dark:bg-slate-900 rounded" />
+          </div>
+        ) : generalError ? (
+          <div className="p-12 text-center space-y-3">
+            <div className="w-12 h-12 mx-auto rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
+              Failed to Load Team Members
+            </h3>
+            <p className="text-xs text-rose-600 dark:text-rose-400 max-w-sm mx-auto">
+              {generalError}
+            </p>
+            <button
+              type="button"
+              onClick={loadData}
+              className="px-4 py-2 text-xs font-semibold rounded-control bg-helios-accent-blue text-white hover:bg-blue-600 transition-colors"
+            >
+              Retry
+            </button>
           </div>
         ) : filteredMembers.length === 0 ? (
           <div className="p-12 text-center space-y-3">

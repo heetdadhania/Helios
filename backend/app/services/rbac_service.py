@@ -26,9 +26,16 @@ class RBACService:
         return current_level >= required_level
 
     @classmethod
-    def require_role(cls, current_user: Dict[str, Any], required_role: UserRole) -> None:
+    def require_role(cls, current_user: Any, required_role: UserRole) -> None:
         """Raise HTTPException if user does not possess required role."""
-        user_role = current_user.get("role", "")
+        if hasattr(current_user, "role"):
+            raw_role = current_user.role
+            user_role = raw_role.value if hasattr(raw_role, "value") else str(raw_role)
+        elif isinstance(current_user, dict):
+            user_role = current_user.get("role", "")
+        else:
+            user_role = str(getattr(current_user, "role", ""))
+
         if not cls.verify_role_permission(user_role, required_role):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -37,12 +44,16 @@ class RBACService:
 
     @staticmethod
     def enforce_tenant_isolation(
-        current_user: Dict[str, Any],
+        current_user: Any,
         target_tenant_id: str,
     ) -> None:
         """Ensure authenticated user is restricted strictly to their assigned tenant data."""
-        user_tenant = str(current_user.get("tenant_id", ""))
-        user_role = current_user.get("role", "")
+        if hasattr(current_user, "tenant_id"):
+            user_tenant = str(current_user.tenant_id or "")
+        elif isinstance(current_user, dict):
+            user_tenant = str(current_user.get("tenant_id", "") or "")
+        else:
+            user_tenant = str(getattr(current_user, "tenant_id", "") or "")
 
         # Super-admin may cross boundaries if role is admin and no tenant restriction, otherwise strictly enforce
         if user_tenant and user_tenant != target_tenant_id:

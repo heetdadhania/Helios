@@ -9,6 +9,7 @@ except ImportError:
     Connection = Any  # type: ignore
     Cursor = Any  # type: ignore
 
+from app.core.config import settings
 from pipeline.ingestion.bronze_loader import load_bronze_records
 from pipeline.ingestion.read_source import detect_target_table, read_source
 
@@ -122,7 +123,7 @@ def run_bronze_ingestion(
     data: Any,
     target_table: Optional[str] = None,
     upload_id: Optional[int] = None,
-    catalog: str = "helios",
+    catalog: Optional[str] = None,
     cursor: Optional[Cursor] = None,
 ) -> Dict[str, Any]:
     """
@@ -131,6 +132,7 @@ def run_bronze_ingestion(
     Normalizes raw source data, writes to bronze Delta tables, updates pipeline_status,
     and logs duration metrics to meta.etl_audit_log.
     """
+    catalog = catalog or getattr(settings, "DATABRICKS_CATALOG", "helios_catalog")
     started_at = datetime.now(timezone.utc)
     start_perf = time.perf_counter()
     active_cursor, owned_conn = _acquire_cursor_context(cursor, catalog)

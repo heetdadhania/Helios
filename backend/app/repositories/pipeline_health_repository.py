@@ -1,4 +1,6 @@
+import json
 import logging
+import os
 from typing import Any, Dict, List, Optional
 
 try:
@@ -68,6 +70,7 @@ class PipelineHealthRepository:
         List all pipeline runs.
         Admins see all tenants; Team Members see only their assigned tenants.
         """
+        stall_minutes = int(os.getenv("STALL_MINUTES", "15"))
         is_admin = user_role.lower() == "admin"
         where_clauses: List[str] = []
         params: Dict[str, Any] = {}
@@ -88,6 +91,18 @@ class PipelineHealthRepository:
                 where_clauses.append("LOWER(ps.status) = :status_filter")
                 params["status_filter"] = norm_filter
 
+        status_expr = f"""
+            CASE 
+                WHEN LOWER(ps.status) IN ('running', 'ingesting', 'silver_running', 'gold_running')
+                     AND (
+                         (ps.last_heartbeat_at IS NULL AND ps.created_at < (current_timestamp() - INTERVAL {stall_minutes} MINUTES))
+                         OR
+                         (ps.last_heartbeat_at IS NOT NULL AND ps.last_heartbeat_at < (current_timestamp() - INTERVAL {stall_minutes} MINUTES))
+                     ) THEN 'stalled'
+                ELSE ps.status
+            END
+        """
+
         if is_admin:
             where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
             query = f"""
@@ -98,10 +113,13 @@ class PipelineHealthRepository:
                     t.business_name AS tenant_name,
                     COALESCE(pu.source_type, 'upload') AS source_type,
                     ps.stage AS current_stage,
-                    ps.status,
+                    {status_expr} AS status,
                     ps.created_at AS started_at,
                     ps.updated_at,
-                    ps.error_message
+                    ps.error_message,
+                    ps.failed_stage,
+                    ps.failure_message,
+                    ps.failure_next_step
                 FROM {self.pipeline_table} ps
                 LEFT JOIN {self.tenants_table} t ON ps.tenant_id = t.tenant_id
                 LEFT JOIN {self.pending_table} pu ON ps.upload_id = pu.upload_id
@@ -123,10 +141,13 @@ class PipelineHealthRepository:
                 t.business_name AS tenant_name,
                 COALESCE(pu.source_type, 'upload') AS source_type,
                 ps.stage AS current_stage,
-                ps.status,
+                {status_expr} AS status,
                 ps.created_at AS started_at,
                 ps.updated_at,
-                ps.error_message
+                ps.error_message,
+                ps.failed_stage,
+                ps.failure_message,
+                ps.failure_next_step
             FROM {self.pipeline_table} ps
             INNER JOIN {self.team_table} ta ON ps.tenant_id = ta.tenant_id
             LEFT JOIN {self.tenants_table} t ON ps.tenant_id = t.tenant_id
@@ -143,6 +164,18 @@ class PipelineHealthRepository:
         user_role: str,
     ) -> Optional[Dict[str, Any]]:
         """Fetch full run details including tenant metadata and linked audit logs."""
+        stall_minutes = int(os.getenv("STALL_MINUTES", "15"))
+        status_expr = f"""
+            CASE 
+                WHEN LOWER(ps.status) IN ('running', 'ingesting', 'silver_running', 'gold_running')
+                     AND (
+                         (ps.last_heartbeat_at IS NULL AND ps.created_at < (current_timestamp() - INTERVAL {stall_minutes} MINUTES))
+                         OR
+                         (ps.last_heartbeat_at IS NOT NULL AND ps.last_heartbeat_at < (current_timestamp() - INTERVAL {stall_minutes} MINUTES))
+                     ) THEN 'stalled'
+                ELSE ps.status
+            END
+        """
         query = f"""
             SELECT 
                 ps.batch_id,
@@ -152,10 +185,13 @@ class PipelineHealthRepository:
                 t.business_name AS tenant_name,
                 COALESCE(pu.source_type, 'upload') AS source_type,
                 ps.stage AS current_stage,
-                ps.status,
+                {status_expr} AS status,
                 ps.created_at AS started_at,
                 ps.updated_at,
-                ps.error_message
+                ps.error_message,
+                ps.failed_stage,
+                ps.failure_message,
+                ps.failure_next_step
             FROM {self.pipeline_table} ps
             LEFT JOIN {self.tenants_table} t ON ps.tenant_id = t.tenant_id
             LEFT JOIN {self.pending_table} pu ON ps.upload_id = pu.upload_id
@@ -169,6 +205,7 @@ class PipelineHealthRepository:
         tenant_id = int(run_record["tenant_id"])
         if not self.check_user_tenant_access(user_id, user_role, tenant_id):
             return None
+
 
         audit_query = f"""
             SELECT 
@@ -258,3 +295,52 @@ class PipelineHealthRepository:
             insert_notify,
             {"tenant_id": tenant_id, "user_id": target_user_id, "message": message},
         )
+
+    def cancel_run(self, batch_id: str, user_id: int) -> None:
+        """Mark batch as cancel_requested and cancelled."""
+        query = f"""
+            UPDATE {self.pipeline_table}
+            SET cancel_requested = true,
+                status = 'cancelled',
+                stage = 'cancelled',
+                cancelled_by = :user_id,
+                updated_at = current_timestamp()
+            WHERE batch_id = :batch_id
+        """
+        self.cursor.execute(query, {"batch_id": batch_id, "user_id": user_id})
+
+    def write_audit_trail(
+        self,
+        actor_user_id: Optional[int],
+        actor_role: str,
+        action: str,
+        tenant_id: int,
+        batch_id: str,
+        reason: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Record an administrative or operational event in meta.audit_trail."""
+        try:
+            query = f"""
+                INSERT INTO `{self.catalog}`.`meta`.`audit_trail` (
+                    occurred_at, actor_user_id, actor_role, action, tenant_id, batch_id, reason, details_json
+                )
+                VALUES (
+                    current_timestamp(), :actor_user_id, :actor_role, :action, :tenant_id, :batch_id, :reason, :details_json
+                )
+            """
+            self.cursor.execute(
+                query,
+                {
+                    "actor_user_id": actor_user_id,
+                    "actor_role": actor_role,
+                    "action": action,
+                    "tenant_id": tenant_id,
+                    "batch_id": batch_id,
+                    "reason": reason,
+                    "details_json": json.dumps(details) if details else None,
+                },
+            )
+        except Exception as e:
+            logger.warning("Failed to record audit trail in PipelineHealth: %s", e)
+

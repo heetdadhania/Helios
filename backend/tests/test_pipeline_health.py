@@ -255,8 +255,7 @@ class TestPipelineHealthService(unittest.TestCase):
             "audit_logs": [],
         }
 
-        with patch("app.services.pipeline_health_service._invoke_databricks_repair_run") as mock_repair:
-            mock_repair.return_value = "repair-123"
+        with patch("pipeline.runner.submit_batch_run") as mock_runner:
             response = PipelineHealthService.retry_from_failed_stage(
                 batch_id="batch-fail",
                 current_user=self.admin_user,
@@ -264,16 +263,17 @@ class TestPipelineHealthService(unittest.TestCase):
             )
 
             self.assertEqual(response.batch_id, "batch-fail")
-            self.assertEqual(response.status, "silver_running")
-            self.assertEqual(response.current_stage, "silver_clean")
+            self.assertEqual(response.status, "running")
+            self.assertEqual(response.current_stage, "silver")
             self.assertIn("reused", response.message)
 
             self.mock_repo.update_status_for_retry.assert_called_once_with(
                 batch_id="batch-fail",
-                stage="silver_clean",
-                status="silver_running",
+                stage="silver_running",
+                status="running",
                 clear_error=True,
             )
+            mock_runner.assert_called_once_with(tenant_id=5, batch_id="batch-fail", start_stage="silver")
 
     def test_retry_already_successful_raises_400(self):
         self.mock_repo.get_run_detail.return_value = {
@@ -313,11 +313,10 @@ class TestPipelineHealthService(unittest.TestCase):
         )
 
         self.assertEqual(response.batch_id, "batch-restart")
-        self.assertEqual(response.status, "restart_required")
+        self.assertEqual(response.status, "cancelled")
         self.assertTrue(response.notification_sent)
-        self.assertIn("re-upload", response.message)
 
-        self.mock_repo.mark_restart_required.assert_called_once()
+        self.mock_repo.cancel_run.assert_called_once()
         self.mock_repo.notify_smb_owner.assert_called_once()
 
 

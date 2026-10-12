@@ -18,13 +18,14 @@ AS BEGIN
         SELECT 
             tenant_id,
             product_id AS source_product_ref,
-            -- Provide default label if product reference is minimal
-            coalesce(product_id, 'UNKNOWN_SKU') AS product_name,
-            'General' AS category
+            coalesce(product_name, product_id, 'UNKNOWN_SKU') AS product_name,
+            coalesce(category, 'General') AS category
         FROM (
             SELECT DISTINCT 
                 tenant_id, 
-                product_id
+                product_id,
+                product_name,
+                category
             FROM helios.silver.orders_clean
             WHERE tenant_id = tenant_id_param 
               AND batch_id = batch_id_param 
@@ -35,9 +36,10 @@ AS BEGIN
     ) AS source
     ON target.tenant_id = source.tenant_id 
    AND target.source_product_ref = source.source_product_ref
-    WHEN MATCHED AND (target.product_name <> source.product_name OR target.product_name IS NULL) THEN
+    WHEN MATCHED AND (target.product_name <> source.product_name OR target.category <> source.category OR target.product_name IS NULL OR target.category IS NULL) THEN
         UPDATE SET 
             target.product_name = source.product_name,
+            target.category = source.category,
             target.updated_at = current_timestamp()
     WHEN NOT MATCHED THEN
         INSERT (tenant_id, product_name, category, source_product_ref, created_at, updated_at)

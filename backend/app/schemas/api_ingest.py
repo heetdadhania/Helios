@@ -14,6 +14,14 @@ class ApiIngestPayload(BaseModel):
         max_length=MAX_RECORDS_PER_PAYLOAD,
         description=f"Array of JSON records (max {MAX_RECORDS_PER_PAYLOAD} per request)",
     )
+    override_duplicate: bool = Field(
+        default=False,
+        description="Whether to override duplicate submission check",
+    )
+    override_reason: Optional[str] = Field(
+        default=None,
+        description="Audit reason for duplicate override (min 5 characters)",
+    )
 
     @field_validator("records")
     @classmethod

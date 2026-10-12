@@ -179,6 +179,8 @@ class UploadService:
         current_user: UserOut,
         repo: UploadRepository,
         tenant_id: Optional[int] = None,
+        override_duplicate: bool = False,
+        override_reason: Optional[str] = None,
     ) -> UploadResponse:
         """
         Validate file, store in Unity Catalog Volume, generate batch UUID, and persist tracking rows.
@@ -192,17 +194,50 @@ class UploadService:
             )
 
         logger.info(
-            "Processing upload for tenant %s by user %s (role=%s, file=%s)",
+            "Processing upload for tenant %s by user %s (role=%s, file=%s, override=%s)",
             target_tenant_id,
             current_user.id,
             current_user.role,
             file.filename,
+            override_duplicate,
         )
 
         content = await file.read()
         cls.validate_file(file.filename, content)
 
         batch_id = str(uuid.uuid4())
+
+        from app.services.duplicate_detector import DuplicateDetector
+        from app.core.config import settings
+
+        file_hash = DuplicateDetector.compute_file_hash(content)
+        order_ids, total_rows = DuplicateDetector.extract_order_ids_from_file(
+            content=content,
+            filename=file.filename or "upload.data",
+        )
+
+        catalog = getattr(settings, "DATABRICKS_CATALOG", "helios_catalog")
+        user_role_str = (
+            current_user.role.value.lower()
+            if hasattr(current_user.role, "value")
+            else str(current_user.role).lower()
+        )
+
+        # Check for duplicates before creating pending item
+        DuplicateDetector.check_and_handle_duplicate(
+            cursor=repo.cursor,
+            catalog=catalog,
+            tenant_id=target_tenant_id,
+            file_hash=file_hash,
+            incoming_order_ids=order_ids,
+            total_rows=total_rows,
+            override_duplicate=override_duplicate,
+            override_reason=override_reason,
+            acting_user_id=current_user.id,
+            acting_user_role=user_role_str,
+            new_batch_id=batch_id,
+        )
+
         volume_file_path = cls.save_file(
             content=content,
             tenant_id=target_tenant_id,
@@ -217,14 +252,15 @@ class UploadService:
             file_path=volume_file_path,
             uploaded_by=current_user.id,
             status="pending",
+            file_hash=file_hash,
         )
 
         repo.create_pipeline_status(
             batch_id=batch_id,
             tenant_id=target_tenant_id,
             upload_id=int(upload_record["upload_id"]),
-            stage="received",
-            status="ingested",
+            stage="bronze_ingest",
+            status="ingesting",
         )
 
         try:
@@ -239,10 +275,15 @@ class UploadService:
         except Exception as notif_err:
             logger.warning("Failed to dispatch upload_received notification: %s", notif_err)
 
+        # Trigger shared ingestion and schema inference in the background
+        from pipeline.runner import pipeline_executor
+        from pipeline.submission import ingest_and_infer
+        pipeline_executor.submit(ingest_and_infer, target_tenant_id, batch_id)
+
         return UploadResponse(
             upload_id=int(upload_record["upload_id"]),
             batch_id=batch_id,
-            status=str(upload_record["status"]),
+            status="pending",
         )
 
     @staticmethod

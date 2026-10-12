@@ -21,10 +21,12 @@ export const DataQualityLog: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedLog, setSelectedLog] = useState<DataQualityLogItem | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [error, setError] = useState<string | null>(null);
   const pageSize = 15;
 
   const loadData = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const [logsData, tenantsData] = await Promise.all([
         adminService.getDataQualityLogs(),
@@ -32,8 +34,8 @@ export const DataQualityLog: React.FC = () => {
       ]);
       setLogs(logsData);
       setTenants(tenantsData);
-    } catch {
-      // Fallbacks handled gracefully in adminService
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || err.message || 'Failed to load data quality logs.');
     } finally {
       setIsLoading(false);
     }
@@ -162,6 +164,25 @@ export const DataQualityLog: React.FC = () => {
             <div className="h-5 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
             <div className="h-10 w-full bg-slate-100 dark:bg-slate-900 rounded" />
             <div className="h-10 w-full bg-slate-100 dark:bg-slate-900 rounded" />
+          </div>
+        ) : error ? (
+          <div className="p-12 text-center space-y-3">
+            <div className="w-12 h-12 mx-auto rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
+              Failed to Load Data Quality Logs
+            </h3>
+            <p className="text-xs text-rose-600 dark:text-rose-400 max-w-sm mx-auto">
+              {error}
+            </p>
+            <button
+              type="button"
+              onClick={loadData}
+              className="px-4 py-2 text-xs font-semibold rounded-control bg-helios-accent-blue text-white hover:bg-blue-600 transition-colors"
+            >
+              Retry
+            </button>
           </div>
         ) : filteredLogs.length === 0 ? (
           <div className="p-12 text-center space-y-3">

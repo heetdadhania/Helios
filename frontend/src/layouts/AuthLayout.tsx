@@ -35,7 +35,7 @@ export const AuthLayout: React.FC = () => {
             </div>
           </div>
 
-          {/* Stylized / blurred mockup of the dashboard peeking up from the bottom */}
+          {/* Stylized / blurred preview of the dashboard peeking up from the bottom */}
           <div className="relative z-0 mt-6 -mb-12 -mr-10 opacity-90 transition-transform duration-500 hover:scale-[1.02]">
             <div className="w-[120%] p-4 rounded-card bg-helios-card-dark/80 backdrop-blur-md border border-white/20 shadow-2xl space-y-3">
               <div className="flex items-center justify-between border-b border-white/10 pb-2">

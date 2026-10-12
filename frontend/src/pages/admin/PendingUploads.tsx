@@ -12,6 +12,7 @@ import {
   RefreshCw,
   AlertCircle,
   CheckCircle2,
+  Loader2,
 } from 'lucide-react';
 import { PendingUpload, SourceType } from '@/types/admin';
 import { adminService } from '@/services/adminService';
@@ -198,6 +199,7 @@ export const PendingUploads: React.FC = () => {
                   <th className="py-3 px-4 font-semibold">Source Type</th>
                   <th className="py-3 px-4 font-semibold">Dataset / File</th>
                   <th className="py-3 px-4 font-semibold">Rows / Size</th>
+                  <th className="py-3 px-4 font-semibold">Status</th>
                   <th className="py-3 px-4 font-semibold">Received</th>
                   <th className="py-3 px-4 font-semibold text-right">Actions</th>
                 </tr>
@@ -205,59 +207,91 @@ export const PendingUploads: React.FC = () => {
               <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark">
                 {filteredUploads
                   .slice((currentPage - 1) * pageSize, currentPage * pageSize)
-                  .map((upl: PendingUpload) => (
-                  <tr
-                    key={upl.batch_id}
-                    className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer group"
-                    onClick={() => navigate(`/admin/confirm-schema/${upl.batch_id}`)}
-                  >
-                    <td className="py-3.5 px-4 font-mono text-helios-accent-blue font-bold">
-                      {upl.batch_id}
-                    </td>
-                    <td className="py-3.5 px-4 font-medium">
-                      {upl.tenant_name || `Tenant #${upl.tenant_id}`}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      {renderSourceTypeBadge(upl.source_type)}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-1.5 font-mono text-slate-600 dark:text-slate-300">
-                        <FileText className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span className="truncate max-w-[200px]" title={upl.filename}>
-                          {upl.filename}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className="font-semibold">{upl.row_count.toLocaleString()}</span> rows
-                      {upl.file_size_bytes && (
-                        <span className="text-slate-400 ml-1">
-                          ({formatFileSize(upl.file_size_bytes)})
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-400">
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 shrink-0" />
-                        <span>{new Date(upl.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/admin/confirm-schema/${upl.batch_id}`);
+                  .map((upl: PendingUpload) => {
+                    const isPreparing = upl.status === 'ingesting';
+                    return (
+                      <tr
+                        key={upl.batch_id}
+                        className={`transition-colors ${
+                          isPreparing
+                            ? 'opacity-80 bg-black/[0.01] dark:bg-white/[0.01] cursor-not-allowed'
+                            : 'hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer group'
+                        }`}
+                        onClick={() => {
+                          if (!isPreparing) {
+                            navigate(`/admin/confirm-schema/${upl.batch_id}`);
+                          }
                         }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-helios-accent-blue hover:bg-blue-600 text-white shadow-sm transition-all"
                       >
-                        <span>Review & Confirm</span>
-                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                        <td className="py-3.5 px-4 font-mono text-helios-accent-blue font-bold">
+                          {upl.batch_id}
+                        </td>
+                        <td className="py-3.5 px-4 font-medium">
+                          {upl.tenant_name || `Tenant #${upl.tenant_id}`}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          {renderSourceTypeBadge(upl.source_type)}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-1.5 font-mono text-slate-600 dark:text-slate-300">
+                            <FileText className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span className="truncate max-w-[200px]" title={upl.filename}>
+                              {upl.filename}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="font-semibold">{upl.row_count.toLocaleString()}</span> rows
+                          {upl.file_size_bytes && (
+                            <span className="text-slate-400 ml-1">
+                              ({formatFileSize(upl.file_size_bytes)})
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          {isPreparing ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                              <span>Preparing</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                              <span>Pending Review</span>
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-400">
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5 shrink-0" />
+                            <span>{new Date(upl.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          <button
+                            type="button"
+                            disabled={isPreparing}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!isPreparing) {
+                                navigate(`/admin/confirm-schema/${upl.batch_id}`);
+                              }
+                            }}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                              isPreparing
+                                ? 'opacity-40 cursor-not-allowed bg-slate-500/20 text-slate-400'
+                                : 'bg-helios-accent-blue hover:bg-blue-600 text-white shadow-sm'
+                            }`}
+                            title={isPreparing ? 'Preparing batch: Bronze ingestion and schema inference running' : 'Review & Confirm'}
+                          >
+                            <span>{isPreparing ? 'Preparing...' : 'Review & Confirm'}</span>
+                            {!isPreparing && <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
               </tbody>
+
             </table>
           </div>
           <Pagination

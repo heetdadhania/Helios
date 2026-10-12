@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS helios.gold.fact_orders (
   total DECIMAL(18, 4) NOT NULL COMMENT 'Net revenue amount for this line item',
   profit DECIMAL(18, 4) COMMENT 'Calculated gross profit contribution after estimated product cost',
   source_order_id STRING COMMENT 'Natural source system order identifier',
+  source_order_line_key STRING COMMENT 'Natural source order line identifier',
   batch_id STRING NOT NULL COMMENT 'Ingestion batch UUID linking through silver and bronze',
   created_at TIMESTAMP NOT NULL DEFAULT current_timestamp() COMMENT 'Record insertion timestamp into gold layer',
   CONSTRAINT pk_fact_orders PRIMARY KEY (order_line_id)

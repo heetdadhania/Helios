@@ -14,6 +14,8 @@ from app.schemas.confirmation import (
     ConfirmRequest,
     ConfirmResponse,
     PendingUploadOut,
+    RejectRequest,
+    RejectResponse,
     SchemaPreviewOut,
 )
 from app.services.confirmation_service import ConfirmationService
@@ -81,6 +83,32 @@ def confirm_schema_mapping(
         current_user=current_user,
         repo=repo,
     )
+
+
+@router.post(
+    "/{batch_id}/reject",
+    response_model=RejectResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Reject Ingestion Batch",
+    description="Reject pending batch with mandatory explanation (min 5 chars), leaving Bronze data intact and recording audit trail.",
+)
+def reject_batch(
+    batch_id: str,
+    request: RejectRequest,
+    current_user: UserOut = Depends(require_team_or_admin),
+    cursor: Cursor = Depends(get_db_cursor),
+) -> RejectResponse:
+    """
+    Reject an ingestion batch with a reason. Leaves Bronze data in place and removes batch from pending list.
+    """
+    repo = ConfirmationRepository(cursor)
+    res = ConfirmationService.reject_batch(
+        batch_id=batch_id,
+        reason=request.reason,
+        current_user=current_user,
+        repo=repo,
+    )
+    return RejectResponse(**res)
 
 
 @router.get(
