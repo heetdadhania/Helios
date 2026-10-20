@@ -24,7 +24,7 @@ export const AuthLayout: React.FC = () => {
 
             <div className="mt-8">
               <span className="text-xs font-semibold tracking-wider uppercase text-blue-200">
-                Enterprise Multi-Tenant Engine
+                Enterprise Multi-Organization Engine
               </span>
               <h2 className="mt-2 text-2xl lg:text-3xl font-extrabold tracking-tight leading-tight">
                 Designed for high-growth e-commerce teams.
@@ -52,7 +52,7 @@ export const AuthLayout: React.FC = () => {
               <div className="grid grid-cols-2 gap-2">
                 <div className="p-2.5 rounded bg-white/5 border border-white/10">
                   <div className="text-[10px] text-blue-200">Monthly GMV</div>
-                  <div className="text-sm font-bold text-white mt-0.5">$842,910</div>
+                  <div className="text-sm font-bold text-white mt-0.5">₹8,42,910</div>
                 </div>
                 <div className="p-2.5 rounded bg-white/5 border border-white/10">
                   <div className="text-[10px] text-blue-200">Sync Latency</div>

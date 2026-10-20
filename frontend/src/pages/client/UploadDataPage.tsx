@@ -139,7 +139,7 @@ export const UploadDataPage: React.FC = () => {
           Connect & Ingest Data
         </h2>
         <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-0.5">
-          Ingest raw tabular files or establish managed connectors into your tenant's Unity Catalog schema.
+          Ingest raw tabular files or establish managed connectors into your organization's Unity Catalog schema.
         </p>
       </div>
 
@@ -235,7 +235,7 @@ export const UploadDataPage: React.FC = () => {
           <div className="pt-2 flex justify-end">
             <button
               type="button"
-              onClick={handleSubmitUpload}
+              onClick={() => handleSubmitUpload()}
               disabled={isSubmitting}
               className="px-4 py-2 text-xs font-semibold rounded-control bg-helios-accent-teal text-white hover:bg-emerald-600 disabled:opacity-50 transition-colors flex items-center gap-1.5"
             >

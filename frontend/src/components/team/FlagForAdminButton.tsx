@@ -182,7 +182,7 @@ export const FlagForAdminButton: React.FC<FlagForAdminButtonProps> = ({
             <div className="px-6 pt-4 pb-1 flex flex-wrap items-center gap-2 text-xs">
               <span className="font-semibold text-slate-500 dark:text-slate-400">Target Context:</span>
               <span className="font-semibold px-2 py-0.5 rounded bg-black/5 dark:bg-white/5 text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                {tenantName || `Tenant #${tenantId}`}
+                {tenantName || `Organization #${tenantId}`}
               </span>
               {batchId && (
                 <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 font-semibold border border-rose-500/20">

@@ -27,6 +27,7 @@ import {
 import { oversightService } from '@/services/oversightService';
 import { PlatformUsageResponse } from '@/types/oversight';
 import { useTheme } from '@/hooks/useTheme';
+import { formatCountIN } from '@/utils/currency';
 
 interface EmptyChartStateProps {
   title?: string;
@@ -164,7 +165,7 @@ export const UsageDashboard: React.FC = () => {
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl font-black text-helios-text-primary-light dark:text-helios-text-primary-dark">
-              {usage?.total_runs?.toLocaleString() ?? '—'}
+              {usage?.total_runs ? formatCountIN(usage.total_runs) : '—'}
             </span>
             <span className="text-xs text-slate-400">total lifetime</span>
           </div>
@@ -178,7 +179,7 @@ export const UsageDashboard: React.FC = () => {
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-              {usage?.total_rows_ingested?.toLocaleString() ?? '—'}
+              {usage?.total_rows_ingested ? formatCountIN(usage.total_rows_ingested) : '—'}
             </span>
             <span className="text-xs text-slate-400">bronze rows</span>
           </div>
@@ -192,21 +193,21 @@ export const UsageDashboard: React.FC = () => {
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl font-black text-purple-600 dark:text-purple-400">
-              {usage?.total_batches?.toLocaleString() ?? '—'}
+              {usage?.total_batches ? formatCountIN(usage.total_batches) : '—'}
             </span>
             <span className="text-xs text-slate-400">processed</span>
           </div>
         </div>
 
-        {/* Active Tenants */}
+        {/* Active Organizations */}
         <div className="p-4 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Active Tenants</span>
+            <span className="text-xs font-medium text-slate-500">Active Organizations</span>
             <Users className="w-4 h-4 text-amber-500" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl font-black text-amber-600 dark:text-amber-400">
-              {usage?.active_tenants_count?.toLocaleString() ?? '—'}
+              {usage?.active_tenants_count ? formatCountIN(usage.active_tenants_count) : '—'}
             </span>
             <span className="text-xs text-slate-400">with activity</span>
           </div>
@@ -382,13 +383,13 @@ export const UsageDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Batches Processed per Tenant (Bar Chart) */}
+      {/* 3. Batches Processed per Organization (Bar Chart) */}
       <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
               <Layers className="w-4 h-4 text-purple-500" />
-              <span>Ingestion Batches Distribution by Tenant</span>
+              <span>Ingestion Batches Distribution by Organization</span>
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">Completed batch uploads and sync executions per organization</p>
           </div>
@@ -397,12 +398,12 @@ export const UsageDashboard: React.FC = () => {
           {isLoading ? (
             <div className="h-full flex items-center justify-center text-xs text-slate-400">
               <RefreshCw className="w-5 h-5 animate-spin mr-2 text-helios-accent-blue" />
-              Loading tenant batch distribution...
+              Loading organization batch distribution...
             </div>
           ) : (usage?.batches_per_tenant || []).length === 0 ? (
             <EmptyChartState
               title="Not enough activity yet to show usage trends"
-              description="Ingestion batches per tenant will appear here once organizations begin uploading telemetry."
+              description="Ingestion batches per organization will appear here once organizations begin uploading telemetry."
               icon={<Layers className="w-5 h-5 text-purple-500" />}
             />
           ) : (

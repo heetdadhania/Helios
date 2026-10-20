@@ -305,7 +305,7 @@ class DbConnectionService:
         if not conn_record:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Database connection {connection_id} not found for this tenant.",
+                detail=f"Database connection {connection_id} not found for this organization.",
             )
 
         raw_password = cls._retrieve_credential_from_secrets(

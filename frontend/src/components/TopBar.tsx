@@ -50,7 +50,7 @@ export const TopBar: React.FC<TopBarProps> = ({ title }) => {
           <button
             type="button"
             className="w-8 h-8 rounded-full bg-gradient-to-tr from-helios-accent-blue to-helios-accent-teal text-white flex items-center justify-center text-xs font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-helios-accent-blue"
-            title={`${user?.email || 'User'} (${user?.role})`}
+            title={`${user?.email || 'User'} (${user?.role === 'smb_owner' ? 'Organization Owner' : user?.role === 'admin' ? 'Admin' : 'Team Member'})`}
           >
             {initials}
           </button>
@@ -60,8 +60,8 @@ export const TopBar: React.FC<TopBarProps> = ({ title }) => {
               <p className="text-xs font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark truncate">
                 {user?.email}
               </p>
-              <p className="text-[10px] text-helios-text-secondary-light dark:text-helios-text-secondary-dark uppercase mt-0.5">
-                Role: {user?.role}
+              <p className="text-[10px] text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-0.5">
+                Role: {user?.role === 'smb_owner' ? 'Organization Owner' : user?.role === 'admin' ? 'Admin' : 'Team Member'}
               </p>
             </div>
             <button

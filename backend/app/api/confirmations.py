@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, status
 
 try:
@@ -31,6 +31,7 @@ router = APIRouter()
     description="Retrieve batches awaiting schema confirmation. Scoped to assigned tenants for Team Members, all tenants for Admins. SMB Owners are forbidden.",
 )
 def get_pending_uploads(
+    tenant_id: Optional[str] = None,
     current_user: UserOut = Depends(require_team_or_admin),
     cursor: Cursor = Depends(get_db_cursor),
 ) -> List[PendingUploadOut]:
@@ -38,7 +39,11 @@ def get_pending_uploads(
     List pending batches requiring review. Includes source_type (upload, db_connection, api_push).
     """
     repo = ConfirmationRepository(cursor)
-    return ConfirmationService.get_pending_uploads(current_user=current_user, repo=repo)
+    return ConfirmationService.get_pending_uploads(
+        current_user=current_user,
+        repo=repo,
+        tenant_filter=tenant_id,
+    )
 
 
 @router.get(

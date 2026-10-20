@@ -7,7 +7,7 @@ from typing import List, Optional
 from databricks.sql.client import Cursor
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.core.dependencies import get_db_cursor, require_admin
+from app.core.dependencies import get_current_user, get_db_cursor, require_admin
 from app.core.security import get_password_hash
 from app.repositories.team_repository import TeamRepository
 from app.schemas.auth import UserOut, UserRole
@@ -97,7 +97,7 @@ def create_team_member(
         if missing_tenants:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"The following tenant IDs do not exist: {missing_tenants}",
+                detail=f"The following organization IDs do not exist: {missing_tenants}",
             )
 
     # 4. Generate temporary password server-side and hash (DO NOT LOG PASSWORD)
@@ -196,7 +196,7 @@ def replace_team_member_assignments(
         if missing_tenants:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"The following tenant IDs do not exist: {missing_tenants}",
+                detail=f"The following organization IDs do not exist: {missing_tenants}",
             )
 
     team_repo.replace_assignments(user_id, payload.tenant_ids)
@@ -243,3 +243,19 @@ def toggle_team_member_active_status(
         current_admin.id,
     )
     return TeamMemberOut.model_validate(updated_user)
+
+
+@router.post(
+    "/{user_id}/reset-password",
+    status_code=status.HTTP_200_OK,
+    summary="Reset User Password",
+    description="Admin can reset any user's password; Team Member can reset the SMB Owner of an assigned tenant.",
+)
+def reset_team_user_password(
+    user_id: int,
+    current_user: UserOut = Depends(get_current_user),
+    cursor: Cursor = Depends(get_db_cursor),
+):
+    from app.api.auth import _execute_password_reset
+    return _execute_password_reset(user_id, current_user, cursor)
+

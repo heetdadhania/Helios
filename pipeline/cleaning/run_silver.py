@@ -196,7 +196,7 @@ def run_silver_pipeline(
 
         # Step 4: Cleaning pipeline
         is_shipping = "ship" in template_name.lower()
-        currency_fields = ["shipping_cost", "freight_charge"] if is_shipping else ["total", "unit_price", "discount", "total_amount"]
+        currency_fields = ["shipping_cost", "freight_charge"] if is_shipping else ["total", "unit_price", "discount", "total_amount", "profit"]
         date_fields = ["scheduled_date", "actual_date", "shipped_at", "delivered_at"] if is_shipping else ["order_date", "created_at"]
 
         cleaned_stage1: List[Dict[str, Any]] = []
@@ -205,7 +205,7 @@ def run_silver_pipeline(
         for rec in remapped_records:
             cur_cleaned, cur_errs = clean_currency_fields(rec, currency_fields)
             if cur_errs:
-                cur_cleaned["rejection_reason"] = f"invalid_currency_fields: {','.join(cur_errs)}"
+                cur_cleaned["rejection_reason"] = "Amount could not be read"
                 rejected_stage1.append(cur_cleaned)
                 continue
 

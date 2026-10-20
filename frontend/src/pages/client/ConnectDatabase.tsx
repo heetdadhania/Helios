@@ -348,7 +348,7 @@ export const ConnectDatabase: React.FC = () => {
             Zero-Knowledge Credential Security
           </p>
           <p className="text-helios-text-secondary-light dark:text-helios-text-secondary-dark leading-relaxed">
-            Your database password is sent straight to Databricks Secrets using dedicated per-tenant scopes. Passwords are
+            Your database password is sent straight to Databricks Secrets using dedicated per-organization scopes. Passwords are
             never stored in platform database tables, never logged, and never returned in API payloads.
           </p>
         </div>
@@ -616,7 +616,7 @@ export const ConnectDatabase: React.FC = () => {
               Connected Databases ({connections.length})
             </h3>
             <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-0.5">
-              Live managed databases feeding into your tenant's Medallion Bronze tables.
+              Live managed databases feeding into your organization's Medallion Bronze tables.
             </p>
           </div>
           <button

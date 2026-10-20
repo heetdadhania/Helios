@@ -138,16 +138,16 @@ export const DataQualityLog: React.FC = () => {
           />
         </div>
 
-        {/* Tenant Filter Dropdown */}
+        {/* Organization Filter Dropdown */}
         <div className="flex items-center gap-2">
           <Filter className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-xs text-slate-400">Filter by Tenant:</span>
+          <span className="text-xs text-slate-400">Filter by Organization:</span>
           <select
             value={selectedTenant}
             onChange={(e) => setSelectedTenant(e.target.value)}
             className="px-3 py-1.5 text-xs rounded-xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
           >
-            <option value="all">All Tenants</option>
+            <option value="all">All Organizations</option>
             {tenants.map((t) => (
               <option key={t.tenant_id} value={t.tenant_id}>
                 {t.name}
@@ -193,7 +193,7 @@ export const DataQualityLog: React.FC = () => {
               No Data Quality Violations
             </h3>
             <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark max-w-sm mx-auto">
-              All processed rows for the selected tenant filter meet strict Medallion lakehouse quality thresholds.
+              All processed rows for the selected organization filter meet strict Medallion lakehouse quality thresholds.
             </p>
           </div>
         ) : (
@@ -203,7 +203,7 @@ export const DataQualityLog: React.FC = () => {
               <thead>
                 <tr className="border-b border-helios-border-light dark:border-helios-border-dark text-slate-400 bg-black/[0.02] dark:bg-white/[0.02]">
                   <th className="py-3 px-4 font-semibold">Batch ID</th>
-                  <th className="py-3 px-4 font-semibold">Tenant</th>
+                  <th className="py-3 px-4 font-semibold">Organization</th>
                   <th className="py-3 px-4 font-semibold">Table Name</th>
                   <th className="py-3 px-4 font-semibold">Category</th>
                   <th className="py-3 px-4 font-semibold">Rejection Reason</th>
@@ -288,7 +288,7 @@ export const DataQualityLog: React.FC = () => {
             <div className="space-y-3 text-xs">
               <div className="p-3 rounded-xl bg-black/5 dark:bg-white/5 space-y-1.5">
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Tenant:</span>
+                  <span className="text-slate-400">Organization:</span>
                   <span className="font-semibold">{selectedLog.tenant_name} (ID: {selectedLog.tenant_id})</span>
                 </div>
                 <div className="flex justify-between">

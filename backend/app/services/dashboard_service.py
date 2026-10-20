@@ -80,7 +80,7 @@ class DashboardService:
             return int(current_user.tenant_id)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User account is not linked to any tenant.",
+            detail="User account is not linked to any organization.",
         )
 
     @classmethod

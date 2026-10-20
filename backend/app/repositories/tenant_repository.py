@@ -25,6 +25,51 @@ class TenantRepository(BaseRepository):
         self.catalog = catalog or settings.DATABRICKS_CATALOG
         self.table = f"`{self.catalog}`.`platform`.`tenants`"
         self.team_assignments_table = f"`{self.catalog}`.`platform`.`team_assignments`"
+        self.users_table = f"`{self.catalog}`.`platform`.`users`"
+
+    def _attach_owners(self, tenants: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Attach current SMB owner profile and active status to tenant dictionaries."""
+        if not tenants:
+            return tenants
+        tenant_ids = [int(t["tenant_id"]) for t in tenants if t.get("tenant_id") is not None]
+        if not tenant_ids:
+            return tenants
+
+        id_str = ",".join(str(i) for i in tenant_ids)
+        query = f"""
+            SELECT user_id, tenant_id, name, email, phone_number, coalesce(is_active, true) as is_active
+            FROM {self.users_table}
+            WHERE tenant_id IN ({id_str}) AND role = 'smb_owner'
+            ORDER BY is_active DESC, user_id DESC
+        """
+        try:
+            rows = self.execute_query(query)
+            owner_map: Dict[int, Dict[str, Any]] = {}
+            for r in rows:
+                tid = int(r["tenant_id"])
+                if tid not in owner_map:
+                    owner_map[tid] = r
+                elif not owner_map[tid].get("is_active") and r.get("is_active"):
+                    owner_map[tid] = r
+
+            for t in tenants:
+                tid = int(t["tenant_id"])
+                o = owner_map.get(tid)
+                if o:
+                    t["owner_id"] = o.get("user_id")
+                    t["owner_name"] = o.get("name")
+                    t["owner_email"] = o.get("email")
+                    t["owner_phone"] = o.get("phone_number")
+                    t["owner_is_active"] = bool(o.get("is_active", True))
+                else:
+                    t["owner_id"] = None
+                    t["owner_name"] = None
+                    t["owner_email"] = None
+                    t["owner_phone"] = None
+                    t["owner_is_active"] = False
+        except Exception as exc:
+            logger.warning("Could not attach owner info to tenants: %s", exc)
+        return tenants
 
     def get_by_id(
         self,
@@ -40,11 +85,17 @@ class TenantRepository(BaseRepository):
         for attempt in range(1, max_retries + 1):
             try:
                 if attempt == 1 and self.cursor is not None:
-                    return self.execute_single(query, parameters)
+                    res = self.execute_single(query, parameters)
+                    return self._attach_owners([res])[0] if res else None
 
                 with databricks_cursor(catalog=self.catalog) as fresh_cursor:
                     repo = BaseRepository(fresh_cursor)
-                    return repo.execute_single(query, parameters)
+                    res = repo.execute_single(query, parameters)
+                    if not res:
+                        return None
+                    # Use fresh cursor to attach owner
+                    tenant_repo = TenantRepository(fresh_cursor, catalog=self.catalog)
+                    return tenant_repo._attach_owners([res])[0]
             except Exception as exc:
                 last_exception = exc
                 if attempt < max_retries:
@@ -125,14 +176,41 @@ class TenantRepository(BaseRepository):
                 ORDER BY tenant_id DESC
                 LIMIT :limit OFFSET :offset
             """
-            return self.execute_query(query, {"is_active": is_active, "limit": limit, "offset": offset})
+            raw = self.execute_query(query, {"is_active": is_active, "limit": limit, "offset": offset})
+            return self._attach_owners(raw)
 
         query = f"""
             SELECT * FROM {self.table}
             ORDER BY tenant_id DESC
             LIMIT :limit OFFSET :offset
         """
-        return self.execute_query(query, {"limit": limit, "offset": offset})
+        raw = self.execute_query(query, {"limit": limit, "offset": offset})
+        return self._attach_owners(raw)
+
+    def update_contact_info(
+        self,
+        tenant_id: int,
+        contact_person_name: str,
+        contact_email: str,
+        phone_number: str,
+    ) -> None:
+        """Update contact fields on platform.tenants."""
+        query = f"""
+            UPDATE {self.table}
+            SET contact_person_name = :name,
+                contact_email = :email,
+                phone_number = :phone
+            WHERE tenant_id = :tenant_id
+        """
+        self.execute_non_query(
+            query,
+            {
+                "tenant_id": int(tenant_id),
+                "name": contact_person_name.strip(),
+                "email": contact_email.strip().lower(),
+                "phone": phone_number.strip(),
+            },
+        )
 
     def create(
         self,

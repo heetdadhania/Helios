@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 import secrets
@@ -9,12 +10,22 @@ try:
 except ImportError:
     Cursor = Any  # type: ignore
 
-from app.core.dependencies import get_db_cursor, require_team_or_admin
+from app.core.config import settings
+from app.core.dependencies import get_current_user, get_db_cursor, require_team_or_admin
 from app.core.security import get_password_hash
+from app.repositories.team_repository import TeamRepository
 from app.repositories.tenant_repository import TenantRepository
 from app.repositories.user_repository import UserRepository
-from app.schemas.auth import UserOut, UserRole
-from app.schemas.tenant import TenantCreate, TenantOut
+from app.schemas.auth import ResetPasswordResponse, UserOut, UserRole
+from app.schemas.tenant import (
+    EditOwnerRequest,
+    OwnerResponse,
+    ReplaceOwnerRequest,
+    TenantCreate,
+    TenantOut,
+    ToggleOwnerActiveRequest,
+)
+from app.services.owner_service import ensure_no_active_owner, execute_password_reset
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +121,7 @@ def create_tenant(
     if existing_tenant:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"An active tenant with business name '{business_name_clean}' already exists.",
+            detail=f"An active organization with business name '{business_name_clean}' already exists.",
         )
 
     # 5. Check owner email uniqueness in platform.users (return 409 if exists)
@@ -180,7 +191,8 @@ def create_tenant(
 
     # 10. Provision SMB Owner login in platform.users (NEVER log the temporary password)
     owner_display_name = tenant_in.contact_person_name.strip() or f"{business_name_clean} Owner"
-    user_repo.create(
+    ensure_no_active_owner(new_tenant_id, cursor=cursor)
+    created_owner = user_repo.create(
         name=owner_display_name,
         email=owner_email_clean,
         password_hash=hashed_password,
@@ -220,7 +232,11 @@ def create_tenant(
         created_at=created_tenant.get("created_at"),
         is_active=bool(created_tenant.get("is_active", True)),
         temporary_password=temp_password,
+        owner_id=int(created_owner["user_id"]),
+        owner_name=owner_display_name,
         owner_email=owner_email_clean,
+        owner_phone=phone_clean,
+        owner_is_active=True,
     )
 
 
@@ -257,6 +273,375 @@ def get_tenant(
     if not tenant:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Tenant {tenant_id} not found.",
+            detail=f"Organization {tenant_id} not found.",
         )
     return TenantOut(**tenant)
+
+
+def _check_tenant_access(tenant_id: int, current_user: UserOut, cursor: Cursor) -> Dict[str, Any]:
+    """
+    Enforce tenant-level authorization:
+      - Admin: authorized for all tenants
+      - Team Member: authorized ONLY for assigned tenants (403 if unassigned)
+      - SMB Owner: forbidden (403)
+      - Returns 404 if tenant does not exist.
+    """
+    if current_user.role == UserRole.SMB_OWNER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: Organization Owners are not authorized to manage organization owners.",
+        )
+
+    tenant_repo = TenantRepository(cursor)
+    tenant = tenant_repo.get_by_id(tenant_id)
+    if not tenant:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Organization {tenant_id} not found.",
+        )
+
+    if current_user.role == UserRole.TEAM_MEMBER:
+        team_repo = TeamRepository(cursor)
+        assigned_tenants = team_repo.get_assigned_tenant_ids(current_user.id)
+        if tenant_id not in assigned_tenants:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied: You are not assigned to manage organization {tenant_id}.",
+            )
+
+    return tenant
+
+
+@router.put(
+    "/{tenant_id}/owner",
+    response_model=OwnerResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Edit Tenant SMB Owner",
+    description="Update name, email, and phone of the SMB Owner. Email must remain globally unique. Writes an audit trail row.",
+)
+def edit_tenant_owner(
+    tenant_id: int,
+    payload: EditOwnerRequest,
+    cursor: Cursor = Depends(get_db_cursor),
+    current_user: UserOut = Depends(get_current_user),
+) -> OwnerResponse:
+    """Edit owner profile details for a tenant organization."""
+    _check_tenant_access(tenant_id, current_user, cursor)
+
+    user_repo = UserRepository(cursor)
+    tenant_repo = TenantRepository(cursor)
+    owner = user_repo.get_owner_by_tenant_id(tenant_id)
+    if not owner:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No Organization Owner found for organization {tenant_id}.",
+        )
+
+    clean_email = str(payload.email).strip().lower()
+    clean_name = payload.name.strip()
+    clean_phone = payload.phone_number.strip() if payload.phone_number else None
+
+    if not EMAIL_REGEX.match(clean_email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid email format.",
+        )
+
+    if clean_phone and not PHONE_REGEX.match(clean_phone):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Phone number must contain only digits, spaces, plus, dash, and parentheses, and be 7-20 characters long.",
+        )
+
+    # Check email uniqueness against other users
+    existing_user = user_repo.get_by_email(clean_email)
+    if existing_user and int(existing_user["user_id"]) != int(owner["user_id"]):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"A user with email '{clean_email}' already exists.",
+        )
+
+    # Update platform.users and platform.tenants contact info
+    user_repo.update_owner_details(
+        user_id=owner["user_id"],
+        name=clean_name,
+        email=clean_email,
+        phone_number=clean_phone,
+    )
+    tenant_repo.update_contact_info(
+        tenant_id=tenant_id,
+        contact_person_name=clean_name,
+        contact_email=clean_email,
+        phone_number=clean_phone,
+    )
+
+    # Audit trail
+    user_repo.write_audit_log(
+        actor_user_id=current_user.id,
+        actor_role=current_user.role.value,
+        action="edit_owner",
+        tenant_id=tenant_id,
+        reason=f"SMB Owner details updated by {current_user.role.value}",
+        details_json=json.dumps({
+            "owner_user_id": owner["user_id"],
+            "old_email": owner.get("email"),
+            "new_email": clean_email,
+            "name": clean_name,
+        }),
+    )
+
+    logger.info(
+        "SMB Owner updated: tenant_id=%d, owner_user_id=%d, new_email=%s by actor=%d",
+        tenant_id,
+        owner["user_id"],
+        clean_email,
+        current_user.id,
+    )
+
+    return OwnerResponse(
+        user_id=owner["user_id"],
+        tenant_id=tenant_id,
+        name=clean_name,
+        email=clean_email,
+        phone_number=clean_phone,
+        is_active=bool(owner.get("is_active", True)),
+        role="smb_owner",
+        message="SMB Owner details updated successfully.",
+    )
+
+
+@router.post(
+    "/{tenant_id}/owner/reset-password",
+    response_model=ResetPasswordResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Reset Tenant SMB Owner Password",
+    description="Reset password for the SMB Owner of the tenant using shared reset logic. Returns temporary password once and never logs it.",
+)
+def reset_tenant_owner_password(
+    tenant_id: int,
+    cursor: Cursor = Depends(get_db_cursor),
+    current_user: UserOut = Depends(get_current_user),
+) -> ResetPasswordResponse:
+    """Reset password for tenant SMB Owner."""
+    _check_tenant_access(tenant_id, current_user, cursor)
+
+    user_repo = UserRepository(cursor)
+    owner = user_repo.get_owner_by_tenant_id(tenant_id)
+    if not owner:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No Organization Owner found for organization {tenant_id}.",
+        )
+
+    return execute_password_reset(
+        user_id=int(owner["user_id"]),
+        current_user=current_user,
+        cursor=cursor,
+    )
+
+
+@router.patch(
+    "/{tenant_id}/owner/active",
+    response_model=OwnerResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Activate or Deactivate Tenant SMB Owner",
+    description="Toggle active status of the SMB Owner. Reactivating is refused if another active owner exists. Deactivating returns a warning.",
+)
+def toggle_tenant_owner_active(
+    tenant_id: int,
+    payload: ToggleOwnerActiveRequest,
+    cursor: Cursor = Depends(get_db_cursor),
+    current_user: UserOut = Depends(get_current_user),
+) -> OwnerResponse:
+    """Activate or deactivate the SMB Owner account for a tenant."""
+    _check_tenant_access(tenant_id, current_user, cursor)
+
+    user_repo = UserRepository(cursor)
+    owner = user_repo.get_owner_by_tenant_id(tenant_id)
+    if not owner:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No Organization Owner found for organization {tenant_id}.",
+        )
+
+    owner_id = int(owner["user_id"])
+    target_active = bool(payload.is_active)
+    warning_message = None
+
+    if target_active:
+        # Check: refused if another active owner exists
+        catalog = settings.DATABRICKS_CATALOG
+        conflict_query = f"""
+            SELECT user_id, email FROM `{catalog}`.`platform`.`users`
+            WHERE tenant_id = :tenant_id 
+              AND role = 'smb_owner' 
+              AND coalesce(is_active, true) = true 
+              AND user_id != :owner_id
+            LIMIT 1
+        """
+        cursor.execute(conflict_query, {"tenant_id": tenant_id, "owner_id": owner_id})
+        other_active = cursor.fetchone()
+        if other_active:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="This organization already has an active owner",
+            )
+        action_name = "reactivate_owner"
+        confirm_msg = "Organization Owner account reactivated successfully."
+    else:
+        action_name = "deactivate_owner"
+        warning_message = "This organization has no active owner until replaced."
+        confirm_msg = "Organization Owner account deactivated."
+
+    # Update active status
+    user_repo.toggle_user_active(owner_id, target_active)
+
+    # Audit trail
+    user_repo.write_audit_log(
+        actor_user_id=current_user.id,
+        actor_role=current_user.role.value,
+        action=action_name,
+        tenant_id=tenant_id,
+        reason=f"SMB Owner active status set to {target_active} by {current_user.role.value}",
+        details_json=json.dumps({
+            "owner_user_id": owner_id,
+            "is_active": target_active,
+            "warning": warning_message,
+        }),
+    )
+
+    logger.info(
+        "SMB Owner active status updated: tenant_id=%d, owner_user_id=%d, is_active=%s by actor=%d",
+        tenant_id,
+        owner_id,
+        target_active,
+        current_user.id,
+    )
+
+    return OwnerResponse(
+        user_id=owner_id,
+        tenant_id=tenant_id,
+        name=str(owner.get("name", "")),
+        email=str(owner.get("email", "")),
+        phone_number=owner.get("phone_number"),
+        is_active=target_active,
+        role="smb_owner",
+        warning=warning_message,
+        message=confirm_msg,
+    )
+
+
+@router.post(
+    "/{tenant_id}/owner/replace",
+    response_model=OwnerResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Replace Inactive SMB Owner",
+    description="Allowed only when current owner is inactive. Creates new owner with temporary password shown once and must_change_password true.",
+)
+def replace_tenant_owner(
+    tenant_id: int,
+    payload: ReplaceOwnerRequest,
+    cursor: Cursor = Depends(get_db_cursor),
+    current_user: UserOut = Depends(get_current_user),
+) -> OwnerResponse:
+    """Provision a new SMB Owner for a tenant organization whose current owner is inactive."""
+    _check_tenant_access(tenant_id, current_user, cursor)
+
+    # 1. Enforce that NO active owner exists for this tenant
+    ensure_no_active_owner(tenant_id, cursor=cursor)
+
+    user_repo = UserRepository(cursor)
+    tenant_repo = TenantRepository(cursor)
+
+    clean_email = str(payload.email).strip().lower()
+    clean_name = payload.name.strip()
+    clean_phone = payload.phone_number.strip() if payload.phone_number else None
+
+    if not EMAIL_REGEX.match(clean_email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid email format.",
+        )
+
+    if clean_phone and not PHONE_REGEX.match(clean_phone):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Phone number must contain only digits, spaces, plus, dash, and parentheses, and be 7-20 characters long.",
+        )
+
+    # Check email uniqueness across platform.users
+    existing_user = user_repo.get_by_email(clean_email)
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"A user with email '{clean_email}' already exists.",
+        )
+
+    # Generate high-entropy temporary password (NEVER logged)
+    temp_password = _generate_temp_password(14)
+    hashed_password = get_password_hash(temp_password)
+
+    # Insert new owner user into platform.users
+    new_user = user_repo.create(
+        name=clean_name,
+        email=clean_email,
+        password_hash=hashed_password,
+        role=UserRole.SMB_OWNER.value,
+        tenant_id=tenant_id,
+    )
+    new_user_id = int(new_user["user_id"])
+
+    # Ensure must_change_password is true and set phone number
+    catalog = settings.DATABRICKS_CATALOG
+    update_new_user_sql = f"""
+        UPDATE `{catalog}`.`platform`.`users`
+        SET phone_number = :phone_number,
+            must_change_password = true,
+            is_active = true
+        WHERE user_id = :user_id
+    """
+    cursor.execute(update_new_user_sql, {"phone_number": clean_phone, "user_id": new_user_id})
+
+    # Update tenant contact info to reflect new owner
+    tenant_repo.update_contact_info(
+        tenant_id=tenant_id,
+        contact_person_name=clean_name,
+        contact_email=clean_email,
+        phone_number=clean_phone,
+    )
+
+    # Audit trail
+    user_repo.write_audit_log(
+        actor_user_id=current_user.id,
+        actor_role=current_user.role.value,
+        action="replace_owner",
+        tenant_id=tenant_id,
+        reason=f"New SMB Owner appointed by {current_user.role.value}",
+        details_json=json.dumps({
+            "new_owner_user_id": new_user_id,
+            "new_email": clean_email,
+            "name": clean_name,
+        }),
+    )
+
+    logger.info(
+        "SMB Owner replaced: tenant_id=%d, new_owner_user_id=%d, email=%s by actor=%d",
+        tenant_id,
+        new_user_id,
+        clean_email,
+        current_user.id,
+    )
+
+    return OwnerResponse(
+        user_id=new_user_id,
+        tenant_id=tenant_id,
+        name=clean_name,
+        email=clean_email,
+        phone_number=clean_phone,
+        is_active=True,
+        role="smb_owner",
+        temporary_password=temp_password,
+        must_change_password=True,
+        message="New SMB Owner created successfully. The temporary password will only be shown once.",
+    )
+

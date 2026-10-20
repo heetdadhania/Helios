@@ -60,7 +60,7 @@ export const Login: React.FC = () => {
         navigate('/admin/uploads', { replace: true });
       }
     } catch (err: any) {
-      const detail = err?.response?.data?.detail;
+      const detail = err?.response?.data?.detail || err?.message;
       setErrorMessage(detail || 'Invalid email or password. Please verify your credentials.');
     }
   };
@@ -91,7 +91,7 @@ export const Login: React.FC = () => {
 
             <div className="mt-8">
               <span className="text-xs font-semibold tracking-wider uppercase text-blue-200">
-                Multi-Tenant Data Platform
+                Multi-Organization Data Platform
               </span>
               <h2 className="mt-2 text-2xl lg:text-3xl font-extrabold tracking-tight leading-tight">
                 Designed for high-growth e-commerce teams.
@@ -119,7 +119,7 @@ export const Login: React.FC = () => {
               <div className="grid grid-cols-2 gap-2">
                 <div className="p-2.5 rounded bg-white/5 border border-white/10">
                   <div className="text-[10px] text-blue-200">Monthly Revenue</div>
-                  <div className="text-sm font-bold text-white mt-0.5">$148,290</div>
+                  <div className="text-sm font-bold text-white mt-0.5">₹1,48,290</div>
                 </div>
                 <div className="p-2.5 rounded bg-white/5 border border-white/10">
                   <div className="text-[10px] text-blue-200">Delta Latency</div>
@@ -249,7 +249,7 @@ export const Login: React.FC = () => {
                   onClick={() => handleDemoFill('smb-owner-1@helios-test.dev', 'HeliosTest2026!')}
                   className="text-[10px] px-2 py-0.5 rounded bg-black/5 dark:bg-white/5 text-helios-accent-teal hover:underline font-mono"
                 >
-                  SMB Owner
+                  Organization Owner
                 </button>
                 <button
                   type="button"

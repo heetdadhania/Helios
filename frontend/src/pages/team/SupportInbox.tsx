@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { supportService } from '@/services/supportService';
 import { SupportMessage } from '@/types/support';
+import { formatDateTimeIN } from '@/utils/currency';
 
 export const SupportInbox: React.FC = () => {
   const [messages, setMessages] = useState<SupportMessage[]>([]);
@@ -191,7 +192,7 @@ export const SupportInbox: React.FC = () => {
                     : 'text-helios-text-secondary-light dark:text-helios-text-secondary-dark hover:text-helios-text-primary-light dark:hover:text-helios-text-primary-dark'
                 }`}
               >
-                SMB Inquiries
+                Organization Inquiries
               </button>
             </div>
           </div>
@@ -337,14 +338,14 @@ export const SupportInbox: React.FC = () => {
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                          <span>SMB Inquiry</span>
+                          <span>Organization Inquiry</span>
                         </span>
                       )}
 
-                      {/* Tenant Tag */}
+                      {/* Organization Tag */}
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-black/5 dark:bg-white/5 border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark">
                         <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                        <span>{item.tenant_name || `Tenant #${item.tenant_id}`}</span>
+                        <span>{item.tenant_name || `Organization #${item.tenant_id}`}</span>
                       </span>
 
                       {/* Optional Batch Tag */}
@@ -364,7 +365,7 @@ export const SupportInbox: React.FC = () => {
                           </span>
                         ) : (
                           <span>
-                            {item.from_user_name ? `${item.from_user_name} (SMB Owner)` : 'SMB Owner'}
+                            {item.from_user_name ? `${item.from_user_name} (Organization Owner)` : 'Organization Owner'}
                           </span>
                         )}
                       </span>
@@ -410,10 +411,10 @@ export const SupportInbox: React.FC = () => {
 
                     {/* Timestamps */}
                     <div className="text-[11px] text-helios-text-secondary-light dark:text-helios-text-secondary-dark flex flex-wrap items-center gap-4 pt-0.5">
-                      <span>Submitted: {new Date(item.created_at).toLocaleString()}</span>
+                      <span>Submitted: {formatDateTimeIN(item.created_at)}</span>
                       {item.resolved_at && (
                         <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                          Resolved: {new Date(item.resolved_at).toLocaleString()}
+                          Resolved: {formatDateTimeIN(item.resolved_at)}
                         </span>
                       )}
                     </div>

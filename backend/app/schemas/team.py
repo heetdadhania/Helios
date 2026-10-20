@@ -42,11 +42,12 @@ class TeamMemberOut(BaseModel):
     role: str = Field(..., description="Assigned platform role (team_member or admin)")
     staff_id: Optional[str] = Field(None, description="Staff employee ID")
     designation: Optional[str] = Field(None, description="Job title or designation")
-    is_active: bool = Field(default=True, description="Account active status")
+    is_active: Optional[bool] = Field(default=True, description="Account active status")
     created_at: Optional[datetime] = Field(None, description="Account creation timestamp")
     tenant_ids: List[int] = Field(default_factory=list, description="List of currently assigned tenant IDs")
     assigned_tenants: List[int] = Field(default_factory=list, description="Alias for assigned tenant IDs")
     must_change_password: Optional[bool] = Field(default=False, description="Flag indicating if user must change password upon next login")
+    failed_login_count: Optional[int] = Field(default=0, description="Count of failed logins")
 
     # Compatibility alias
     id: Optional[int] = None
@@ -69,6 +70,8 @@ class TeamMemberOut(BaseModel):
                 data["must_change_password"] = False
             if data.get("is_active") is None:
                 data["is_active"] = True
+            if data.get("failed_login_count") is None:
+                data["failed_login_count"] = 0
         return data
 
 

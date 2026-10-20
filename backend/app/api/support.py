@@ -71,7 +71,7 @@ def create_support_message(
     if current_user.tenant_id is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User account is not linked to any tenant organization.",
+            detail="User account is not linked to any organization.",
         )
 
     repo = SupportRepository(cursor)

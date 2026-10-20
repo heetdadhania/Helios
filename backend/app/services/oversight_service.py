@@ -121,7 +121,7 @@ class OversightService:
         if not tenant_row:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Tenant organization with ID {tenant_id} does not exist.",
+                detail=f"Organization with ID {tenant_id} does not exist.",
             )
         tenant_name = tenant_row.get("business_name") or f"Tenant #{tenant_id}"
 

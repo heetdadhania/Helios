@@ -82,6 +82,8 @@ export const TeamMembers: React.FC = () => {
     setValue,
     watch,
     reset,
+    setError,
+    clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<TeamMemberFormValues>({
     resolver: zodResolver(teamMemberSchema),
@@ -132,17 +134,20 @@ export const TeamMembers: React.FC = () => {
       designation: '',
       tenant_ids: [],
     });
+    clearErrors();
     setGeneralError(null);
     setShowAddModal(true);
   };
 
   const handleCloseAddModal = () => {
     setShowAddModal(false);
+    clearErrors();
     setGeneralError(null);
   };
 
   const onSubmitAddMember = async (values: TeamMemberFormValues) => {
     setGeneralError(null);
+    clearErrors('email');
     try {
       const res = await adminService.createTeamMember({
         name: values.name.trim(),
@@ -160,8 +165,16 @@ export const TeamMembers: React.FC = () => {
       setCreatedMemberResult(res);
       setHasCopiedPassword(false);
     } catch (err: any) {
+      const status = err?.response?.status;
       const detail = err?.response?.data?.detail;
-      setGeneralError(detail || err.message || 'Failed to create team member.');
+      if (status === 409 || (typeof detail === 'string' && detail.toLowerCase().includes('already exists'))) {
+        setError('email', {
+          type: 'manual',
+          message: detail || `A user with email '${values.email.trim()}' already exists.`,
+        });
+      } else {
+        setGeneralError(detail || err.message || 'Failed to create team member.');
+      }
     }
   };
 
@@ -242,7 +255,7 @@ export const TeamMembers: React.FC = () => {
     const t = tenants.find(
       (item) => String(item.tenant_id) === String(idOrSlug) || item.slug === String(idOrSlug)
     );
-    return t ? t.business_name || t.name : `Tenant #${idOrSlug}`;
+    return t ? t.business_name || t.name : `Organization #${idOrSlug}`;
   };
 
   const filteredMembers = useMemo(() => {
@@ -364,7 +377,7 @@ export const TeamMembers: React.FC = () => {
                 <tr className="border-b border-helios-border-light dark:border-helios-border-dark text-slate-400 bg-black/[0.02] dark:bg-white/[0.02]">
                   <th className="py-3 px-4 font-semibold">User Details</th>
                   <th className="py-3 px-4 font-semibold">Role & Title</th>
-                  <th className="py-3 px-4 font-semibold">Assigned Tenants Scope</th>
+                  <th className="py-3 px-4 font-semibold">Assigned Organizations Scope</th>
                   <th className="py-3 px-4 font-semibold">Status</th>
                   <th className="py-3 px-4 font-semibold text-right">Actions</th>
                 </tr>
@@ -425,11 +438,11 @@ export const TeamMembers: React.FC = () => {
                         </div>
                       </td>
 
-                      {/* Assigned Tenants */}
+                      {/* Assigned Organizations */}
                       <td className="py-3.5 px-4">
                         {member.role === 'admin' ? (
                           <span className="text-[11px] font-semibold text-helios-accent-teal">
-                            All Tenants (Unrestricted Access)
+                            All Organizations (Unrestricted Access)
                           </span>
                         ) : assignedList.length > 0 ? (
                           <div className="flex flex-wrap gap-1.5 max-w-xs">
@@ -444,7 +457,7 @@ export const TeamMembers: React.FC = () => {
                           </div>
                         ) : (
                           <span className="text-[11px] text-rose-500 font-medium">
-                            No Tenants Assigned
+                            No Organizations Assigned
                           </span>
                         )}
                       </td>
@@ -473,7 +486,7 @@ export const TeamMembers: React.FC = () => {
                               type="button"
                               onClick={() => handleOpenEditAssignments(member)}
                               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                              title="Edit Assigned Tenants"
+                              title="Edit Assigned Organizations"
                             >
                               <Edit2 className="w-3 h-3 text-helios-accent-blue" />
                               <span>Assignments</span>
@@ -633,8 +646,8 @@ export const TeamMembers: React.FC = () => {
                     {...register('role')}
                     className="w-full px-3 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
                   >
-                    <option value="team_member">Team Member (Scoped to assigned tenants)</option>
-                    <option value="admin">Admin (Full administrative & tenant access)</option>
+                    <option value="team_member">Team Member (Scoped to assigned organizations)</option>
+                    <option value="admin">Admin (Full administrative & organization access)</option>
                   </select>
                   {errors.role && (
                     <p className="mt-1 text-[11px] text-rose-500 font-medium">{errors.role.message}</p>
@@ -680,17 +693,17 @@ export const TeamMembers: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex items-center gap-2 font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark border-b border-helios-border-light/60 dark:border-helios-border-dark/60 pb-1.5">
                   <Building2 className="w-3.5 h-3.5 text-helios-accent-blue" />
-                  <span>4. Tenant Scope Assignments</span>
+                  <span>4. Organization Scope Assignments</span>
                 </div>
 
                 {selectedRole === 'admin' ? (
                   <p className="text-[11px] text-helios-accent-teal italic">
-                    Administrators possess automatic platform-wide visibility across all customer tenants.
+                    Administrators possess automatic platform-wide visibility across all customer organizations.
                   </p>
                 ) : (
                   <div>
                     <label className="block font-semibold text-slate-400 mb-1.5">
-                      Select Tenant Organizations <span className="font-normal text-slate-500">(Optional)</span>
+                      Select Organizations <span className="font-normal text-slate-500">(Optional)</span>
                     </label>
                     <div className="space-y-1.5 max-h-40 overflow-y-auto p-2 rounded-xl bg-black/5 dark:bg-white/5 border border-helios-border-light dark:border-helios-border-dark">
                       {tenants.map((t) => {
@@ -862,7 +875,7 @@ export const TeamMembers: React.FC = () => {
             <div className="flex items-center justify-between pb-2 border-b border-helios-border-light dark:border-helios-border-dark">
               <div>
                 <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                  Edit Tenant Assignments
+                  Edit Organization Assignments
                 </h3>
                 <p className="text-xs text-slate-400">
                   {editingMember.name} ({editingMember.email})

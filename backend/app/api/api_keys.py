@@ -30,7 +30,7 @@ def get_api_key(
     if current_user.tenant_id is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Authenticated user must be assigned to an active tenant.",
+            detail="Authenticated user must be assigned to an active organization.",
         )
 
     repo = ApiKeyRepository(cursor)
@@ -52,7 +52,7 @@ def regenerate_api_key(
     if current_user.tenant_id is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Authenticated user must be assigned to an active tenant.",
+            detail="Authenticated user must be assigned to an active organization.",
         )
 
     repo = ApiKeyRepository(cursor)

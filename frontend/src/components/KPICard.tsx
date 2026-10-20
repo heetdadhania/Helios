@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  DollarSign,
+  IndianRupee,
   TrendingUp,
   Users,
   Activity,
@@ -17,7 +17,8 @@ interface KPICardProps {
 }
 
 const iconMap = {
-  dollar: DollarSign,
+  dollar: IndianRupee,
+  rupee: IndianRupee,
   chart: TrendingUp,
   users: Users,
   activity: Activity,

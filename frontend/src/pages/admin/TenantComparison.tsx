@@ -3,7 +3,7 @@ import {
   BarChart3,
   Building2,
   Check,
-  DollarSign,
+  IndianRupee,
   Layers,
   Percent,
   RefreshCw,
@@ -27,6 +27,7 @@ import {
 } from '@/types/oversight';
 import { useTheme } from '@/hooks/useTheme';
 import { formatDateAsOf } from '@/utils/formatters';
+import { formatINR, formatINRCompact, formatCountIN, formatDateTimeIN } from '@/utils/currency';
 
 export const TenantComparison: React.FC = () => {
   const { theme } = useTheme();
@@ -126,10 +127,10 @@ export const TenantComparison: React.FC = () => {
         <div>
           <h2 className="text-xl font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
             <BarChart3 className="w-6 h-6 text-helios-accent-blue" />
-            <span>Cross-Tenant Performance Comparison</span>
+            <span>Cross-Organization Performance Comparison</span>
           </h2>
           <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1">
-            Benchmark revenue, order sizes, SLA compliance, and fulfillment transit duration across 2 or more tenant organizations.
+            Benchmark revenue, order sizes, SLA compliance, and fulfillment transit duration across 2 or more organizations.
           </p>
         </div>
 
@@ -174,7 +175,7 @@ export const TenantComparison: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-xs font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
             <Users className="w-4 h-4 text-helios-accent-blue" />
-            <span>Select Tenants to Compare ({selectedIds.length} chosen)</span>
+            <span>Select Organizations to Compare ({selectedIds.length} chosen)</span>
             <span className="text-[11px] font-normal text-slate-400">— minimum 2 required</span>
           </div>
 
@@ -200,7 +201,7 @@ export const TenantComparison: React.FC = () => {
         {/* Tenant Selection Pills */}
         <div className="flex flex-wrap gap-2 pt-1">
           {isLoadingTenants ? (
-            <div className="text-xs text-slate-400 py-2">Loading tenant organizations...</div>
+            <div className="text-xs text-slate-400 py-2">Loading organizations...</div>
           ) : (
             availableTenants.map((t) => {
               const isSelected = selectedIds.includes(t.tenant_id);
@@ -254,7 +255,7 @@ export const TenantComparison: React.FC = () => {
         <div className="p-16 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-dashed border-helios-border-light dark:border-helios-border-dark text-center space-y-3">
           <BarChart3 className="w-12 h-12 mx-auto text-slate-400 opacity-50" />
           <h3 className="text-base font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-            Select At Least 2 Tenants
+            Select At Least 2 Organizations
           </h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
             Choose two or more organizations from the pills above to view comparative gross revenue, shipment SLA reliability, and order unit metrics side-by-side.
@@ -272,7 +273,7 @@ export const TenantComparison: React.FC = () => {
             Comparison Request Failed
           </h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
-            An error occurred while compiling side-by-side telemetry for the selected tenants:
+            An error occurred while compiling side-by-side telemetry for the selected organizations:
           </p>
           <p className="text-xs font-mono text-rose-600 dark:text-rose-400 bg-rose-500/5 border border-rose-500/10 p-2.5 rounded-lg max-w-lg mx-auto">
             {error}
@@ -296,8 +297,8 @@ export const TenantComparison: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-emerald-500" />
-                    <span>Gross Revenue by Tenant ($ USD)</span>
+                    <IndianRupee className="w-4 h-4 text-emerald-500" />
+                    <span>Gross Revenue by Organization (INR)</span>
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">Total completed revenue in selected timeframe</p>
                 </div>
@@ -321,7 +322,7 @@ export const TenantComparison: React.FC = () => {
                       stroke={textColor}
                       fontSize={11}
                       tickLine={false}
-                      tickFormatter={(val) => `$${(val / 1000).toFixed(0)}k`}
+                      tickFormatter={(val) => formatINRCompact(val)}
                     />
                     <Tooltip
                       contentStyle={{
@@ -334,7 +335,7 @@ export const TenantComparison: React.FC = () => {
                       }}
                       itemStyle={{ color: isDark ? '#F5F5F5' : '#111827' }}
                       labelStyle={{ color: isDark ? '#A3A3A3' : '#6B7280' }}
-                      formatter={(val: number) => [`$${val.toLocaleString()}`, 'Total Revenue']}
+                      formatter={(val: number) => [formatINR(val), 'Total Revenue']}
                     />
                     <Bar dataKey="total_revenue" radius={[6, 6, 0, 0]}>
                       {comparisonData.tenants.map((_entry, index) => (
@@ -422,14 +423,14 @@ export const TenantComparison: React.FC = () => {
                 <span>Side-by-Side Metrics Matrix</span>
               </h3>
               <span className="text-[11px] text-slate-400 font-mono">
-                Compared at {new Date(comparisonData.compared_at).toLocaleTimeString()}
+                Compared at {formatDateTimeIN(comparisonData.compared_at)}
               </span>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="border-b border-helios-border-light dark:border-helios-border-dark bg-black/[0.02] dark:bg-white/[0.02] text-slate-400 uppercase font-semibold text-[11px] tracking-wider">
+                  <tr className="border-b border-helios-border-light dark:border-helios-border-light dark:border-helios-border-dark bg-black/[0.02] dark:bg-white/[0.02] text-slate-400 uppercase font-semibold text-[11px] tracking-wider">
                     <th className="py-3 px-4">Metric</th>
                     {comparisonData.tenants.map((t) => {
                       const asOfStr = formatDateAsOf(t.data_as_of);
@@ -460,7 +461,7 @@ export const TenantComparison: React.FC = () => {
                     <td className="py-3 px-4 font-semibold text-slate-500">Gross Revenue</td>
                     {comparisonData.tenants.map((t) => (
                       <td key={t.tenant_id} className="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-                        ${Number(t.total_revenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {formatINR(t.total_revenue ?? 0)}
                       </td>
                     ))}
                   </tr>
@@ -468,7 +469,7 @@ export const TenantComparison: React.FC = () => {
                     <td className="py-3 px-4 font-semibold text-slate-500">Total Order Volume</td>
                     {comparisonData.tenants.map((t) => (
                       <td key={t.tenant_id} className="py-3 px-4 font-mono text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                        {(t.total_orders ?? 0).toLocaleString()}
+                        {formatCountIN(t.total_orders ?? 0)}
                       </td>
                     ))}
                   </tr>
@@ -476,7 +477,7 @@ export const TenantComparison: React.FC = () => {
                     <td className="py-3 px-4 font-semibold text-slate-500">Average Order Value (AOV)</td>
                     {comparisonData.tenants.map((t) => (
                       <td key={t.tenant_id} className="py-3 px-4 font-mono font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                        ${Number(t.avg_order_value ?? 0).toFixed(2)}
+                        {formatINR(t.avg_order_value ?? 0)}
                       </td>
                     ))}
                   </tr>
@@ -484,7 +485,7 @@ export const TenantComparison: React.FC = () => {
                     <td className="py-3 px-4 font-semibold text-slate-500">Shipment Volume</td>
                     {comparisonData.tenants.map((t) => (
                       <td key={t.tenant_id} className="py-3 px-4 font-mono text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                        {(t.total_shipments ?? 0).toLocaleString()}
+                        {formatCountIN(t.total_shipments ?? 0)}
                       </td>
                     ))}
                   </tr>

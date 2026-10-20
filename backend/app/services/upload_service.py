@@ -190,7 +190,7 @@ class UploadService:
         if target_tenant_id is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Target tenant ID is required.",
+                detail="Target organization ID is required.",
             )
 
         logger.info(
@@ -316,7 +316,7 @@ class UploadService:
         if effective_tenant_id is None:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="User account does not have an assigned tenant ID.",
+                detail="User account does not have an assigned organization ID.",
             )
 
         upload_record = repo.get_by_id(upload_id=upload_id, tenant_id=effective_tenant_id)

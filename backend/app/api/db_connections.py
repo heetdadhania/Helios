@@ -75,7 +75,7 @@ def verify_team_member_tenant_access(
         if not row:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Access denied: Team member is not assigned to manage tenant {tenant_id}.",
+                detail=f"Access denied: Team member is not assigned to manage organization {tenant_id}.",
             )
         return
 

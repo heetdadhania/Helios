@@ -59,5 +59,5 @@ class RBACService:
         if user_tenant and user_tenant != target_tenant_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied: Cannot access resources outside your tenant boundary.",
+                detail="Access denied: Cannot access resources outside your organization boundary.",
             )

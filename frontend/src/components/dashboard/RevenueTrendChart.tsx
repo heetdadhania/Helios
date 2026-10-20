@@ -12,6 +12,7 @@ import {
 import { RevenueTrendResponse } from '@/types/dashboard';
 import { useTheme } from '@/hooks/useTheme';
 import { TrendingUp, Calendar } from 'lucide-react';
+import { formatINR, formatINRCompact, formatCountIN } from '@/utils/currency';
 
 interface RevenueTrendChartProps {
   data: RevenueTrendResponse | null;
@@ -94,19 +95,19 @@ export const RevenueTrendChart: React.FC<RevenueTrendChartProps> = React.memo(({
           <div>
             <span className="text-[11px] text-slate-400">Total Period Revenue</span>
             <div className="text-base font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark mt-0.5">
-              ${(data?.total_revenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {formatINR(data?.total_revenue || 0)}
             </div>
           </div>
           <div>
             <span className="text-[11px] text-slate-400">Total Orders</span>
             <div className="text-base font-bold text-helios-accent-blue mt-0.5">
-              {(data?.total_orders || 0).toLocaleString()}
+              {formatCountIN(data?.total_orders || 0)}
             </div>
           </div>
           <div>
             <span className="text-[11px] text-slate-400">Average Daily Revenue</span>
             <div className="text-base font-bold text-helios-accent-teal mt-0.5">
-              ${(points.length > 0 ? (data?.total_revenue || 0) / points.length : 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {formatINR(points.length > 0 ? (data?.total_revenue || 0) / points.length : 0)}
             </div>
           </div>
           <div>
@@ -165,7 +166,7 @@ export const RevenueTrendChart: React.FC<RevenueTrendChartProps> = React.memo(({
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(v) => `$${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`}
+                tickFormatter={(v) => formatINRCompact(v)}
               />
               <YAxis
                 yAxisId="right"
@@ -174,7 +175,7 @@ export const RevenueTrendChart: React.FC<RevenueTrendChartProps> = React.memo(({
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(v) => `${v}`}
+                tickFormatter={(v) => formatCountIN(v)}
               />
               <Tooltip
                 contentStyle={{
@@ -186,7 +187,7 @@ export const RevenueTrendChart: React.FC<RevenueTrendChartProps> = React.memo(({
                   boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
                 }}
                 formatter={(value: any, name: string) => [
-                  name === 'Revenue ($)' ? `$${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : value,
+                  name === 'Revenue (₹)' ? formatINR(Number(value)) : formatCountIN(Number(value)),
                   name,
                 ]}
               />
@@ -201,7 +202,7 @@ export const RevenueTrendChart: React.FC<RevenueTrendChartProps> = React.memo(({
                 yAxisId="left"
                 type="monotone"
                 dataKey="total_revenue"
-                name="Revenue ($)"
+                name="Revenue (₹)"
                 stroke="#3B82F6"
                 strokeWidth={2.5}
                 fillOpacity={1}

@@ -1,6 +1,6 @@
 from enum import Enum
-from typing import Optional
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from typing import Any, Optional
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 
 
 class UserRole(str, Enum):
@@ -26,9 +26,23 @@ class UserOut(BaseModel):
     email: EmailStr = Field(..., description="User email address")
     role: UserRole = Field(..., description="Assigned platform RBAC role")
     tenant_id: Optional[int] = Field(None, description="Associated tenant organization ID (NULL for admins)")
-    must_change_password: bool = Field(default=False, description="Flag indicating if user must change password upon next login")
+    must_change_password: Optional[bool] = Field(default=False, description="Flag indicating if user must change password upon next login")
+    is_active: Optional[bool] = Field(default=True, description="Account active status")
+    failed_login_count: Optional[int] = Field(default=0, description="Count of failed logins")
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, extra="allow")
+
+    @model_validator(mode="before")
+    @classmethod
+    def handle_nulls(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if data.get("must_change_password") is None:
+                data["must_change_password"] = False
+            if data.get("is_active") is None:
+                data["is_active"] = True
+            if data.get("failed_login_count") is None:
+                data["failed_login_count"] = 0
+        return data
 
 
 class TokenResponse(BaseModel):
@@ -44,3 +58,12 @@ class ChangePasswordRequest(BaseModel):
 
     current_password: str = Field(..., min_length=1, description="Current plaintext password")
     new_password: str = Field(..., min_length=10, description="New plaintext password (minimum 10 characters)")
+
+
+class ResetPasswordResponse(BaseModel):
+    """Payload returned upon administrative or team member password reset."""
+
+    temporary_password: str = Field(..., description="High-entropy temporary password shown once")
+    must_change_password: bool = Field(default=True, description="Flag indicating password change required")
+    message: str = Field(default="Temporary password generated successfully. It will only be shown once.", description="Status message")
+

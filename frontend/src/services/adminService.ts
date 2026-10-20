@@ -9,7 +9,10 @@ import {
   CreateTeamMemberResponse,
   CreateTenantPayload,
   DataQualityLogItem,
+  EditOwnerPayload,
+  OwnerResponse,
   PendingUpload,
+  ReplaceOwnerPayload,
   SchemaPreview,
   TeamMember,
   Tenant,
@@ -227,4 +230,52 @@ export const adminService = {
     const response = await api.get<DataQualityLogItem[]>('/data-quality/logs', { params });
     return response.data;
   },
+
+  /**
+   * Reset user password. Admin can reset any user; Team Member can reset SMB Owner of assigned tenant.
+   * Returns temporary password.
+   */
+  async resetPassword(userId: string | number): Promise<{ temporary_password: string; must_change_password: boolean; message: string }> {
+    const response = await api.post<{ temporary_password: string; must_change_password: boolean; message: string }>(
+      `/auth/users/${userId}/reset-password`
+    );
+    return response.data;
+  },
+
+  /**
+   * Edit SMB owner of a tenant (name, email, phone).
+   */
+  async editTenantOwner(tenantId: string | number, data: EditOwnerPayload): Promise<OwnerResponse> {
+    const response = await api.put<OwnerResponse>(`/tenants/${tenantId}/owner`, data);
+    return response.data;
+  },
+
+  /**
+   * Reset SMB owner password of a tenant.
+   * Returns temporary password.
+   */
+  async resetTenantOwnerPassword(tenantId: string | number): Promise<OwnerResponse> {
+    const response = await api.post<OwnerResponse>(`/tenants/${tenantId}/owner/reset-password`);
+    return response.data;
+  },
+
+  /**
+   * Deactivate or reactivate SMB owner of a tenant.
+   */
+  async toggleTenantOwnerActive(tenantId: string | number, isActive: boolean): Promise<OwnerResponse> {
+    const response = await api.patch<OwnerResponse>(`/tenants/${tenantId}/owner/active`, {
+      is_active: isActive,
+    });
+    return response.data;
+  },
+
+  /**
+   * Replace SMB owner of a tenant (allowed only when current owner is inactive).
+   * Returns temporary password for the new owner.
+   */
+  async replaceTenantOwner(tenantId: string | number, data: ReplaceOwnerPayload): Promise<OwnerResponse> {
+    const response = await api.post<OwnerResponse>(`/tenants/${tenantId}/owner/replace`, data);
+    return response.data;
+  },
 };
+

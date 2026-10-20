@@ -268,7 +268,7 @@ export const IngestDatabaseConnection: React.FC = () => {
         addToast(
           'success',
           'Connection Verified',
-          `Verified connection on behalf of ${selectedTenant?.name || `Tenant #${selectedTenantId}`}.`
+          `Verified connection on behalf of ${selectedTenant?.name || `Organization #${selectedTenantId}`}.`
         );
       } else {
         setIsTested(false);
@@ -482,7 +482,7 @@ export const IngestDatabaseConnection: React.FC = () => {
             Managed Database Connection Ingestion
           </h2>
           <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1">
-            Bulk Entry Mode: Configure external MySQL, PostgreSQL, or SQL Server connections across customer tenants in succession.
+            Bulk Entry Mode: Configure external MySQL, PostgreSQL, or SQL Server connections across customer organizations in succession.
             Credentials are securely stored in Databricks Secrets and synchronized to Medallion Bronze.
           </p>
         </div>
@@ -515,7 +515,7 @@ export const IngestDatabaseConnection: React.FC = () => {
             <div>
               <span className="font-bold text-sm">{inlineConfirmation}</span>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                Database connector saved and sync initiated. The form has been reset with the tenant selector re-focused for your next entry.
+                Database connector saved and sync initiated. The form has been reset with the organization selector re-focused for your next entry.
               </p>
             </div>
           </div>
@@ -552,11 +552,11 @@ export const IngestDatabaseConnection: React.FC = () => {
                 htmlFor="db-tenant-selector"
                 className="block text-xs font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark uppercase tracking-wider"
               >
-                Target Tenant Organization *
+                Target Organization *
               </label>
               <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
                 {isAdmin
-                  ? 'Administrator Mode: You can manage database connections for any tenant.'
+                  ? 'Administrator Mode: You can manage database connections for any organization.'
                   : 'Team Member Mode: Showing organizations assigned to your account in platform.team_assignments.'}
               </p>
             </div>
@@ -566,11 +566,11 @@ export const IngestDatabaseConnection: React.FC = () => {
             {isLoadingTenants ? (
               <div className="flex items-center gap-2 text-xs text-slate-400 py-2">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                <span>Loading assigned tenants...</span>
+                <span>Loading assigned organizations...</span>
               </div>
             ) : tenants.length === 0 ? (
               <div className="text-xs text-amber-500 font-medium">
-                No assigned tenants found for your account.
+                No assigned organizations found for your account.
               </div>
             ) : (
               <select
@@ -636,7 +636,7 @@ export const IngestDatabaseConnection: React.FC = () => {
           <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-0.5">
             Operating on behalf of{' '}
             <strong className="text-helios-text-primary-light dark:text-helios-text-primary-dark">
-              {selectedTenant?.name || `Tenant #${selectedTenantId || '...'}`}
+              {selectedTenant?.name || `Organization #${selectedTenantId || '...'}`}
             </strong>
             . Test the connection before saving.
           </p>
@@ -831,7 +831,7 @@ export const IngestDatabaseConnection: React.FC = () => {
             <div className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
               {isTested ? (
                 <span className="text-emerald-500 font-medium flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Connection tested successfully on behalf of tenant.
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Connection tested successfully on behalf of organization.
                 </span>
               ) : (
                 <span>Click &quot;Test Connection&quot; to verify credentials before saving.</span>
@@ -872,7 +872,7 @@ export const IngestDatabaseConnection: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <span>Save, Sync & Next Tenant</span>
+                    <span>Save, Sync & Next Organization</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </>
                 )}
@@ -898,10 +898,10 @@ export const IngestDatabaseConnection: React.FC = () => {
           <div>
             <h3 className="text-sm font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
               <Layers className="w-4 h-4 text-helios-accent-blue" />
-              Connected Databases for {selectedTenant?.name || `Tenant #${selectedTenantId || '...'}`} ({connections.length})
+              Connected Databases for {selectedTenant?.name || `Organization #${selectedTenantId || '...'}`} ({connections.length})
             </h3>
             <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-0.5">
-              Live managed databases feeding into this tenant's Medallion Bronze tables.
+              Live managed databases feeding into this organization's Medallion Bronze tables.
             </p>
           </div>
           <button
@@ -919,17 +919,17 @@ export const IngestDatabaseConnection: React.FC = () => {
           <div className="p-8 text-center rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark">
             <RefreshCw className="w-6 h-6 animate-spin mx-auto text-helios-accent-blue mb-2" />
             <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
-              Loading registered database connections for {selectedTenant?.name || 'tenant'}...
+              Loading registered database connections for {selectedTenant?.name || 'organization'}...
             </p>
           </div>
         ) : connections.length === 0 ? (
           <div className="p-8 text-center rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark space-y-2">
             <Database className="w-8 h-8 mx-auto text-helios-text-secondary-light dark:text-helios-text-secondary-dark opacity-50 mb-1" />
             <h4 className="text-xs font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-              No database connections configured for this tenant yet
+              No database connections configured for this organization yet
             </h4>
             <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark max-w-sm mx-auto">
-              Use the form above to establish a remote connection on behalf of {selectedTenant?.name || 'this tenant'}.
+              Use the form above to establish a remote connection on behalf of {selectedTenant?.name || 'this organization'}.
             </p>
           </div>
         ) : (

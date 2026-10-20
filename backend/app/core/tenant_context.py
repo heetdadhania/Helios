@@ -41,17 +41,17 @@ class TenantContext:
             if self.is_admin:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Explicit tenant_id parameter required for multi-tenant scope.",
+                    detail="Explicit tenant_id parameter required for multi-organization scope.",
                 )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="No tenant context assigned to active user.",
+                detail="No organization context assigned to active user.",
             )
 
         if not self.is_team_member and self.tenant_id != requested_tenant_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Access denied: Boundary violation for tenant {requested_tenant_id}.",
+                detail=f"Access denied: Boundary violation for organization {requested_tenant_id}.",
             )
 
         return requested_tenant_id

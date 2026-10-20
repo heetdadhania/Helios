@@ -134,6 +134,11 @@ def require_role(*roles: str) -> Callable[[UserOut], UserOut]:
     allowed_set = {r.lower() for r in roles}
 
     def role_checker(current_user: UserOut = Depends(get_current_user)) -> UserOut:
+        if current_user.must_change_password:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Password change required. You must change your temporary password before accessing platform resources.",
+            )
         if current_user.role.value.lower() not in allowed_set:
             roles_str = ", ".join(sorted(allowed_set))
             raise HTTPException(
@@ -158,8 +163,14 @@ def get_tenant_context(
     current_user: UserOut = Depends(get_current_user),
 ) -> TenantContext:
     """Provide a TenantContext helper tied to the active authenticated user."""
+    if current_user.must_change_password:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Password change required. You must change your temporary password before accessing platform resources.",
+        )
     return TenantContext(
         tenant_id=current_user.tenant_id,
         user_role=current_user.role.value,
         user_id=current_user.id,
     )
+

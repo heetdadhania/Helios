@@ -24,7 +24,7 @@
   - [Option B: Running Locally (Frontend & Backend Separately)](#option-b-running-locally-frontend--backend-separately)
 - [8. Test Accounts](#8-test-accounts)
 - [9. Key Features](#9-key-features)
-  - [SMB Owner (Client Portal)](#smb-owner-client-portal)
+  - [Organization Owner (Client Portal)](#organization-owner-client-portal)
   - [Team Member (Operations & Ingestion Engineering)](#team-member-operations--ingestion-engineering)
   - [Administrator (Global Governance & Platform Oversight)](#administrator-global-governance--platform-oversight)
 - [10. Academic Note](#10-academic-note)
@@ -36,6 +36,9 @@
 E-commerce Small and Medium Businesses (SMBs) struggle with fragmented data silos across payment processors, web stores, and shipping carriers, often lacking the in-house data engineering resources required to configure and maintain modern cloud data warehouses.
 
 **Helios** bridges this gap by providing an end-to-end, multi-tenant Data Warehouse & Analytics-as-a-Service. The platform ingests disparate operational data via flat files, transactional database connections, or REST APIs, validates schemas via automated inference engines, processes the data through a curated Medallion Lakehouse architecture (Bronze &rarr; Silver &rarr; Gold) on Databricks Delta Lake, and surfaces executive dashboards, exportable reporting, and operational health telemetry.
+
+> [!NOTE]
+> **Glossary Note**: *An organization is called a tenant in the code.* Internal database tables, columns, repository methods, and API routes retain `tenant` (e.g., `tenant_id`, `/api/v1/tenants`, `/Volumes/helios/bronze/uploads/{tenant_id}/`), while user-facing interfaces, messages, exports, and documentation use **Organization** and **Organization Owner**. All monetary amounts across the platform are denominated in Indian Rupees (₹ / INR).
 
 ---
 
@@ -90,11 +93,11 @@ Helios organizes data into structured architectural layers within Databricks Uni
 - **Platform Layer (`platform`)**: Operational system catalog storing tenant configurations, user credentials, team assignments, API keys, schema definitions, and Unity Catalog Row-Level Security (RLS) filters.
 - **Metadata Layer (`meta`)**: Centralized auditing recording ETL run durations, row counts, and data quality exceptions (`etl_audit_log`, `data_quality_log`).
 
-### Three-Role Multi-Tenant Access Control
+### Three-Role Access Control
 
-1. **SMB Owner (`smb_owner`)**: Customer tenant accounts isolated by tenant ID and catalog row-level security. Owners can only access their own data, ingestion pipelines, API keys, and business analytics.
-2. **Team Member (`team_member`)**: Platform operators and data engineers assigned to specific tenants. Team members inspect staged uploads, verify inferred schemas, trigger/restart pipelines, and handle client support requests.
-3. **Administrator (`admin`)**: Superusers with global system visibility. Admins manage tenants and user accounts, oversee cross-tenant platform health, inspect system-wide data quality logs, and track aggregate infrastructure usage.
+1. **Organization Owner (`smb_owner`)**: Customer organization accounts isolated by organization ID and catalog row-level security. Owners can only access their own data, ingestion pipelines, API keys, and business analytics.
+2. **Team Member (`team_member`)**: Platform operators and data engineers assigned to specific organizations. Team members inspect staged uploads, verify inferred schemas, trigger/restart pipelines, and handle client support requests.
+3. **Administrator (`admin`)**: Superusers with global system visibility. Admins manage organizations and user accounts, oversee cross-organization platform health, inspect system-wide data quality logs, and track aggregate infrastructure usage.
 
 ---
 
@@ -293,20 +296,20 @@ The platform includes seeded test accounts covering each system persona.
 
 > **Note on Passwords**: Passwords for seeded accounts are not hardcoded in this documentation. Refer to `BOOTSTRAP_ADMIN_PASSWORD` in your `backend/.env` file for the Administrator account, and `DEMO_PASSWORD_PLAIN` defined in `pipeline/demo/seed_tenants.py` (or your configured `TEST_ACCOUNT_PASSWORD` environment variable) for demo user accounts.
 
-| Role | Name | Email | Tenant Organization | Access Scope |
+| Role | Name | Email | Organization | Access Scope |
 | :--- | :--- | :--- | :--- | :--- |
-| **Administrator** | Bootstrap Administrator | *(Configured in `.env`)* | Global | Full platform oversight, tenant onboarding, system health |
+| **Administrator** | Bootstrap Administrator | *(Configured in `.env`)* | Global | Full platform oversight, organization onboarding, system health |
 | **Administrator** | Helios Admin | `admin@helios.io` | Global | Admin console, team assignments, global data quality logs |
-| **Team Member** | Sarah Jenkins | `team@helios.io` | Assigned to Tenants 1 & 2 | Ingestion approval, pipeline triage, client support |
-| **SMB Owner** | Marcus Vance | `owner@apexconsumer.com` | Tenant 1: Apex Consumer Goods | Client Portal, CSV/Excel file uploads, analytics |
-| **SMB Owner** | Elena Rostova | `owner@pacifictech.com` | Tenant 2: Pacific Tech | Client Portal, PostgreSQL database sync, analytics |
-| **SMB Owner** | David Kim | `owner@vanguardhome.com` | Tenant 3: Vanguard Home | Client Portal, REST API data push, API key management |
+| **Team Member** | Sarah Jenkins | `team@helios.io` | Assigned to Organizations 1 & 2 | Ingestion approval, pipeline triage, client support |
+| **Organization Owner** | Aarav Sharma | `owner@apexconsumer.com` | Org 1: Kaveri Textiles & Crafts | Client Portal, CSV/Excel file uploads, INR analytics |
+| **Organization Owner** | Rohan Kulkarni | `owner@pacifictech.com` | Org 2: Sahyadri Infotech Solutions | Client Portal, PostgreSQL database sync, INR analytics |
+| **Organization Owner** | Ananya Iyer | `owner@vanguardhome.com` | Org 3: Nilgiri Home & Decor | Client Portal, REST API data push, API key management |
 
 ---
 
 ## 9. Key Features
 
-### SMB Owner (Client Portal)
+### Organization Owner (Client Portal)
 - **Multi-Channel Ingestion**: Upload batch files (CSV/Excel), configure external RDBMS database synchronization (PostgreSQL, MySQL, SQL Server), or stream records via REST API.
 - **API Key Management**: Self-service creation, rolling revocation, and SHA-256 masking of API credentials.
 - **Executive Analytics Dashboard**: Real-time business metrics including:
@@ -325,9 +328,9 @@ The platform includes seeded test accounts covering each system persona.
 - **Client Support**: Direct response queue to resolve customer data ingestion issues.
 
 ### Administrator (Global Governance & Platform Oversight)
-- **Tenant Lifecycle Management**: Onboard new SMB tenants with automated namespace provisioning in Unity Catalog; activate or suspend tenants.
+- **Organization Lifecycle Management**: Onboard new SMB organizations with automated namespace provisioning in Unity Catalog; activate or suspend organizations.
 - **Operator Resource Allocation**: Assign and balance team member assignments across client organizations.
-- **Cross-Tenant Benchmarks**: Comparative platform metrics evaluating tenant data volume, ingestion cadence, and health scores.
+- **Cross-Organization Benchmarks**: Comparative platform metrics evaluating organization data volume, ingestion cadence, and health scores.
 - **Infrastructure Auditing**: Centralized query history, latency distributions, and platform-wide ETL audit records.
 
 ---

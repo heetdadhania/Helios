@@ -32,6 +32,7 @@ router = APIRouter()
 )
 def list_pipeline_runs(
     status: Optional[str] = Query(None, description="Optional status filter"),
+    tenant_id: Optional[str] = Query(None, description="Optional tenant ID or name filter"),
     current_user: UserOut = Depends(require_team_or_admin),
     cursor: Cursor = Depends(get_db_cursor),
 ) -> List[PipelineRunOut]:
@@ -41,6 +42,7 @@ def list_pipeline_runs(
         current_user=current_user,
         repo=repo,
         status_filter=status,
+        tenant_filter=tenant_id,
     )
 
 

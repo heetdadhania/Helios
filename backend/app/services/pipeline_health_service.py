@@ -28,6 +28,7 @@ class PipelineHealthService:
         current_user: UserOut,
         repo: PipelineHealthRepository,
         status_filter: Optional[str] = None,
+        tenant_filter: Optional[str] = None,
     ) -> List[PipelineRunOut]:
         """
         List all pipeline runs.
@@ -37,6 +38,7 @@ class PipelineHealthService:
             user_id=current_user.id,
             user_role=current_user.role.value,
             status_filter=status_filter,
+            tenant_filter=tenant_filter,
         )
         results: List[PipelineRunOut] = []
         for r in rows:

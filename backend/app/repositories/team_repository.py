@@ -80,14 +80,33 @@ class TeamRepository(BaseRepository):
             raise RuntimeError(f"Team member creation failed for {clean_email}")
         return created
 
+    USER_COLUMNS = """
+        user_id,
+        tenant_id,
+        name,
+        email,
+        password_hash,
+        role,
+        coalesce(is_active, true) as is_active,
+        created_at,
+        phone_number,
+        staff_id,
+        designation,
+        coalesce(must_change_password, false) as must_change_password,
+        last_login_at,
+        coalesce(failed_login_count, 0) as failed_login_count,
+        locked_until,
+        password_changed_at
+    """
+
     def get_by_email(self, email: str) -> Optional[Dict[str, Any]]:
         """Fetch user by unique email address."""
-        query = f"SELECT * FROM {self.users_table} WHERE lower(email) = :email LIMIT 1"
+        query = f"SELECT {self.USER_COLUMNS} FROM {self.users_table} WHERE lower(email) = :email LIMIT 1"
         return self.execute_single(query, {"email": email.strip().lower()})
 
     def get_by_id(self, user_id: int) -> Optional[Dict[str, Any]]:
         """Fetch team member by ID along with assigned tenant IDs."""
-        query = f"SELECT * FROM {self.users_table} WHERE user_id = :user_id LIMIT 1"
+        query = f"SELECT {self.USER_COLUMNS} FROM {self.users_table} WHERE user_id = :user_id LIMIT 1"
         user = self.execute_single(query, {"user_id": user_id})
         if not user:
             return None
@@ -98,6 +117,8 @@ class TeamRepository(BaseRepository):
             user["must_change_password"] = False
         if user.get("is_active") is None:
             user["is_active"] = True
+        if user.get("failed_login_count") is None:
+            user["failed_login_count"] = 0
         return user
 
     def get_assigned_tenant_ids(self, user_id: int) -> List[int]:
@@ -113,7 +134,7 @@ class TeamRepository(BaseRepository):
     def list_team_members(self) -> List[Dict[str, Any]]:
         """List all team members and admins, including their assigned tenant IDs."""
         users_query = f"""
-            SELECT * FROM {self.users_table}
+            SELECT {self.USER_COLUMNS} FROM {self.users_table}
             WHERE role IN ('team_member', 'admin')
             ORDER BY user_id DESC
         """
@@ -142,6 +163,8 @@ class TeamRepository(BaseRepository):
                 user["must_change_password"] = False
             if user.get("is_active") is None:
                 user["is_active"] = True
+            if user.get("failed_login_count") is None:
+                user["failed_login_count"] = 0
 
         return users
 

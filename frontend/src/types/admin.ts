@@ -86,7 +86,36 @@ export interface Tenant {
   tax_id?: string | null;
   assigned_team_member_id?: number | null;
   temporary_password?: string | null;
+  owner_id?: number | null;
+  owner_name?: string | null;
   owner_email?: string | null;
+  owner_phone?: string | null;
+  owner_is_active?: boolean | null;
+}
+
+export interface EditOwnerPayload {
+  name: string;
+  email: string;
+  phone_number?: string;
+}
+
+export interface ReplaceOwnerPayload {
+  name: string;
+  email: string;
+  phone_number?: string;
+}
+
+export interface OwnerResponse {
+  user_id: number;
+  tenant_id: number;
+  name: string;
+  email: string;
+  phone_number?: string;
+  role: string;
+  is_active: boolean;
+  temporary_password?: string;
+  warning?: string;
+  message?: string;
 }
 
 export interface CreateTenantPayload {

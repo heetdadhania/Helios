@@ -27,9 +27,9 @@ const adminNavItems: NavItem[] = [
   { label: 'Support Inbox', to: '/admin/support', icon: MessageSquare },
   { label: 'Pipeline Health', to: '/admin/pipeline-health', icon: Activity },
   { label: 'Data Quality', to: '/admin/data-quality', icon: CheckCircle2 },
-  { label: 'Tenants', to: '/admin/tenants', icon: Building2 },
-  { label: 'Tenant Health', to: '/admin/oversight/health', icon: ShieldAlert },
-  { label: 'Tenant Compare', to: '/admin/oversight/compare', icon: BarChart3 },
+  { label: 'Organizations', to: '/admin/tenants', icon: Building2 },
+  { label: 'Organization Health', to: '/admin/oversight/health', icon: ShieldAlert },
+  { label: 'Compare Organizations', to: '/admin/oversight/compare', icon: BarChart3 },
   { label: 'Platform Usage', to: '/admin/oversight/usage', icon: TrendingUp },
   { label: 'Team', to: '/admin/team', icon: Users },
 ];
@@ -52,12 +52,12 @@ const adminTitleMap: Record<string, string> = {
   '/admin/confirm-schema': 'Confirm Ingestion Schema',
   '/admin/pipeline-health': 'Pipeline Health & Telemetry',
   '/admin/data-quality': 'Data Quality & Rejection Audit',
-  '/admin/tenants': 'Tenant Management',
+  '/admin/tenants': 'Organization Management',
   '/admin/team': 'Team & Role Assignments',
-  '/admin/oversight/health': 'Tenant Health & SLA Oversight',
-  '/admin/tenant-health': 'Tenant Health & SLA Oversight',
-  '/admin/oversight/compare': 'Cross-Tenant Comparison',
-  '/admin/tenant-compare': 'Cross-Tenant Comparison',
+  '/admin/oversight/health': 'Organization Health & SLA Oversight',
+  '/admin/tenant-health': 'Organization Health & SLA Oversight',
+  '/admin/oversight/compare': 'Cross-Organization Comparison',
+  '/admin/tenant-compare': 'Cross-Organization Comparison',
   '/admin/oversight/usage': 'Platform Usage & Telemetry',
   '/admin/usage': 'Platform Usage & Telemetry',
 };
@@ -73,7 +73,7 @@ export const AdminLayout: React.FC = () => {
     if (currentPath.startsWith('/admin/confirm-schema')) {
       currentTitle = 'Confirm Ingestion Schema';
     } else if (currentPath.startsWith('/admin/oversight/dashboard')) {
-      currentTitle = 'Tenant Dashboard (Admin View-As)';
+      currentTitle = 'Organization Dashboard (Admin View-As)';
     } else {
       currentTitle = user?.role === 'admin' ? 'Admin Console' : 'Operations Console';
     }

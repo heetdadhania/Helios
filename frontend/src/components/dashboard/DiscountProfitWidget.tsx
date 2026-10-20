@@ -12,6 +12,7 @@ import {
 import { DiscountVsProfitResponse } from '@/types/dashboard';
 import { useTheme } from '@/hooks/useTheme';
 import { Percent } from 'lucide-react';
+import { formatINR, formatINRCompact, formatCountIN } from '@/utils/currency';
 
 interface DiscountProfitWidgetProps {
   data: DiscountVsProfitResponse | null;
@@ -87,7 +88,7 @@ export const DiscountProfitWidget: React.FC<DiscountProfitWidgetProps> = React.m
                   fontSize={11}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(v) => `$${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`}
+                  tickFormatter={(v) => formatINRCompact(v)}
                 />
                 <YAxis
                   yAxisId="right"
@@ -110,13 +111,13 @@ export const DiscountProfitWidget: React.FC<DiscountProfitWidgetProps> = React.m
                   formatter={(val: any, name: string) => [
                     name.includes('Margin')
                       ? `${Number(val).toFixed(1)}%`
-                      : `$${Number(val).toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+                      : formatINR(Number(val)),
                     name,
                   ]}
                 />
                 <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
-                <Bar yAxisId="left" dataKey="total_revenue" name="Revenue ($)" fill="#6366F1" radius={[4, 4, 0, 0]} />
-                <Bar yAxisId="left" dataKey="total_profit" name="Net Profit ($)" fill="#10B981" radius={[4, 4, 0, 0]} />
+                <Bar yAxisId="left" dataKey="total_revenue" name="Revenue (₹)" fill="#6366F1" radius={[4, 4, 0, 0]} />
+                <Bar yAxisId="left" dataKey="total_profit" name="Net Profit (₹)" fill="#10B981" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -126,7 +127,7 @@ export const DiscountProfitWidget: React.FC<DiscountProfitWidgetProps> = React.m
       {hasData && (
         <div className="mt-4 pt-3 border-t border-helios-border-light dark:border-helios-border-dark flex items-center justify-between text-[11px] text-slate-400">
           <span>Overall Discount Rate: <strong className="font-mono text-helios-accent-blue">{data?.overall_discount_rate_pct}%</strong></span>
-          <span>Orders Tracked: <strong className="font-mono text-helios-text-primary-light dark:text-helios-text-primary-dark">{bands.reduce((acc, b) => acc + b.order_count, 0).toLocaleString()}</strong></span>
+          <span>Orders Tracked: <strong className="font-mono text-helios-text-primary-light dark:text-helios-text-primary-dark">{formatCountIN(bands.reduce((acc, b) => acc + b.order_count, 0))}</strong></span>
         </div>
       )}
     </div>

@@ -65,6 +65,7 @@ class PipelineHealthRepository:
         user_id: int,
         user_role: str,
         status_filter: Optional[str] = None,
+        tenant_filter: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """
         List all pipeline runs.
@@ -90,6 +91,15 @@ class PipelineHealthRepository:
             else:
                 where_clauses.append("LOWER(ps.status) = :status_filter")
                 params["status_filter"] = norm_filter
+
+        if tenant_filter and tenant_filter.strip() and tenant_filter.lower() != "all":
+            clean_tf = tenant_filter.strip()
+            if clean_tf.isdigit():
+                where_clauses.append("ps.tenant_id = :tenant_filter_id")
+                params["tenant_filter_id"] = int(clean_tf)
+            else:
+                where_clauses.append("lower(t.business_name) LIKE :tenant_name_like")
+                params["tenant_name_like"] = f"%{clean_tf.lower()}%"
 
         status_expr = f"""
             CASE 
@@ -176,6 +186,16 @@ class PipelineHealthRepository:
                 ELSE ps.status
             END
         """
+        is_admin = user_role.lower() == "admin"
+        where_clauses = ["ps.batch_id = :batch_id"]
+        params: Dict[str, Any] = {"batch_id": batch_id}
+
+        if not is_admin:
+            where_clauses.append(f"ps.tenant_id IN (SELECT tenant_id FROM {self.team_table} WHERE user_id = :user_id)")
+            params["user_id"] = user_id
+
+        where_sql = f"WHERE {' AND '.join(where_clauses)}"
+
         query = f"""
             SELECT 
                 ps.batch_id,
@@ -195,10 +215,10 @@ class PipelineHealthRepository:
             FROM {self.pipeline_table} ps
             LEFT JOIN {self.tenants_table} t ON ps.tenant_id = t.tenant_id
             LEFT JOIN {self.pending_table} pu ON ps.upload_id = pu.upload_id
-            WHERE ps.batch_id = :batch_id
+            {where_sql}
             LIMIT 1
         """
-        run_record = self._fetch_one(query, {"batch_id": batch_id})
+        run_record = self._fetch_one(query, params)
         if not run_record:
             return None
 

@@ -50,8 +50,8 @@ export const TenantDashboardView: React.FC = () => {
   const fetchDashboard = async (days: number, isBackground: boolean = false) => {
     if (parsedTenantId === null) {
       setError({
-        title: 'Invalid Tenant Identifier',
-        message: `The provided tenant identifier "${tenantId}" is invalid. Expected a numeric tenant ID.`,
+        title: 'Invalid Organization Identifier',
+        message: `The provided organization identifier "${tenantId}" is invalid. Expected a numeric organization ID.`,
         endpoint: `/oversight/dashboard/${tenantId}`,
       });
       setIsLoading(false);
@@ -74,25 +74,25 @@ export const TenantDashboardView: React.FC = () => {
         err?.response?.data?.detail ||
         err?.response?.data?.message ||
         err?.message ||
-        'An unexpected error occurred while loading tenant telemetry.';
+        'An unexpected error occurred while loading organization telemetry.';
 
       const detailString =
         typeof rawDetail === 'object'
           ? JSON.stringify(rawDetail, null, 2)
           : String(rawDetail);
 
-      let title = 'Unable to Load Tenant Telemetry';
-      let message = 'Failed to retrieve Gold layer analytical metrics for this tenant.';
+      let title = 'Unable to Load Organization Telemetry';
+      let message = 'Failed to retrieve Gold layer analytical metrics for this organization.';
 
       if (statusCode === 404) {
-        title = 'Tenant Organization Not Found';
-        message = `Tenant #${parsedTenantId} does not exist in the platform registry. The tenant may have been removed.`;
+        title = 'Organization Not Found';
+        message = `Organization #${parsedTenantId} does not exist in the platform registry. The organization may have been removed.`;
       } else if (statusCode === 403) {
         title = 'Access Denied';
         message = 'Administrator privileges are required to view customer analytics in View-As mode.';
       } else if (statusCode === 500) {
         title = 'Lakehouse Query Error';
-        message = `The Databricks Gold telemetry service encountered an error executing analytical queries for Tenant #${parsedTenantId}.`;
+        message = `The Databricks Gold telemetry service encountered an error executing analytical queries for Organization #${parsedTenantId}.`;
       } else if (err?.code === 'ERR_NETWORK' || !err?.response) {
         title = 'Network Connection Failure';
         message = 'Could not establish connection to the Helios backend API service.';
@@ -168,7 +168,7 @@ export const TenantDashboardView: React.FC = () => {
           <button
             onClick={() => navigate('/admin/tenants')}
             className="p-2 rounded-xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-slate-500 hover:text-helios-text-primary-light dark:hover:text-helios-text-primary-dark transition-colors"
-            title="Back to Tenants List"
+            title="Back to Organizations List"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
@@ -179,7 +179,7 @@ export const TenantDashboardView: React.FC = () => {
                 <span>Admin View-As Mode</span>
               </span>
               <span className="text-xs text-slate-400 font-mono">
-                Tenant #{parsedTenantId ?? tenantId}
+                Organization #{parsedTenantId ?? tenantId}
               </span>
               {formattedDataAsOf && (
                 <>
@@ -192,7 +192,7 @@ export const TenantDashboardView: React.FC = () => {
             </div>
             <h1 className="text-xl font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark mt-1 flex items-center gap-2">
               <Building2 className="w-5 h-5 text-helios-accent-blue" />
-              <span>{data?.tenant_name || `Tenant #${tenantId}`}</span>
+              <span>{data?.tenant_name || `Organization #${tenantId}`}</span>
             </h1>
           </div>
         </div>
@@ -237,7 +237,7 @@ export const TenantDashboardView: React.FC = () => {
             className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-slate-600 dark:text-slate-300 hover:border-helios-accent-blue/50 transition-colors"
           >
             <Layers className="w-3.5 h-3.5 text-helios-accent-blue" />
-            <span>Tenant Health</span>
+            <span>Organization Health</span>
           </Link>
         </div>
       </div>
@@ -322,7 +322,7 @@ export const TenantDashboardView: React.FC = () => {
               onClick={() => navigate('/admin/tenants')}
               className="text-helios-accent-blue hover:underline font-semibold"
             >
-              ← Return to Tenants Directory
+              ← Return to Organizations Directory
             </button>
             <span className="text-slate-400">•</span>
             <Link
@@ -340,7 +340,7 @@ export const TenantDashboardView: React.FC = () => {
             <div className="flex items-center gap-2">
               <Eye className="w-4 h-4 flex-shrink-0" />
               <span>
-                Viewing client-facing Gold analytics for <strong>{data?.tenant_name || `Tenant #${tenantId}`}</strong> across {selectedDays} days. Data reflects verified business intelligence tables.
+                Viewing client-facing Gold analytics for <strong>{data?.tenant_name || `Organization #${tenantId}`}</strong> across {selectedDays} days. Data reflects verified business intelligence tables.
               </span>
             </div>
             <span className="text-[11px] opacity-75 font-mono">Scope: Gold Layer Fact/Dim</span>
@@ -357,7 +357,7 @@ export const TenantDashboardView: React.FC = () => {
                   No data yet for this business.
                 </h3>
                 <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1 leading-relaxed">
-                  Tenant #{parsedTenantId ?? tenantId} has no completed orders or shipments recorded in the Gold layer. Charts are showing zeroed baseline states.
+                  Organization #{parsedTenantId ?? tenantId} has no completed orders or shipments recorded in the Gold layer. Charts are showing zeroed baseline states.
                 </p>
               </div>
             </div>

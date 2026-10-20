@@ -2,6 +2,9 @@
 
 This document details the configuration and architecture of the **Databricks Lakeflow Job** for Helios, connecting Modules 6, 7, 8, 9, and 10 into an automated, multi-tenant Medallion data pipeline. This setup relies entirely on native Databricks Lakeflow capabilities, eliminating any need for an external orchestrator such as Apache Airflow.
 
+> [!NOTE]
+> **Glossary Note**: *An organization is called a tenant in the code.* Pipeline jobs, parameters, and metadata columns use `tenant_id` for catalog namespace and volume isolation.
+
 ---
 
 ## 1. Pipeline Architecture & Task DAG

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { oversightService } from '@/services/oversightService';
 import { TenantHealthItem, TenantHealthListResponse, HealthStatusType } from '@/types/oversight';
+import { formatCountIN } from '@/utils/currency';
 
 export const TenantHealth: React.FC = () => {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ export const TenantHealth: React.FC = () => {
       const data = await oversightService.getTenantHealth();
       setHealthData(data);
     } catch (err: any) {
-      setError(err?.response?.data?.detail || err?.message || 'Failed to evaluate tenant health telemetry.');
+      setError(err?.response?.data?.detail || err?.message || 'Failed to evaluate organization health telemetry.');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -161,7 +162,7 @@ export const TenantHealth: React.FC = () => {
         <div>
           <h2 className="text-xl font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
             <Activity className="w-6 h-6 text-helios-accent-blue" />
-            <span>Tenant Health & SLA Oversight</span>
+            <span>Organization Health & SLA Oversight</span>
           </h2>
           <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1">
             Proactive health scoring based on latest pipeline completions, SLA breach thresholds, and delivery delays.
@@ -185,7 +186,7 @@ export const TenantHealth: React.FC = () => {
             className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-helios-accent-blue text-white hover:bg-helios-accent-blue/90 shadow-sm transition-colors"
           >
             <BarChart3 className="w-3.5 h-3.5" />
-            <span>Compare Tenants</span>
+            <span>Compare Organizations</span>
           </Link>
         </div>
       </div>
@@ -287,7 +288,7 @@ export const TenantHealth: React.FC = () => {
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search tenant name, slug, or ID..."
+            placeholder="Search organization name, slug, or ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-black/5 dark:bg-white/5 border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
@@ -298,7 +299,7 @@ export const TenantHealth: React.FC = () => {
         <div className="flex items-center gap-1.5 self-start sm:self-auto overflow-x-auto w-full sm:w-auto">
           {(
             [
-              { key: 'all', label: 'All Tenants' },
+              { key: 'all', label: 'All Organizations' },
               { key: 'good', label: 'Good' },
               { key: 'needs_attention', label: 'Needs Attention' },
               { key: 'critical', label: 'Critical' },
@@ -324,13 +325,13 @@ export const TenantHealth: React.FC = () => {
         {isLoading ? (
           <div className="p-12 text-center">
             <RefreshCw className="w-8 h-8 animate-spin mx-auto text-helios-accent-blue mb-3" />
-            <p className="text-xs text-slate-500 font-medium">Evaluating tenant SLA & pipeline metrics...</p>
+            <p className="text-xs text-slate-500 font-medium">Evaluating organization SLA & pipeline metrics...</p>
           </div>
         ) : filteredTenants.length === 0 ? (
           <div className="p-12 text-center">
             <Building2 className="w-10 h-10 mx-auto text-slate-400 mb-2 opacity-60" />
             <p className="text-sm font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-              No tenants match your search criteria
+              No organizations match your search criteria
             </p>
             <p className="text-xs text-slate-400 mt-1">
               Try adjusting your search query or status filter.
@@ -365,7 +366,7 @@ export const TenantHealth: React.FC = () => {
                         </div>
                         <div>
                           <div className="font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                            {t.tenant_name || `Tenant #${t.tenant_id}`}
+                            {t.tenant_name || `Organization #${t.tenant_id}`}
                           </div>
                           <div className="text-[11px] text-slate-400 font-mono">
                             {t.slug || `tenant-${t.tenant_id}`} • ID #{t.tenant_id}
@@ -426,7 +427,7 @@ export const TenantHealth: React.FC = () => {
 
                     {/* Total Shipments */}
                     <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300 font-mono">
-                      {(t.total_shipments ?? 0).toLocaleString()}
+                      {formatCountIN(t.total_shipments ?? 0)}
                     </td>
 
                     {/* Issues Breakdown */}
@@ -466,7 +467,7 @@ export const TenantHealth: React.FC = () => {
                           type="button"
                           onClick={() => navigate(`/admin/oversight/dashboard/${t.tenant_id}`)}
                           className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-helios-accent-blue/10 hover:bg-helios-accent-blue/20 text-helios-accent-blue border border-helios-accent-blue/20 transition-colors"
-                          title="View-As tenant dashboard"
+                          title="View-As organization dashboard"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>View Dashboard</span>

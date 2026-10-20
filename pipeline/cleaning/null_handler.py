@@ -21,15 +21,23 @@ def handle_nulls_orders(records: List[Dict[str, Any]]) -> Tuple[List[Dict[str, A
             rejected.append(r)
             continue
 
-        # Quantity default
+        # Quantity validation
         qty = r.get("quantity")
         if qty is None or str(qty).strip() == "":
-            r["quantity"] = 1
-        else:
-            try:
-                r["quantity"] = int(float(qty))
-            except (ValueError, TypeError):
-                r["quantity"] = 1
+            r["rejection_reason"] = "missing_required_key: quantity"
+            rejected.append(r)
+            continue
+        try:
+            val_qty = int(float(qty))
+            if val_qty <= 0:
+                r["rejection_reason"] = "invalid_quantity: quantity must be greater than zero"
+                rejected.append(r)
+                continue
+            r["quantity"] = val_qty
+        except (ValueError, TypeError):
+            r["rejection_reason"] = "invalid_quantity: cannot parse as integer"
+            rejected.append(r)
+            continue
 
         # Discount default
         disc = r.get("discount")

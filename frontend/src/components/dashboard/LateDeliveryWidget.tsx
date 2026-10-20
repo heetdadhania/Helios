@@ -9,6 +9,7 @@ import {
 import { LateDeliveryRiskResponse } from '@/types/dashboard';
 import { useTheme } from '@/hooks/useTheme';
 import { Truck, AlertTriangle, Clock } from 'lucide-react';
+import { formatCountIN } from '@/utils/currency';
 
 interface LateDeliveryWidgetProps {
   data: LateDeliveryRiskResponse | null;
@@ -99,7 +100,7 @@ export const LateDeliveryWidget: React.FC<LateDeliveryWidgetProps> = React.memo(
                       color: isDark ? '#F5F5F5' : '#111827',
                       fontSize: '12px',
                     }}
-                    formatter={(val: any, name: string) => [`${val.toLocaleString()} shipments`, name]}
+                    formatter={(val: any, name: string) => [`${formatCountIN(val)} shipments`, name]}
                   />
                   <Pie
                     data={chartData}
@@ -131,7 +132,7 @@ export const LateDeliveryWidget: React.FC<LateDeliveryWidgetProps> = React.memo(
               <div className="p-2.5 rounded-lg bg-black/[0.02] dark:bg-white/[0.02] border border-helios-border-light dark:border-helios-border-dark flex items-center justify-between">
                 <span className="text-slate-400">Total Shipments</span>
                 <span className="font-mono font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                  {(data?.total_shipments || 0).toLocaleString()}
+                  {formatCountIN(data?.total_shipments || 0)}
                 </span>
               </div>
 
@@ -141,7 +142,7 @@ export const LateDeliveryWidget: React.FC<LateDeliveryWidgetProps> = React.memo(
                   Late Deliveries
                 </span>
                 <span className="font-mono font-bold text-rose-600 dark:text-rose-400">
-                  {data?.late_shipments || 0} ({lateRate}%)
+                  {formatCountIN(data?.late_shipments || 0)} ({lateRate}%)
                 </span>
               </div>
 

@@ -1,32 +1,33 @@
-# Helios Multi-Tenant Demo Data & Onboarding Guide
+# Helios Multi-Organization Demo Data & Onboarding Guide
 
-This module provides data preparation and environment seeding scripts to showcase the **Helios Multi-Tenant Data Platform** using the **DataCo Smart Supply Chain Dataset**.
+This module provides data preparation and environment seeding scripts to showcase the **Helios Multi-Organization Data Platform** using the **DataCo Smart Supply Chain Dataset**.
+
+> [!NOTE]
+> **Glossary Note**: *An organization is called a tenant in the code.* Internal database tables, columns, repository methods, and API routes retain `tenant` (e.g., `tenant_id`, `/api/v1/tenants`), while user-facing interfaces, messages, exports, and documentation use **Organization** and **Organization Owner**.
 
 ---
 
-## 1. Simulated Demo Tenants
+## 1. Simulated Demo Organizations
 
-The DataCo supply chain dataset is partitioned across **Market** and **Customer Segment** dimensions into three distinct simulated e-commerce organizations:
+The DataCo supply chain dataset is partitioned across **Market** and **Customer Segment** dimensions into distinct simulated e-commerce organizations:
 
-| Tenant ID | Organization Name | Market | Segment | Industry Vertical | Primary Channel | Data File |
+| Organization ID | Organization Name | Market | Segment | Industry Vertical | Primary Channel | Data File |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Tenant 1** | **Apex Consumer Goods** | Europe | Consumer | Apparel & Footwear | File Upload (CSV) | `data/demo/tenant_1_apex_consumer.csv` |
-| **Tenant 2** | **Pacific Tech & Corporate** | Pacific Asia | Corporate | Consumer Electronics | Database Connection | `data/demo/tenant_2_pacific_tech.csv` |
-| **Tenant 3** | **Vanguard Home Office** | USCA | Home Office | Office Supplies & Furniture | REST API Push | `data/demo/tenant_3_vanguard_home.csv` |
+| **Org 1** | **Kaveri Textiles & Crafts** | South Asia | Consumer | Apparel & Textiles | File Upload (CSV) | `data/demo/tenant_1_apex_consumer.csv` |
+| **Org 2** | **Sahyadri Infotech Solutions** | South Asia | Corporate | Electronics & Hardware | Database Connection | `data/demo/tenant_2_pacific_tech.csv` |
+| **Org 3** | **Nilgiri Home & Decor** | South Asia | Home Office | Home Goods & Living | REST API Push | `data/demo/tenant_3_vanguard_home.csv` |
 
 ---
 
 ## 2. Demo User Accounts & Credentials
 
-All demo accounts share the standard password: **`HeliosDemo2026!`**
-
-| Role | Name | Email | Password | Tenant Affiliation | Accessible Portals & Features |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Admin** | Helios Admin | `admin@helios.io` | `HeliosDemo2026!` | *Global (All Tenants)* | Admin Console: Tenant management, User management, Pending approvals, Pipeline Health, Data Quality audit |
-| **Team Member** | Sarah Jenkins | `team@helios.io` | `HeliosDemo2026!` | *Assigned to Tenants 1 & 2* | Admin Console: Schema confirmations, Pipeline repair/restart, Data quality triage for assigned tenants |
-| **SMB Owner** | Marcus Vance | `owner@apexconsumer.com` | `HeliosDemo2026!` | **Tenant 1** (Apex Consumer) | Client Portal: File upload, analytics dashboards, CSV/PDF dataset export, notifications |
-| **SMB Owner** | Elena Rostova | `owner@pacifictech.com` | `HeliosDemo2026!` | **Tenant 2** (Pacific Tech) | Client Portal: Database connections & sync, analytics dashboards, CSV/PDF dataset export |
-| **SMB Owner** | David Kim | `owner@vanguardhome.com` | `HeliosDemo2026!` | **Tenant 3** (Vanguard Home) | Client Portal: API key regeneration & docs, analytics dashboards, CSV/PDF dataset export |
+| Role | Name | Email | Organization Affiliation | Accessible Portals & Features |
+| :--- | :--- | :--- | :--- | :--- |
+| **Admin** | Helios Admin | `admin@helios.io` | *Global (All Organizations)* | Admin Console: Organization management, User management, Pending approvals, Pipeline Health, Data Quality audit |
+| **Team Member** | Sarah Jenkins | `team@helios.io` | *Assigned to Organizations 1 & 2* | Admin Console: Schema confirmations, Pipeline repair/restart, Data quality triage for assigned organizations |
+| **Organization Owner** | Aarav Sharma | `owner@apexconsumer.com` | **Org 1** (Kaveri Textiles) | Client Portal: File upload, INR analytics dashboards, CSV/PDF dataset export, notifications |
+| **Organization Owner** | Rohan Kulkarni | `owner@pacifictech.com` | **Org 2** (Sahyadri Infotech) | Client Portal: Database connections & sync, INR analytics dashboards, CSV/PDF dataset export |
+| **Organization Owner** | Ananya Iyer | `owner@vanguardhome.com` | **Org 3** (Nilgiri Home) | Client Portal: API key regeneration & docs, INR analytics dashboards, CSV/PDF dataset export |
 
 ---
 

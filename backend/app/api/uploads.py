@@ -39,7 +39,7 @@ def verify_team_member_tenant_access(
             return
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied: SMB Owner can only upload for their own tenant.",
+            detail="Access denied: Organization Owner can only upload for their own organization.",
         )
 
     if user_role == "team_member":
@@ -50,7 +50,7 @@ def verify_team_member_tenant_access(
         if not row:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Access denied: Team member is not assigned to manage tenant {tenant_id}.",
+                detail=f"Access denied: Team member is not assigned to manage organization {tenant_id}.",
             )
         return
 

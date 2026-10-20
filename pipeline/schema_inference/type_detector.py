@@ -6,7 +6,8 @@ import pandas as pd
 from pipeline.schema_inference.date_detector import is_date_like
 
 CURRENCY_REGEX = re.compile(
-    r"^\s*[$€£¥₹]?\s*-?\d{1,3}(?:,\d{3})*(?:\.\d{1,4})?\s*[$€£¥₹]?\s*$"
+    r"^\s*(?:[$€£¥₹]|Rs\.?|INR)?\s*-?\d{1,3}(?:(?:,\d{2,3})*|\d*)(?:\.\d{1,4})?\s*(?:/-\s*|[$€£¥₹]|Rs\.?|INR)?\s*$",
+    re.IGNORECASE,
 )
 INTEGER_REGEX = re.compile(r"^-?\d+$")
 FLOAT_REGEX = re.compile(r"^-?\d*\.\d+$")
@@ -15,9 +16,13 @@ BOOLEAN_SET = {"true", "false", "yes", "no", "t", "f", "1", "0"}
 
 def _has_currency_indicators(values: List[str]) -> bool:
     """Check if values contain monetary currency symbols or standard financial formats."""
+    has_inr_indicators = any(
+        "₹" in v or "rs" in v.lower() or "inr" in v.upper() or v.strip().endswith("/-")
+        for v in values
+    )
     has_symbols = any(any(c in v for c in ("$", "€", "£", "¥", "₹")) for v in values)
     all_match_currency = all(CURRENCY_REGEX.match(v) for v in values)
-    return has_symbols or (all_match_currency and any("." in v for v in values))
+    return has_inr_indicators or has_symbols or (all_match_currency and any("." in v for v in values))
 
 
 def _is_boolean_column(values: List[str]) -> bool:

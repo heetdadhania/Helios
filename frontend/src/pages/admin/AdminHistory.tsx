@@ -16,6 +16,7 @@ import { historyService } from '@/services/historyService';
 import { AdminHistoryItem } from '@/types/history';
 import { StageStatusBadge } from '@/components/admin/StageStatusBadge';
 import { Pagination } from '@/components/ui/Pagination';
+import { formatDateTimeIN } from '@/utils/currency';
 
 export const AdminHistory: React.FC = () => {
   const [history, setHistory] = useState<AdminHistoryItem[]>([]);
@@ -85,7 +86,7 @@ export const AdminHistory: React.FC = () => {
             System Submission History
           </h1>
           <p className="text-xs sm:text-sm text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1">
-            Global audit log of all data transmissions and pipeline executions across all tenants.
+            Global audit log of all data transmissions and pipeline executions across all organizations.
           </p>
         </div>
         <button
@@ -105,7 +106,7 @@ export const AdminHistory: React.FC = () => {
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search tenant name or ID..."
+            placeholder="Search organization name or ID..."
             value={tenantFilter}
             onChange={(e) => setTenantFilter(e.target.value)}
             className="w-full pl-9 pr-4 py-2 text-xs rounded-lg border border-helios-border-light dark:border-helios-border-dark bg-helios-bg-light dark:bg-helios-bg-dark text-helios-text-primary-light dark:text-helios-text-primary-dark placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
@@ -155,7 +156,7 @@ export const AdminHistory: React.FC = () => {
             <table className="w-full text-left border-collapse min-w-[920px]">
               <thead>
                 <tr className="border-b border-helios-border-light dark:border-helios-border-dark bg-black/[0.02] dark:bg-white/[0.02] text-xs uppercase tracking-wider text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-semibold">
-                  <th className="py-3.5 px-6">Tenant</th>
+                  <th className="py-3.5 px-6">Organization</th>
                   <th className="py-3.5 px-6">Source</th>
                   <th className="py-3.5 px-6">Stage</th>
                   <th className="py-3.5 px-6">Status</th>
@@ -203,7 +204,7 @@ export const AdminHistory: React.FC = () => {
               No submissions yet
             </h3>
             <p className="text-sm text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1 max-w-sm mx-auto">
-              Global tenant data submissions will appear here.
+              Global organization data submissions will appear here.
             </p>
           </div>
         ) : (
@@ -212,7 +213,7 @@ export const AdminHistory: React.FC = () => {
             <table className="w-full text-left border-collapse min-w-[920px]">
               <thead>
                 <tr className="border-b border-helios-border-light dark:border-helios-border-dark bg-black/[0.02] dark:bg-white/[0.02] text-xs uppercase tracking-wider text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-semibold">
-                  <th className="py-3.5 px-6">Tenant</th>
+                  <th className="py-3.5 px-6">Organization</th>
                   <th className="py-3.5 px-6">Source</th>
                   <th className="py-3.5 px-6">Stage</th>
                   <th className="py-3.5 px-6">Status</th>
@@ -241,7 +242,7 @@ export const AdminHistory: React.FC = () => {
                         <td className="py-4 px-6 font-medium text-helios-text-primary-light dark:text-helios-text-primary-dark">
                           <div>{item.tenant}</div>
                           <div className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-normal">
-                            Tenant #{item.tenant_id}
+                            Organization #{item.tenant_id}
                           </div>
                         </td>
                         <td className="py-4 px-6 text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
@@ -267,7 +268,7 @@ export const AdminHistory: React.FC = () => {
                           )}
                         </td>
                         <td className="py-4 px-6 text-helios-text-secondary-light dark:text-helios-text-secondary-dark text-xs whitespace-nowrap">
-                          {new Date(item.timestamp).toLocaleString()}
+                          {formatDateTimeIN(item.timestamp)}
                         </td>
                         <td className="py-4 px-6 text-right whitespace-nowrap">
                           {hasError ? (

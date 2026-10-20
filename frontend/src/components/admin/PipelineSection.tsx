@@ -163,7 +163,7 @@ export const PipelineSection: React.FC<PipelineSectionProps> = React.memo(({
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-helios-border-light dark:border-helios-border-dark bg-black/[0.02] dark:bg-white/[0.02] text-helios-text-secondary-light dark:text-helios-text-secondary-dark uppercase tracking-wider text-[11px]">
-                <th className="py-2.5 px-4 font-semibold">Tenant</th>
+                <th className="py-2.5 px-4 font-semibold">Organization</th>
                 <th className="py-2.5 px-4 font-semibold">Source</th>
                 <th className="py-2.5 px-4 font-semibold">Current / Stopped Stage</th>
                 <th className="py-2.5 px-4 font-semibold">Status</th>
@@ -188,7 +188,7 @@ export const PipelineSection: React.FC<PipelineSectionProps> = React.memo(({
                   >
                     <td className="py-3 px-4 font-medium text-helios-text-primary-light dark:text-helios-text-primary-dark">
                       <div className="font-semibold text-xs text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                        {run.tenant || run.tenant_name || `Tenant ${run.tenant_id}`}
+                        {run.tenant || run.tenant_name || `Organization #${run.tenant_id}`}
                       </div>
                       <div className="font-mono text-[10px] text-slate-400 truncate max-w-[150px]">
                         {run.batch_id}

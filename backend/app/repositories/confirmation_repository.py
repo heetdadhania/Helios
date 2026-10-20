@@ -28,12 +28,34 @@ class ConfirmationRepository:
         self.clean_shipping_table = f"`{self.catalog}`.`silver`.`shipping_clean`"
         self.dq_log_table = f"`{self.catalog}`.`meta`.`data_quality_log`"
 
-    def get_pending(self, user_id: int, user_role: str) -> List[Dict[str, Any]]:
+    def get_pending(
+        self,
+        user_id: int,
+        user_role: str,
+        tenant_filter: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
         """
-        Query batches awaiting confirmation.
+        Retrieve all batches in 'awaiting_confirmation' status.
         Admins see all tenants; Team Members see only their assigned tenants.
         """
         is_admin = user_role.lower() == "admin"
+        where_clauses = ["ps.status IN ('ingesting', 'pending_review', 'awaiting_confirmation')"]
+        params: Dict[str, Any] = {}
+
+        if not is_admin:
+            params["user_id"] = user_id
+
+        if tenant_filter and tenant_filter.strip() and tenant_filter.lower() != "all":
+            clean_tf = tenant_filter.strip()
+            if clean_tf.isdigit():
+                where_clauses.append("ps.tenant_id = :tenant_filter_id")
+                params["tenant_filter_id"] = int(clean_tf)
+            else:
+                where_clauses.append("lower(t.business_name) LIKE :tenant_name_like")
+                params["tenant_name_like"] = f"%{clean_tf.lower()}%"
+
+        where_sql = f"WHERE {' AND '.join(where_clauses)}"
+
         if is_admin:
             query = f"""
                 SELECT 
@@ -53,10 +75,10 @@ class ConfirmationRepository:
                 LEFT JOIN `{self.catalog}`.`platform`.`tenants` t ON ps.tenant_id = t.tenant_id
                 LEFT JOIN {self.inferred_table} inf ON ps.batch_id = inf.batch_id
                 LEFT JOIN {self.pending_table} pu ON ps.upload_id = pu.upload_id
-                WHERE ps.status IN ('ingesting', 'pending_review', 'awaiting_confirmation')
+                {where_sql}
                 ORDER BY ps.created_at DESC
             """
-            self.cursor.execute(query)
+            self.cursor.execute(query, params)
         else:
             query = f"""
                 SELECT 
@@ -77,10 +99,10 @@ class ConfirmationRepository:
                 LEFT JOIN `{self.catalog}`.`platform`.`tenants` t ON ps.tenant_id = t.tenant_id
                 LEFT JOIN {self.inferred_table} inf ON ps.batch_id = inf.batch_id
                 LEFT JOIN {self.pending_table} pu ON ps.upload_id = pu.upload_id
-                WHERE ps.status IN ('ingesting', 'pending_review', 'awaiting_confirmation')
+                {where_sql}
                 ORDER BY ps.created_at DESC
             """
-            self.cursor.execute(query, {"user_id": user_id})
+            self.cursor.execute(query, params)
 
         rows = self.cursor.fetchall() or []
         columns = [desc[0] for desc in self.cursor.description] if self.cursor.description else []

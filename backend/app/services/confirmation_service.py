@@ -37,6 +37,18 @@ def trigger_silver_stage(
 
 
 
+import threading
+
+_tenant_confirm_locks: Dict[int, threading.Lock] = {}
+_tenant_confirm_locks_guard = threading.Lock()
+
+def _get_tenant_lock(tenant_id: int) -> threading.Lock:
+    with _tenant_confirm_locks_guard:
+        if tenant_id not in _tenant_confirm_locks:
+            _tenant_confirm_locks[tenant_id] = threading.Lock()
+        return _tenant_confirm_locks[tenant_id]
+
+
 class ConfirmationService:
     """Service orchestrating pending schema reviews, previews, human confirmation, and completeness."""
 
@@ -44,6 +56,7 @@ class ConfirmationService:
     def get_pending_uploads(
         current_user: UserOut,
         repo: ConfirmationRepository,
+        tenant_filter: Optional[str] = None,
     ) -> List[PendingUploadOut]:
         """
         Fetch uploads currently in 'awaiting_confirmation' state.
@@ -52,6 +65,7 @@ class ConfirmationService:
         raw_pending = repo.get_pending(
             user_id=current_user.id,
             user_role=current_user.role.value,
+            tenant_filter=tenant_filter,
         )
 
         results: List[PendingUploadOut] = []
@@ -95,7 +109,7 @@ class ConfirmationService:
         if not repo.check_user_tenant_access(current_user.id, current_user.role.value, tenant_id):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied: You are not assigned to review batches for this tenant.",
+                detail="Access denied: You are not assigned to review batches for this organization.",
             )
 
         preview_data = repo.get_preview(batch_id)
@@ -129,44 +143,53 @@ class ConfirmationService:
         if not repo.check_user_tenant_access(current_user.id, current_user.role.value, tenant_id):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied: You are not authorized to confirm batches for this tenant.",
+                detail="Access denied: You are not authorized to confirm batches for this organization.",
             )
 
-        current_status = meta.get("status")
-        if current_status not in ("pending_review", "awaiting_confirmation"):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Batch '{batch_id}' cannot be confirmed because status is '{current_status}'. Must be pending_review.",
+        tenant_lock = _get_tenant_lock(tenant_id)
+        with tenant_lock:
+            # Re-fetch metadata inside lock to prevent race condition
+            current_meta = repo.get_batch_metadata(batch_id) or meta
+            current_status = current_meta.get("status")
+            if current_status not in ("pending_review", "awaiting_confirmation"):
+                if current_status in ("running", "silver_running", "gold_running", "completed"):
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail=f"Batch '{batch_id}' is already {current_status}.",
+                    )
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Batch '{batch_id}' cannot be confirmed because status is '{current_status}'. Must be pending_review.",
+                )
+
+            # Block if another batch for the same tenant is currently running (Requirement: 409)
+            if repo.is_tenant_running_batch(tenant_id=tenant_id, exclude_batch_id=batch_id):
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"Another batch is already actively running for organization {tenant_id}.",
+                )
+
+            # Merge corrected mapping over inferred mapping if provided
+            inferred_mapping = {}
+            raw_mapping = current_meta.get("column_mapping_json")
+            if raw_mapping:
+                try:
+                    inferred_mapping = json.loads(raw_mapping) if isinstance(raw_mapping, str) else raw_mapping
+                except Exception:
+                    inferred_mapping = {}
+
+            final_mapping = dict(inferred_mapping)
+            if request.corrected_mapping:
+                final_mapping.update(request.corrected_mapping)
+
+            # Persist confirmation, optional internal notes, and transition status to running
+            repo.save_confirmation(
+                batch_id=batch_id,
+                confirmed_template=request.confirmed_template,
+                column_mapping=final_mapping,
+                confirmed_by=current_user.id,
+                internal_notes=request.internal_notes,
             )
-
-        # Block if another batch for the same tenant is currently running (Requirement: 409)
-        if repo.is_tenant_running_batch(tenant_id=tenant_id, exclude_batch_id=batch_id):
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Another batch is already actively running for tenant {tenant_id}.",
-            )
-
-        # Merge corrected mapping over inferred mapping if provided
-        inferred_mapping = {}
-        raw_mapping = meta.get("column_mapping_json")
-        if raw_mapping:
-            try:
-                inferred_mapping = json.loads(raw_mapping) if isinstance(raw_mapping, str) else raw_mapping
-            except Exception:
-                inferred_mapping = {}
-
-        final_mapping = dict(inferred_mapping)
-        if request.corrected_mapping:
-            final_mapping.update(request.corrected_mapping)
-
-        # Persist confirmation, optional internal notes, and transition status to running
-        repo.save_confirmation(
-            batch_id=batch_id,
-            confirmed_template=request.confirmed_template,
-            column_mapping=final_mapping,
-            confirmed_by=current_user.id,
-            internal_notes=request.internal_notes,
-        )
 
         # Record audit trail entry
         repo.write_audit_trail(
@@ -218,7 +241,7 @@ class ConfirmationService:
         if not repo.check_user_tenant_access(current_user.id, current_user.role.value, tenant_id):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied: You are not authorized to review batches for this tenant.",
+                detail="Access denied: You are not authorized to review batches for this organization.",
             )
 
         cleaned_reason = (reason or "").strip()
@@ -286,7 +309,7 @@ class ConfirmationService:
         if not repo.check_user_tenant_access(current_user.id, current_user.role.value, tenant_id):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied: You are not authorized to view batches for this tenant.",
+                detail="Access denied: You are not authorized to view batches for this organization.",
             )
 
         metrics = repo.get_completeness_metrics(

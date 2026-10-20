@@ -21,6 +21,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application source code (excluding files defined in .dockerignore)
 COPY app/ ./app/
 COPY scripts/ ./scripts/
+COPY pipeline/ ./pipeline/
 
 # Expose FastAPI service port
 EXPOSE 8000

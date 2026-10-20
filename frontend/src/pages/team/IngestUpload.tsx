@@ -154,7 +154,7 @@ export const IngestUpload: React.FC = () => {
     if (!selectedTenantId) {
       setFeedbackMessage({
         type: 'error',
-        text: 'Please select a tenant before submitting file ingestion.',
+        text: 'Please select an organization before submitting file ingestion.',
       });
       return;
     }
@@ -167,7 +167,7 @@ export const IngestUpload: React.FC = () => {
       return;
     }
 
-    const currentTenantName = selectedTenant?.name || `Tenant #${selectedTenantId}`;
+    const currentTenantName = selectedTenant?.name || `Organization #${selectedTenantId}`;
     const fileLabel = selectedFile.name;
 
     try {
@@ -275,10 +275,10 @@ export const IngestUpload: React.FC = () => {
         <div>
           <h2 className="text-xl font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2.5">
             <UploadCloud className="w-6 h-6 text-helios-accent-blue" />
-            Ingest Data File on Behalf of Tenant
+            Ingest Data File on Behalf of Organization
           </h2>
           <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1">
-            Bulk Entry Mode: Upload CSV or Excel spreadsheets across multiple tenants in succession.
+            Bulk Entry Mode: Upload CSV or Excel spreadsheets across multiple organizations in succession.
             Each submission registers to the pipeline without leaving this page.
           </p>
         </div>
@@ -311,7 +311,7 @@ export const IngestUpload: React.FC = () => {
             <div>
               <span className="font-bold text-sm">{inlineConfirmation}</span>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                Batch queued for pipeline processing. The form has been reset with the tenant selector re-focused for your next entry.
+                Batch queued for pipeline processing. The form has been reset with the organization selector re-focused for your next entry.
               </p>
             </div>
           </div>
@@ -376,11 +376,11 @@ export const IngestUpload: React.FC = () => {
                 htmlFor="tenant-selector"
                 className="block text-xs font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark uppercase tracking-wider"
               >
-                Target Tenant Organization *
+                Target Organization *
               </label>
               <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
                 {isAdmin
-                  ? 'Administrator Mode: You can upload on behalf of any active tenant in the platform.'
+                  ? 'Administrator Mode: You can upload on behalf of any active organization in the platform.'
                   : 'Team Member Mode: Showing organizations currently assigned to your account in platform.team_assignments.'}
               </p>
             </div>
@@ -402,7 +402,7 @@ export const IngestUpload: React.FC = () => {
               </div>
             ) : tenants.length === 0 ? (
               <div className="text-xs text-amber-500 font-medium py-2">
-                No assigned tenants found for your account.
+                No assigned organizations found for your account.
               </div>
             ) : (
               <select
@@ -495,9 +495,9 @@ export const IngestUpload: React.FC = () => {
                   {selectedFile.name}
                 </h4>
                 <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
-                  Target Tenant:{' '}
+                  Target Organization:{' '}
                   <strong className="text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                    {selectedTenant?.name || `Tenant #${selectedTenantId}`}
+                    {selectedTenant?.name || `Organization #${selectedTenantId}`}
                   </strong>{' '}
                   · {(selectedFile.size / 1024).toFixed(1)} KB
                 </p>
@@ -566,7 +566,7 @@ export const IngestUpload: React.FC = () => {
             <button
               type="button"
               id="submit-ingest-btn"
-              onClick={handleSubmitUpload}
+              onClick={() => handleSubmitUpload()}
               disabled={isSubmitting || !selectedTenantId}
               className="w-full sm:w-auto px-5 py-2.5 text-xs font-bold rounded-control bg-helios-accent-teal text-white hover:bg-emerald-600 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-sm"
             >
@@ -577,7 +577,7 @@ export const IngestUpload: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <span>Submit & Prepare Next Tenant</span>
+                  <span>Submit & Prepare Next Organization</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </>
               )}
@@ -590,7 +590,7 @@ export const IngestUpload: React.FC = () => {
       <SessionProgressList
         items={sessionItems}
         title="Session Progress"
-        description="Tenants submitted during this active session without leaving the page"
+        description="Organizations submitted during this active session without leaving the page"
         onDone={handleDoneForNow}
         doneButtonLabel="Done for now"
         onClear={() => setSessionItems([])}

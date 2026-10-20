@@ -21,7 +21,7 @@ const teamNavItems: NavItem[] = [
   { label: 'Support Inbox', to: '/admin/support', icon: MessageSquare },
   { label: 'Pipeline Health', to: '/admin/pipeline-health', icon: Activity },
   { label: 'Data Quality', to: '/admin/data-quality', icon: CheckCircle2 },
-  { label: 'Tenants', to: '/admin/tenants', icon: Building2 },
+  { label: 'Organizations', to: '/admin/tenants', icon: Building2 },
 ];
 
 const teamTitleMap: Record<string, string> = {
@@ -41,7 +41,7 @@ const teamTitleMap: Record<string, string> = {
   '/team/connect-database': 'Connect Database Ingestion',
   '/admin/pipeline-health': 'Pipeline Health & Telemetry',
   '/admin/data-quality': 'Data Quality & Rejection Audit',
-  '/admin/tenants': 'Assigned Tenants',
+  '/admin/tenants': 'Assigned Organizations',
 };
 
 export const TeamLayout: React.FC = () => {

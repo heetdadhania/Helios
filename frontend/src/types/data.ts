@@ -5,7 +5,7 @@ export interface KPIMetric {
   delta: number;
   isPositive: boolean;
   timeframe: string;
-  iconName: 'dollar' | 'chart' | 'users' | 'activity' | 'database' | 'shield';
+  iconName: 'dollar' | 'rupee' | 'chart' | 'users' | 'activity' | 'database' | 'shield';
 }
 
 export interface ChartDataPoint {

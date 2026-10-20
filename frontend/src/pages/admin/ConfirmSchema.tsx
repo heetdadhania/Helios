@@ -374,7 +374,7 @@ export const ConfirmSchema: React.FC = () => {
             {preview?.batch_id || batchId}
           </div>
           <div className="text-xs text-slate-400 mt-0.5">
-            {preview?.tenant_name || `Tenant #${preview?.tenant_id}`}
+            {preview?.tenant_name || `Organization #${preview?.tenant_id}`}
           </div>
         </div>
 
@@ -864,7 +864,7 @@ export const ConfirmSchema: React.FC = () => {
                   rows={4}
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
-                  placeholder="Provide the reason for rejection (e.g., Unreadable header format, corrupted file structure, mismatched tenant data)..."
+                  placeholder="Provide the reason for rejection (e.g., Unreadable header format, corrupted file structure, mismatched organization data)..."
                   className="w-full p-3 text-xs rounded-xl bg-black/5 dark:bg-white/5 border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-rose-500 resize-none font-sans"
                   required
                   autoFocus

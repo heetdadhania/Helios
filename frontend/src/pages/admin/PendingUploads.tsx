@@ -131,7 +131,7 @@ export const PendingUploads: React.FC = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Search by Batch ID, tenant, or filename..."
+            placeholder="Search by Batch ID, organization, or filename..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
@@ -195,7 +195,7 @@ export const PendingUploads: React.FC = () => {
               <thead>
                 <tr className="border-b border-helios-border-light dark:border-helios-border-dark text-slate-400 bg-black/[0.02] dark:bg-white/[0.02]">
                   <th className="py-3 px-4 font-semibold">Batch ID</th>
-                  <th className="py-3 px-4 font-semibold">Tenant Organization</th>
+                  <th className="py-3 px-4 font-semibold">Organization</th>
                   <th className="py-3 px-4 font-semibold">Source Type</th>
                   <th className="py-3 px-4 font-semibold">Dataset / File</th>
                   <th className="py-3 px-4 font-semibold">Rows / Size</th>
@@ -227,7 +227,7 @@ export const PendingUploads: React.FC = () => {
                           {upl.batch_id}
                         </td>
                         <td className="py-3.5 px-4 font-medium">
-                          {upl.tenant_name || `Tenant #${upl.tenant_id}`}
+                          {upl.tenant_name || `Organization #${upl.tenant_id}`}
                         </td>
                         <td className="py-3.5 px-4">
                           {renderSourceTypeBadge(upl.source_type)}

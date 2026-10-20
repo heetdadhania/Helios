@@ -10,7 +10,7 @@ A lightweight, rule-based, and explainable schema detection engine that inspects
 Bronze Ingest Batch
         │
         ├──> Type Inference (pipeline/schema_inference/type_detector.py)
-        │       ├── Currency regex ($ € £ ¥)
+        │       ├── Currency regex (₹ Rs. INR $ € £ ¥)
         │       ├── Date & Timestamp detection (dateutil + safeguards)
         │       ├── Numeric integer / decimal rules
         │       └── Boolean / String fallback
@@ -43,7 +43,7 @@ Each incoming column is compared against all registered fields and their domain 
 
 ### Step 3: Type & Format Inference
 For each column, sample values from the Bronze batch are evaluated using statistical heuristics without heavy machine learning:
-- **Currency Detection**: Strips currency symbols (`$`, `€`, `£`, `¥`) and verifies numerical digits.
+- **Currency Detection**: Strips currency symbols (`₹`, `Rs.`, `INR`, `/ -`, `$`, `€`, `£`, `¥`) and verifies numerical digits.
 - **Date/Timestamp Detection**: Distinguishes actual calendar dates (ISO 8601, US/European formats) from numeric codes (e.g., zip codes, phone numbers, numeric IDs) and normalizes timestamps.
 - **Numeric & Boolean Detection**: Detects integer, decimal/float, and true/false values.
 

@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { ChartDataPoint } from '@/types/data';
 import { useTheme } from '@/hooks/useTheme';
+import { formatINR, formatINRCompact } from '@/utils/currency';
 
 interface LineChartCardProps {
   title: string;
@@ -66,7 +67,7 @@ export const LineChartCard: React.FC<LineChartCardProps> = ({
               fontSize={12}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(v) => `$${v >= 1000 ? `${v / 1000}k` : v}`}
+              tickFormatter={(v) => formatINRCompact(v)}
             />
             <Tooltip
               contentStyle={{
@@ -78,7 +79,7 @@ export const LineChartCard: React.FC<LineChartCardProps> = ({
                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               }}
               formatter={(value: any, name: string) => [
-                name === 'Revenue' ? `$${Number(value).toLocaleString()}` : value,
+                name === 'Revenue' ? formatINR(Number(value)) : value,
                 name,
               ]}
             />

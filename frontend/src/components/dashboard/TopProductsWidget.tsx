@@ -12,6 +12,7 @@ import {
 import { TopProductsResponse } from '@/types/dashboard';
 import { useTheme } from '@/hooks/useTheme';
 import { Package, Award } from 'lucide-react';
+import { formatINR, formatINRCompact, formatCountIN } from '@/utils/currency';
 
 interface TopProductsWidgetProps {
   data: TopProductsResponse | null;
@@ -104,7 +105,7 @@ export const TopProductsWidget: React.FC<TopProductsWidgetProps> = React.memo(({
                   fontSize={11}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(v) => `$${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`}
+                  tickFormatter={(v) => formatINRCompact(v)}
                 />
                 <YAxis
                   type="category"
@@ -125,7 +126,7 @@ export const TopProductsWidget: React.FC<TopProductsWidgetProps> = React.memo(({
                     boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
                   }}
                   formatter={(val: any, _name: string, props: any) => [
-                    `$${Number(val).toLocaleString(undefined, { minimumFractionDigits: 2 })} (${props.payload.units} units)`,
+                    `${formatINR(Number(val))} (${formatCountIN(props.payload.units)} units)`,
                     props.payload.fullName,
                   ]}
                 />
@@ -154,7 +155,7 @@ export const TopProductsWidget: React.FC<TopProductsWidgetProps> = React.memo(({
                 </span>
               </div>
               <span className="font-mono font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark ml-2">
-                ${item.total_revenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                {formatINR(item.total_revenue)}
               </span>
             </div>
           ))}

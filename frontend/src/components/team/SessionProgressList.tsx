@@ -35,7 +35,7 @@ export interface SessionProgressListProps {
 export const SessionProgressList: React.FC<SessionProgressListProps> = ({
   items,
   title = 'Session Progress',
-  description = 'Tenant batches submitted during this active session',
+  description = 'Organization batches submitted during this active session',
   onDone,
   doneButtonLabel = 'Done for now',
   onClear,
@@ -100,8 +100,8 @@ export const SessionProgressList: React.FC<SessionProgressListProps> = ({
             No submissions in this session yet
           </p>
           <p className="text-[11px] text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1 max-w-sm mx-auto">
-            Select a tenant and submit ingestion above. Each completed submission will register
-            here while resetting the form for the next tenant.
+            Select an organization and submit ingestion above. Each completed submission will register
+            here while resetting the form for the next organization.
           </p>
         </div>
       ) : (
@@ -163,7 +163,7 @@ export const SessionProgressList: React.FC<SessionProgressListProps> = ({
         <div className="pt-2 border-t border-helios-border-light dark:border-helios-border-dark flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
           <span className="flex items-center gap-1">
             <Sparkles className="w-3 h-3 text-helios-accent-teal shrink-0" />
-            <span>Ready for the next tenant submission.</span>
+            <span>Ready for the next organization submission.</span>
           </span>
           {onDone && (
             <button

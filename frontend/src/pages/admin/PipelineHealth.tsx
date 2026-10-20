@@ -463,7 +463,7 @@ export const PipelineHealth: React.FC = () => {
           <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search tenant, batch ID, or stage..."
+            placeholder="Search organization, batch ID, or stage..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg bg-black/5 dark:bg-white/5 border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark placeholder-slate-400 focus:outline-none focus:border-helios-accent-blue"
@@ -617,7 +617,7 @@ export const PipelineHealth: React.FC = () => {
           <PipelineSection
             id="restart_required"
             title="Restart Required Pipelines"
-            subtitle="Batches marked for SMB Owner re-upload or external database re-sync"
+            subtitle="Batches marked for Organization Owner re-upload or external database re-sync"
             icon={<RotateCcw className="w-5 h-5 text-amber-500 flex-shrink-0" />}
             count={restartRequiredRuns.length}
             variant="amber"
@@ -625,7 +625,7 @@ export const PipelineHealth: React.FC = () => {
             isLoading={isLoading}
             searchQuery={searchQuery}
             emptyTitle="No runs requiring restart"
-            emptyDescription="No pipeline batches currently require SMB file re-upload or connection reset."
+            emptyDescription="No pipeline batches currently require organization file re-upload or connection reset."
             emptyIcon={
               <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
                 <RotateCcw className="w-6 h-6" />
@@ -925,7 +925,7 @@ export const PipelineHealth: React.FC = () => {
                         setShowRestartConfirm(true);
                       }}
                       className="px-3.5 py-2 rounded-lg border border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 text-xs font-semibold transition-colors flex items-center gap-1.5 disabled:opacity-50"
-                      title="Mark batch restart_required and notify SMB Owner"
+                      title="Mark batch restart_required and notify Organization Owner"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
                       <span>Full Restart</span>
@@ -982,9 +982,9 @@ export const PipelineHealth: React.FC = () => {
             </p>
 
             <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-300 space-y-1">
-              <p className="font-semibold">SMB Owner Action Required:</p>
+              <p className="font-semibold">Organization Owner Action Required:</p>
               <p className="text-[11px]">
-                An alert notification will be automatically delivered to the SMB Owner for <strong>{detail.tenant || 'this tenant'}</strong>, asking them to resubmit their original source file or re-trigger their database sync.
+                An alert notification will be automatically delivered to the Organization Owner for <strong>{detail.tenant || 'this organization'}</strong>, asking them to resubmit their original source file or re-trigger their database sync.
               </p>
             </div>
 

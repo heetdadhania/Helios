@@ -67,7 +67,7 @@ def get_api_key_context(
     if not x_helios_api_key or not x_helios_api_key.strip():
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="API key missing. Provide your tenant key in the 'X-Helios-Api-Key' request header.",
+            detail="API key missing. Provide your organization key in the 'X-Helios-Api-Key' request header.",
             headers={"WWW-Authenticate": "ApiKey"},
         )
 

@@ -55,7 +55,7 @@ export const DataSourceSelect: React.FC = () => {
       title: 'Use API',
       subtitle: 'Stream events directly into your Unity Catalog schema',
       description:
-        'Push transactions, order updates, and customer events programmatically via REST. Generate encrypted API keys with per-tenant isolation.',
+        'Push transactions, order updates, and customer events programmatically via REST. Generate encrypted API keys with per-organization isolation.',
       route: '/client/api-access',
       icon: Key,
       color: 'purple',
@@ -75,7 +75,7 @@ export const DataSourceSelect: React.FC = () => {
       <div className="text-center max-w-2xl mx-auto space-y-3">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-helios-accent-blue/10 text-helios-accent-blue border border-helios-accent-blue/20">
           <Sparkles className="w-3.5 h-3.5" />
-          <span>Tenant Ingestion Hub</span>
+          <span>Organization Ingestion Hub</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-helios-text-primary-light dark:text-helios-text-primary-dark tracking-tight">
           Select Your Ingestion Source

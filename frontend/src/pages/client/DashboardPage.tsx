@@ -8,11 +8,11 @@ const clientMetrics: KPIMetric[] = [
   {
     id: 'kpi_revenue',
     label: 'Total Revenue',
-    value: '$148,290',
+    value: '₹1,48,290',
     delta: 14.8,
     isPositive: true,
     timeframe: 'last month',
-    iconName: 'dollar',
+    iconName: 'rupee',
   },
   {
     id: 'kpi_orders',
@@ -26,7 +26,7 @@ const clientMetrics: KPIMetric[] = [
   {
     id: 'kpi_aov',
     label: 'Average Order Value',
-    value: '$30.82',
+    value: '₹30.82',
     delta: 2.1,
     isPositive: false,
     timeframe: 'last month',
