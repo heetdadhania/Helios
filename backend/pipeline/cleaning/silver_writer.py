@@ -238,7 +238,11 @@ def _log_data_quality_rejections(
     target_table: str,
     rejected_records: List[Dict[str, Any]],
 ) -> int:
-    """Log all rejected records to meta.data_quality_log with explicit failure reasons."""
+    """Log all rejected records to meta.data_quality_log with explicit failure reasons.
+
+    The rejection_reason already embeds original_value where applicable
+    (e.g. 'invalid_quantity: ... (original_value: -3)').
+    """
     if not rejected_records:
         return 0
 

@@ -33,8 +33,9 @@ def _generate_temp_password(length: int = 14) -> str:
 def ensure_no_active_owner(tenant_id: int, cursor: Optional[Cursor] = None) -> None:
     """
     Ensure the tenant has no active SMB owner.
+    One-owner rule: checked in the same request; two simultaneous requests are not fully excluded.
     Used by every code path that creates an smb_owner user (Add Tenant, replace owner, scripts/seed_accounts.py).
-    A second active owner raises HTTP 409 "This tenant already has an owner".
+    A second active owner raises HTTP 409 "This organization already has an owner".
     Immediately checks platform.users before insert.
     """
     catalog = settings.DATABRICKS_CATALOG
@@ -67,6 +68,53 @@ def ensure_no_active_owner(tenant_id: int, cursor: Optional[Cursor] = None) -> N
             status_code=status.HTTP_409_CONFLICT,
             detail="This organization already has an owner",
         )
+
+
+def check_and_safeguard_single_owner(tenant_id: int, new_user_id: int, cursor: Optional[Cursor] = None) -> None:
+    """
+    Cheap safeguard for the one-owner rule:
+    checked in the same request; two simultaneous requests are not fully excluded.
+    After inserting an owner, re-count the organization's active owners; if there is more than one,
+    deactivate the newer one and return 409.
+    """
+    catalog = settings.DATABRICKS_CATALOG
+    query = f"""
+        SELECT user_id, created_at 
+        FROM `{catalog}`.`platform`.`users`
+        WHERE tenant_id = :tenant_id 
+          AND role = 'smb_owner' 
+          AND coalesce(is_active, true) = true
+        ORDER BY created_at ASC, user_id ASC
+    """
+    parameters = {"tenant_id": int(tenant_id)}
+
+    def _execute(cur):
+        cur.execute(query, parameters)
+        rows = cur.fetchall()
+        if len(rows) > 1:
+            # Deactivate the newer owner (new_user_id)
+            deactivate_sql = f"""
+                UPDATE `{catalog}`.`platform`.`users`
+                SET is_active = false
+                WHERE user_id = :user_id
+            """
+            cur.execute(deactivate_sql, {"user_id": int(new_user_id)})
+            logger.warning(
+                "Race condition safeguard: Tenant %d has %d active owners. Deactivating newer owner user_id=%d and returning 409.",
+                tenant_id,
+                len(rows),
+                new_user_id,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="This organization already has an owner",
+            )
+
+    if cursor is not None:
+        _execute(cursor)
+    else:
+        with databricks_cursor() as cur:
+            _execute(cur)
 
 
 def execute_password_reset(

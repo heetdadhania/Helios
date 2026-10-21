@@ -26,6 +26,7 @@ class UserOut(BaseModel):
     email: EmailStr = Field(..., description="User email address")
     role: UserRole = Field(..., description="Assigned platform RBAC role")
     tenant_id: Optional[int] = Field(None, description="Associated tenant organization ID (NULL for admins)")
+    business_name: Optional[str] = Field(None, description="Organization business name for Organization Owner")
     must_change_password: Optional[bool] = Field(default=False, description="Flag indicating if user must change password upon next login")
     is_active: Optional[bool] = Field(default=True, description="Account active status")
     failed_login_count: Optional[int] = Field(default=0, description="Count of failed logins")

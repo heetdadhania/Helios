@@ -91,3 +91,44 @@ class ToggleActiveRequest(BaseModel):
     """Payload schema for activating or deactivating a team member."""
 
     is_active: bool = Field(..., description="New active status")
+
+
+class AssignedOrganization(BaseModel):
+    tenant_id: int = Field(..., description="Unique organization ID")
+    business_name: str = Field(..., description="Organization business name")
+    last_data_date: Optional[str] = Field(None, description="Last recorded data date (YYYY-MM-DD) or None")
+
+
+class PipelineCounts(BaseModel):
+    pending_review: int = Field(0, description="Items awaiting review")
+    running: int = Field(0, description="Items actively running")
+    failed: int = Field(0, description="Items that failed")
+    stalled: int = Field(0, description="Items stalled or lost heartbeat")
+
+
+class OpenSupportMessage(BaseModel):
+    message_id: int = Field(..., description="Message ID")
+    tenant_id: int = Field(..., description="Organization ID")
+    tenant_name: Optional[str] = Field(None, description="Organization business name")
+    from_user_id: int = Field(..., description="Sender user ID")
+    from_user_name: Optional[str] = Field(None, description="Sender name")
+    message: str = Field(..., description="Support inquiry message")
+    created_at: Optional[datetime] = Field(None, description="Message timestamp")
+
+
+class RecentActivityItem(BaseModel):
+    batch_id: Optional[str] = Field(None, description="Batch ID")
+    tenant_id: Optional[int] = Field(None, description="Organization ID")
+    tenant_name: Optional[str] = Field(None, description="Organization business name")
+    stage: Optional[str] = Field(None, description="Current or completed stage")
+    status: Optional[str] = Field(None, description="Current run status")
+    error_message: Optional[str] = Field(None, description="Error message if any")
+    timestamp: Optional[datetime] = Field(None, description="Activity timestamp")
+
+
+class TeamHomeResponse(BaseModel):
+    assigned_organizations: List[AssignedOrganization] = Field(default_factory=list, description="Assigned organizations with last data date")
+    pipeline_counts: PipelineCounts = Field(default_factory=PipelineCounts, description="Aggregate status counts across assigned orgs")
+    open_support_messages: List[OpenSupportMessage] = Field(default_factory=list, description="Open support messages from assigned orgs")
+    recent_activity: List[RecentActivityItem] = Field(default_factory=list, description="Recent pipeline activity for assigned orgs")
+

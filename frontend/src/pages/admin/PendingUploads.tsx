@@ -41,8 +41,23 @@ export const PendingUploads: React.FC = () => {
     }
   };
 
+  const silentPoll = async () => {
+    try {
+      const data = await adminService.getPendingUploads();
+      setUploads(data);
+    } catch {
+      // Ignore background poll errors silently
+    }
+  };
+
   useEffect(() => {
     loadUploads();
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        silentPoll();
+      }
+    }, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {

@@ -8,6 +8,18 @@ TEMPLATE_ORDERS: Dict[str, Any] = {
     "primary_key": "order_id",
     "required_fields": [
         "order_id",
+        "order_date",
+        "customer_id",
+        "customer_name",
+        "segment",
+        "product_id",
+        "product_name",
+        "category",
+        "quantity",
+        "unit_price",
+        "discount",
+        "total",
+        "profit",
     ],
     "fields": {
         "order_id": {
@@ -104,6 +116,7 @@ TEMPLATE_ORDERS: Dict[str, Any] = {
             "description": "Title or descriptive label of product item",
             "aliases": [
                 "product_name",
+                "product",
                 "prod_name",
                 "item_name",
                 "title",

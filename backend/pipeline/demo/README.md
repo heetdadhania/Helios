@@ -25,7 +25,7 @@ The DataCo supply chain dataset is partitioned across **Market** and **Customer 
 | :--- | :--- | :--- | :--- | :--- |
 | **Admin** | Helios Admin | `admin@helios.io` | *Global (All Organizations)* | Admin Console: Organization management, User management, Pending approvals, Pipeline Health, Data Quality audit |
 | **Team Member** | Sarah Jenkins | `team@helios.io` | *Assigned to Organizations 1 & 2* | Admin Console: Schema confirmations, Pipeline repair/restart, Data quality triage for assigned organizations |
-| **Organization Owner** | Aarav Sharma | `owner@apexconsumer.com` | **Org 1** (Kaveri Textiles) | Client Portal: File upload, INR analytics dashboards, CSV/PDF dataset export, notifications |
+| **Organization Owner** | Aarav Sharma | `owner@apexconsumer.com` | **Org 1** (Kaveri Textiles) | Organization Portal: Home overview, INR analytics dashboards, CSV/PDF dataset export, notifications |
 | **Organization Owner** | Rohan Kulkarni | `owner@pacifictech.com` | **Org 2** (Sahyadri Infotech) | Client Portal: Database connections & sync, INR analytics dashboards, CSV/PDF dataset export |
 | **Organization Owner** | Ananya Iyer | `owner@vanguardhome.com` | **Org 3** (Nilgiri Home) | Client Portal: API key regeneration & docs, INR analytics dashboards, CSV/PDF dataset export |
 
@@ -33,17 +33,17 @@ The DataCo supply chain dataset is partitioned across **Market** and **Customer 
 
 ## 3. The Three Ingestion Methods
 
-Helios supports three distinct ingestion pathways for SMB owners. The demo environment is pre-configured to test all three:
+Helios supports three distinct ingestion pathways. The demo environment is pre-configured to test all three:
 
 ### Method 1: File Upload (CSV / Excel)
-- **Actor**: Marcus Vance (`owner@apexconsumer.com`, Tenant 1)
+- **Actor**: Sarah Jenkins (`team@helios.io`, Team Member assigned to Org 1)
 - **Demo File**: `data/demo/tenant_1_apex_consumer.csv`
 - **Workflow**:
-  1. Log into the Client Portal at `/login` using `owner@apexconsumer.com`.
-  2. Navigate to **Data Sources** &rarr; click **Upload File**.
+  1. Log into the Operations Portal at `/login` using `team@helios.io`.
+  2. Navigate to **Upload Data** (`/admin/upload`) &rarr; select assigned organization (Org 1).
   3. Drag and drop `data/demo/tenant_1_apex_consumer.csv` and submit.
-  4. The notification bell rings: *"Your data is being processed"*.
-  5. Log in as `team@helios.io` (or `admin@helios.io`) into the Admin Portal &rarr; **Pending Uploads** &rarr; review inferred schema &rarr; **Confirm Schema**.
+  4. Ingestion creates a batch in `pending_review` status.
+  5. Go to **Pending Uploads** &rarr; review inferred schema &rarr; **Confirm Schema**.
   6. Databricks Lakeflow job executes Silver cleaning and Gold procedures (`sp_run_gold_pipeline`).
   7. Client notification fires: *"Your dashboard is ready to view"*.
 

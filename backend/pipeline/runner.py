@@ -156,6 +156,11 @@ def run_batch(tenant_id: int, batch_id: str, start_stage: str = "silver") -> Dic
 
         # Write audit trail row
         try:
+            from app.services.oversight_service import OversightService
+            OversightService.clear_cache()
+        except Exception:
+            pass
+        try:
             cur.execute(
                 f"""
                 INSERT INTO `{catalog}`.`meta`.`audit_trail` (
@@ -271,6 +276,12 @@ def run_batch(tenant_id: int, batch_id: str, start_stage: str = "silver") -> Dic
 
         except Exception as update_err:
             logger.error("Failed to persist run failure for batch %s: %s", batch_id, update_err)
+
+        try:
+            from app.services.oversight_service import OversightService
+            OversightService.clear_cache()
+        except Exception:
+            pass
 
         raise exc
 

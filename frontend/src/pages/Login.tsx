@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Lock, Mail, AlertCircle, Loader2 } from 'lucide-react';
+import { Lock, Mail, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { HeliosLogo } from '@/components/HeliosLogo';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -22,6 +22,7 @@ export const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const {
     register,
@@ -49,15 +50,15 @@ export const Login: React.FC = () => {
       }
 
       // Role-based redirect:
-      // smb_owner -> /client/dashboard
-      // team_member or admin -> /admin/uploads
+      // smb_owner -> /client/home
+      // team_member or admin -> /admin/home
       const from = (location.state as any)?.from?.pathname;
       if (from && from !== '/login') {
         navigate(from, { replace: true });
       } else if (user.role === 'smb_owner') {
-        navigate('/client/dashboard', { replace: true });
+        navigate('/client/home', { replace: true });
       } else {
-        navigate('/admin/uploads', { replace: true });
+        navigate('/admin/home', { replace: true });
       }
     } catch (err: any) {
       const detail = err?.response?.data?.detail || err?.message;
@@ -189,11 +190,19 @@ export const Login: React.FC = () => {
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-helios-text-secondary-light dark:text-helios-text-secondary-dark" />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
                     {...register('password')}
-                    className="w-full pl-9 pr-3 py-2 text-xs rounded-control bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-2 focus:ring-helios-accent-blue"
+                    className="w-full pl-9 pr-10 py-2 text-xs rounded-control bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-2 focus:ring-helios-accent-blue"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-helios-text-secondary-light dark:text-helios-text-secondary-dark hover:text-helios-text-primary-light dark:hover:text-helios-text-primary-dark focus:outline-none focus:ring-2 focus:ring-helios-accent-blue rounded transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
                 {errors.password && (
                   <p className="mt-1 text-[11px] text-helios-error">{errors.password.message}</p>
@@ -246,21 +255,21 @@ export const Login: React.FC = () => {
                 </span>
                 <button
                   type="button"
-                  onClick={() => handleDemoFill('smb-owner-1@helios-test.dev', 'HeliosTest2026!')}
+                  onClick={() => handleDemoFill('smb-owner-1@helios-test.dev', import.meta.env.VITE_TEST_ACCOUNT_PASSWORD || '')}
                   className="text-[10px] px-2 py-0.5 rounded bg-black/5 dark:bg-white/5 text-helios-accent-teal hover:underline font-mono"
                 >
                   Organization Owner
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleDemoFill('team-member-1@helios-test.dev', 'HeliosTest2026!')}
+                  onClick={() => handleDemoFill('team-member-1@helios-test.dev', import.meta.env.VITE_TEST_ACCOUNT_PASSWORD || '')}
                   className="text-[10px] px-2 py-0.5 rounded bg-black/5 dark:bg-white/5 text-purple-400 hover:underline font-mono"
                 >
                   Team
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleDemoFill('admin@helios.io', 'HeliosDemo2026!')}
+                  onClick={() => handleDemoFill('admin@helios.io', import.meta.env.VITE_ADMIN_PASSWORD || '')}
                   className="text-[10px] px-2 py-0.5 rounded bg-black/5 dark:bg-white/5 text-helios-accent-blue hover:underline font-mono"
                 >
                   Admin

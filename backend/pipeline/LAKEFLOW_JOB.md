@@ -65,7 +65,7 @@ The Job is configured with parameterized dynamic bindings:
 ```
 
 ### Triggering Ingestion Phase (Modules 3, 4, 5)
-When a merchant uploads a CSV, triggers a database replication sync, or streams API records, the backend invokes the Databricks Jobs API:
+When an operator uploads a CSV for an organization, triggers a database replication sync, or streams API records, the backend invokes the Databricks Jobs API:
 
 ```http
 POST /api/2.1/jobs/run-now

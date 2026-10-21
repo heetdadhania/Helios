@@ -19,7 +19,7 @@ class TestCurrencyCleaner(unittest.TestCase):
     def test_clean_currency_valid_symbols(self):
         self.assertEqual(clean_currency("$10.50"), 10.5)
         self.assertEqual(clean_currency("€ 1,250.75"), 1250.75)
-        self.assertEqual(clean_currency("£99.99"), 99.99)
+        self.assertEqual(float(clean_currency("£99.99")), 99.99)
         self.assertEqual(clean_currency("¥500"), 500.0)
         self.assertEqual(clean_currency("₹ 1,000.50"), 1000.5)
 
@@ -85,6 +85,8 @@ class TestNullHandler(unittest.TestCase):
             {
                 "order_id": "ORD-1",
                 "customer_id": "C1",
+                "product_id": "P1",
+                "order_date": "2026-10-15 10:00:00",
                 "unit_price": 25.0,
                 "quantity": 4,
                 "discount": 5.0,
@@ -161,13 +163,21 @@ class TestRunSilverOrchestration(unittest.TestCase):
         mock_cursor.fetchone.return_value = (
             5,
             "template_orders",
-            json.dumps({"ord_num": {"target_field": "order_id"}, "amt": {"target_field": "total"}}),
+            json.dumps({
+                "ord_num": {"target_field": "order_id"},
+                "amt": {"target_field": "total"},
+                "cust": {"target_field": "customer_id"},
+                "prod": {"target_field": "product_id"},
+                "dt": {"target_field": "order_date"},
+                "qty": {"target_field": "quantity"},
+                "uprice": {"target_field": "unit_price"},
+            }),
         )
 
         # Mock Bronze raw fetch:
         mock_cursor.fetchall.return_value = [
-            (json.dumps({"ord_num": "ORD-100", "amt": "$150.00", "qty": 2}),),
-            (json.dumps({"ord_num": "ORD-101", "amt": "$75.00"}),),
+            (json.dumps({"ord_num": "ORD-100", "amt": "$150.00", "qty": 2, "uprice": "$75.00", "cust": "C1", "prod": "P1", "dt": "2026-10-15"}),),
+            (json.dumps({"ord_num": "ORD-101", "amt": "$75.00", "qty": 1, "uprice": "$75.00", "cust": "C2", "prod": "P2", "dt": "2026-10-15"}),),
         ]
 
         result = run_silver_pipeline(batch_id="batch-abc", catalog="helios", cursor=mock_cursor)
@@ -213,6 +223,115 @@ class TestRunSilverOrchestration(unittest.TestCase):
                 self.assertIn("Bronze read failure", params["error_message"])
 
         self.assertTrue(found_failure, "Expected failure status in pipeline_status")
+
+
+class TestAllTenSilverValidationRules(unittest.TestCase):
+    """Test every one of the 10 Silver validation rules."""
+
+    def _base_valid_order(self):
+        return {
+            "order_id": "ORD-001",
+            "customer_id": "CUST-001",
+            "product_id": "PROD-001",
+            "order_date": "2026-10-15 10:00:00",
+            "quantity": 2,
+            "unit_price": 500.0,
+            "discount": 50.0,
+            "total": 950.0,
+        }
+
+    # Rule 1: Missing order_id
+    def test_rule_1_missing_order_id(self):
+        row = self._base_valid_order()
+        row["order_id"] = ""
+        valid, rejected = handle_nulls_orders([row])
+        self.assertEqual(len(valid), 0)
+        self.assertEqual(len(rejected), 1)
+        self.assertIn("missing_required_key: order_id", rejected[0]["rejection_reason"])
+
+    # Rule 2: Missing customer_id
+    def test_rule_2_missing_customer_id(self):
+        row = self._base_valid_order()
+        row["customer_id"] = None
+        valid, rejected = handle_nulls_orders([row])
+        self.assertEqual(len(valid), 0)
+        self.assertEqual(len(rejected), 1)
+        self.assertIn("missing_required_key: customer_id", rejected[0]["rejection_reason"])
+
+    # Rule 3: Missing product_id
+    def test_rule_3_missing_product_id(self):
+        row = self._base_valid_order()
+        row["product_id"] = "   "
+        valid, rejected = handle_nulls_orders([row])
+        self.assertEqual(len(valid), 0)
+        self.assertEqual(len(rejected), 1)
+        self.assertIn("missing_required_key: product_id", rejected[0]["rejection_reason"])
+
+    # Rule 4: Missing order_date
+    def test_rule_4_missing_order_date(self):
+        row = self._base_valid_order()
+        row["order_date"] = None
+        valid, rejected = handle_nulls_orders([row])
+        self.assertEqual(len(valid), 0)
+        self.assertEqual(len(rejected), 1)
+        self.assertIn("missing_required_field: order_date", rejected[0]["rejection_reason"])
+
+    # Rule 5: Missing quantity
+    def test_rule_5_missing_quantity(self):
+        row = self._base_valid_order()
+        row["quantity"] = ""
+        valid, rejected = handle_nulls_orders([row])
+        self.assertEqual(len(valid), 0)
+        self.assertEqual(len(rejected), 1)
+        self.assertIn("missing_required_key: quantity", rejected[0]["rejection_reason"])
+
+    # Rule 6: Zero or negative quantity
+    def test_rule_6_zero_or_negative_quantity(self):
+        row = self._base_valid_order()
+        row["quantity"] = -3
+        valid, rejected = handle_nulls_orders([row])
+        self.assertEqual(len(valid), 0)
+        self.assertEqual(len(rejected), 1)
+        self.assertIn("invalid_quantity", rejected[0]["rejection_reason"])
+        self.assertIn("-3", rejected[0]["rejection_reason"])
+
+    # Rule 7: Zero or negative unit_price
+    def test_rule_7_zero_or_negative_unit_price(self):
+        row = self._base_valid_order()
+        row["unit_price"] = 0.0
+        valid, rejected = handle_nulls_orders([row])
+        self.assertEqual(len(valid), 0)
+        self.assertEqual(len(rejected), 1)
+        self.assertIn("invalid_unit_price", rejected[0]["rejection_reason"])
+
+    # Rule 8: Negative total
+    def test_rule_8_negative_total(self):
+        row = self._base_valid_order()
+        row["total"] = -100.0
+        row["unit_price"] = 50.0
+        valid, rejected = handle_nulls_orders([row])
+        self.assertEqual(len(valid), 0)
+        self.assertEqual(len(rejected), 1)
+        self.assertIn("negative_total", rejected[0]["rejection_reason"])
+        self.assertIn("-100.0", rejected[0]["rejection_reason"])
+
+    # Rule 9: Arithmetic mismatch (diff > 0.02)
+    def test_rule_9_arithmetic_mismatch(self):
+        row = self._base_valid_order()
+        row["total"] = 999.0  # expected 500 * 2 - 50 = 950
+        valid, rejected = handle_nulls_orders([row])
+        self.assertEqual(len(valid), 0)
+        self.assertEqual(len(rejected), 1)
+        self.assertIn("arithmetic_mismatch", rejected[0]["rejection_reason"])
+
+    # Rule 10: Duplicate order lines
+    def test_rule_10_duplicate_order_lines(self):
+        row1 = self._base_valid_order()
+        row2 = self._base_valid_order()
+        unique, duplicates = deduplicate_records([row1, row2], key_fields=("order_id", "product_id"))
+        self.assertEqual(len(unique), 1)
+        self.assertEqual(len(duplicates), 1)
+        self.assertIn("duplicate_natural_key", duplicates[0]["rejection_reason"])
 
 
 if __name__ == "__main__":

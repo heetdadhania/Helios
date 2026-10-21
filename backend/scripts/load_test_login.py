@@ -42,7 +42,7 @@ for env_candidate in [
 
 def run_load_test(
     email: str = "admin@helios.io",
-    password: str = "HeliosDemo2026!",
+    password: str = None,
     count: int = 100,
     delay: float = 0.05,
     server_url: str = None,
@@ -50,6 +50,8 @@ def run_load_test(
     """
     Execute 100 consecutive login requests and assert all return 200 with valid JWT.
     """
+    if not password:
+        password = os.getenv("ADMIN_PASSWORD")
     print("=" * 80)
     print("HELIOS PLATFORM - AUTHENTICATION RESILIENCE & LOAD TEST")
     print("=" * 80)
@@ -197,7 +199,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--password",
-        default=os.getenv("TEST_LOGIN_PASSWORD", "HeliosDemo2026!"),
+        default=os.getenv("ADMIN_PASSWORD"),
         help="Plaintext password for known-good test account",
     )
     parser.add_argument(

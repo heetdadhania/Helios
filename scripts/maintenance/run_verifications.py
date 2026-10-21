@@ -215,9 +215,12 @@ def verify_auth():
     assert "access_token" not in (res if isinstance(res, dict) else {}), "Token must NOT be returned on wrong password"
     print("  => PASS: Real backend 401 returned, no session/token created.")
 
+    ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
+    TEST_ACCOUNT_PASSWORD = os.environ.get("TEST_ACCOUNT_PASSWORD")
+
     # 2. Correct password login for Admin
     print("\n--- Test 2: Correct Password Login (Admin) ---")
-    status, res_admin = http_json("POST", "/api/auth/login", {"email": "admin@helios.io", "password": "HeliosDemo2026!"})
+    status, res_admin = http_json("POST", "/api/auth/login", {"email": "admin@helios.io", "password": ADMIN_PASSWORD})
     print(f"  POST /api/auth/login [admin@helios.io] -> Status {status}")
     admin_token = res_admin["access_token"]
     print(f"  Returned User: ID={res_admin['user']['id']}, Email={res_admin['user']['email']}, Role={res_admin['user']['role']}")
@@ -225,7 +228,7 @@ def verify_auth():
 
     # 3. Correct password login for Team Member
     print("\n--- Test 3: Correct Password Login (Team Member) ---")
-    status, res_tm = http_json("POST", "/api/auth/login", {"email": "team-member-1@helios-test.dev", "password": "HeliosTest2026!"})
+    status, res_tm = http_json("POST", "/api/auth/login", {"email": "team-member-1@helios-test.dev", "password": TEST_ACCOUNT_PASSWORD})
     print(f"  POST /api/auth/login [team-member-1@helios-test.dev] -> Status {status}")
     tm_token = res_tm["access_token"]
     print(f"  Returned User: ID={res_tm['user']['id']}, Email={res_tm['user']['email']}, Role={res_tm['user']['role']}")
@@ -233,7 +236,7 @@ def verify_auth():
 
     # 4. Correct password login for SMB Owner
     print("\n--- Test 4: Correct Password Login (SMB Owner) ---")
-    status, res_smb = http_json("POST", "/api/auth/login", {"email": "smb-owner-1@helios-test.dev", "password": "HeliosTest2026!"})
+    status, res_smb = http_json("POST", "/api/auth/login", {"email": "smb-owner-1@helios-test.dev", "password": TEST_ACCOUNT_PASSWORD})
     print(f"  POST /api/auth/login [smb-owner-1@helios-test.dev] -> Status {status}")
     smb_token = res_smb["access_token"]
     print(f"  Returned User: ID={res_smb['user']['id']}, Email={res_smb['user']['email']}, Role={res_smb['user']['role']}, Tenant={res_smb['user']['tenant_id']}")

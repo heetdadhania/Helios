@@ -28,6 +28,11 @@ class OversightRepository:
         self.shipments_table = f"`{self.catalog}`.`gold`.`fact_shipments`"
         self.orders_table = f"`{self.catalog}`.`gold`.`fact_orders`"
         self.summary_table = f"`{self.catalog}`.`gold`.`fact_orders_daily_summary`"
+        self.dim_date_table = f"`{self.catalog}`.`gold`.`dim_date`"
+        self.users_table = f"`{self.catalog}`.`platform`.`users`"
+        self.team_table = f"`{self.catalog}`.`platform`.`team_assignments`"
+        self.support_table = f"`{self.catalog}`.`platform`.`support_messages`"
+        self.pending_table = f"`{self.catalog}`.`platform`.`pending_uploads`"
 
     def _fetch_all(self, query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """Helper to execute query and return list of dictionaries."""
@@ -516,3 +521,216 @@ class OversightRepository:
         except Exception as exc:
             logger.warning("Could not execute UNION audit query: %s. Querying audit log only.", exc)
             return self._fetch_all(audit_query, audit_params if audit_params else None)
+
+    def get_admin_home_summary(self) -> Dict[str, Any]:
+        """Fetch summary metrics for Admin Home."""
+        query = f"""
+            SELECT
+                (SELECT count(*) FROM {self.tenants_table} WHERE is_active = true) AS active_orgs,
+                (SELECT count(*) FROM {self.tenants_table} WHERE is_active = false) AS inactive_orgs,
+                (SELECT count(*) FROM {self.tenants_table}) AS total_orgs,
+                (SELECT count(*) FROM {self.users_table} WHERE role = 'smb_owner' AND is_active = true) AS active_owners,
+                (SELECT count(*) FROM {self.users_table} WHERE role = 'team_member' AND is_active = true) AS team_members,
+                (SELECT count(DISTINCT coalesce(pu.upload_id, ps.upload_id, ps.batch_id))
+                 FROM {self.pipeline_table} ps
+                 FULL OUTER JOIN {self.pending_table} pu ON ps.upload_id = pu.upload_id
+                 WHERE lower(coalesce(pu.status, '')) = 'pending'
+                    OR lower(coalesce(ps.status, '')) IN ('pending_review', 'awaiting_confirmation')
+                ) AS pending_uploads,
+                (SELECT count(*) FROM {self.pipeline_table}
+                 WHERE lower(status) IN ('running', 'ingesting', 'silver_running', 'gold_running')
+                   AND (
+                       (last_heartbeat_at IS NULL AND created_at >= (current_timestamp() - INTERVAL 15 MINUTES))
+                       OR (last_heartbeat_at IS NOT NULL AND last_heartbeat_at >= (current_timestamp() - INTERVAL 15 MINUTES))
+                   )
+                ) AS running_pipelines,
+                (SELECT count(*) FROM {self.pipeline_table} WHERE lower(status) IN ('failed', 'failure', 'error', 'restart_required')) AS failed_pipelines,
+                (SELECT count(*) FROM {self.support_table} WHERE lower(status) = 'open') AS open_support_messages
+        """
+        row = self._fetch_one(query) or {}
+        return {
+            "organizations_active": int(row.get("active_orgs") or 0),
+            "organizations_inactive": int(row.get("inactive_orgs") or 0),
+            "organizations_total": int(row.get("total_orgs") or 0),
+            "organization_owners_active": int(row.get("active_owners") or 0),
+            "team_members": int(row.get("team_members") or 0),
+            "pending_uploads": int(row.get("pending_uploads") or 0),
+            "running_pipelines": int(row.get("running_pipelines") or 0),
+            "failed_pipelines": int(row.get("failed_pipelines") or 0),
+            "open_support_messages": int(row.get("open_support_messages") or 0),
+        }
+
+    def get_admin_home_top_10_revenue(self) -> List[Dict[str, Any]]:
+        """
+        Fetch top 10 organizations by revenue (each organization's latest 30 days of its own data).
+        """
+        query = f"""
+            WITH tenant_anchors AS (
+                SELECT 
+                    s.tenant_id,
+                    max(d.full_date) AS max_date
+                FROM {self.summary_table} s
+                JOIN {self.dim_date_table} d ON s.date_id = d.date_id
+                GROUP BY s.tenant_id
+            ),
+            tenant_30d_rev AS (
+                SELECT 
+                    s.tenant_id,
+                    round(coalesce(sum(s.total_revenue), 0.0), 2) AS total_revenue
+                FROM {self.summary_table} s
+                JOIN {self.dim_date_table} d ON s.date_id = d.date_id
+                JOIN tenant_anchors a ON s.tenant_id = a.tenant_id
+                WHERE d.full_date >= date_sub(a.max_date, 29)
+                  AND d.full_date <= a.max_date
+                GROUP BY s.tenant_id
+            )
+            SELECT 
+                t.tenant_id,
+                t.business_name AS organization_name,
+                coalesce(r.total_revenue, 0.0) AS total_revenue
+            FROM {self.tenants_table} t
+            JOIN tenant_30d_rev r ON t.tenant_id = r.tenant_id
+            WHERE r.total_revenue > 0
+            ORDER BY total_revenue DESC
+            LIMIT 10
+        """
+        rows = self._fetch_all(query)
+        return [
+            {
+                "tenant_id": int(r["tenant_id"]),
+                "organization_name": r.get("organization_name") or f"Organization #{r['tenant_id']}",
+                "total_revenue": float(r.get("total_revenue") or 0.0),
+            }
+            for r in rows
+        ]
+
+    def get_admin_home_pipeline_runs_14d(self) -> List[Dict[str, Any]]:
+        """
+        Fetch pipeline runs per day split into success and failed for the last 14 days.
+        """
+        query = f"""
+            SELECT 
+                cast(to_date(coalesce(created_at, updated_at)) AS string) AS date_str,
+                sum(CASE WHEN lower(status) in ('success', 'completed') THEN 1 ELSE 0 END) AS successful_runs,
+                sum(CASE WHEN lower(status) in ('failed', 'restart_required', 'error') THEN 1 ELSE 0 END) AS failed_runs,
+                count(*) AS total_runs
+            FROM {self.pipeline_table}
+            WHERE coalesce(created_at, updated_at) >= (current_date() - INTERVAL 14 DAYS)
+            GROUP BY 1
+            ORDER BY 1 ASC
+        """
+        raw_rows = self._fetch_all(query)
+        by_date = {r["date_str"]: r for r in raw_rows if r.get("date_str")}
+
+        today = date.today()
+        result = []
+        for i in range(13, -1, -1):
+            d_str = (today - timedelta(days=i)).isoformat()
+            if d_str in by_date:
+                item = by_date[d_str]
+                result.append({
+                    "date": d_str,
+                    "successful_runs": int(item.get("successful_runs") or 0),
+                    "failed_runs": int(item.get("failed_runs") or 0),
+                    "total_runs": int(item.get("total_runs") or 0),
+                })
+            else:
+                result.append({
+                    "date": d_str,
+                    "successful_runs": 0,
+                    "failed_runs": 0,
+                    "total_runs": 0,
+                })
+        return result
+
+    def get_admin_home_tables(self) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+        """
+        Fetch 10 organizations and 10 recent activity rows for Admin Home.
+        """
+        orgs_q = f"""
+            WITH last_dates AS (
+                SELECT 
+                    s.tenant_id,
+                    max(d.full_date) AS last_date
+                FROM {self.summary_table} s
+                JOIN {self.dim_date_table} d ON s.date_id = d.date_id
+                GROUP BY s.tenant_id
+            ),
+            owners AS (
+                SELECT 
+                    u.tenant_id,
+                    coalesce(nullif(trim(u.name), ''), u.email) AS owner_name
+                FROM {self.users_table} u
+                WHERE u.role = 'smb_owner' AND u.is_active = true
+            ),
+            team_members AS (
+                SELECT 
+                    ta.tenant_id,
+                    concat_ws(', ', collect_list(coalesce(nullif(trim(u.name), ''), u.email))) AS assigned_team_member
+                FROM {self.team_table} ta
+                JOIN {self.users_table} u ON ta.user_id = u.user_id
+                GROUP BY ta.tenant_id
+            )
+            SELECT 
+                t.tenant_id,
+                t.business_name AS name,
+                t.is_active,
+                coalesce(o.owner_name, 'Unassigned') AS owner,
+                coalesce(tm.assigned_team_member, 'Unassigned') AS assigned_team_member,
+                cast(ld.last_date AS string) AS last_data_received
+            FROM {self.tenants_table} t
+            LEFT JOIN owners o ON t.tenant_id = o.tenant_id
+            LEFT JOIN team_members tm ON t.tenant_id = tm.tenant_id
+            LEFT JOIN last_dates ld ON t.tenant_id = ld.tenant_id
+            ORDER BY t.created_at DESC, t.tenant_id DESC
+            LIMIT 10
+        """
+        org_rows = self._fetch_all(orgs_q)
+        organizations = [
+            {
+                "tenant_id": int(r["tenant_id"]),
+                "name": r.get("name") or f"Organization #{r['tenant_id']}",
+                "owner": r.get("owner") or "Unassigned",
+                "assigned_team_member": r.get("assigned_team_member") or "Unassigned",
+                "last_data_received": str(r["last_data_received"]) if r.get("last_data_received") else None,
+                "is_active": bool(r.get("is_active", True)),
+            }
+            for r in org_rows
+        ]
+
+        act_q = f"""
+            SELECT 
+                ps.batch_id,
+                ps.tenant_id,
+                t.business_name AS tenant_name,
+                ps.stage,
+                CASE 
+                    WHEN LOWER(ps.status) IN ('running', 'ingesting', 'silver_running', 'gold_running')
+                         AND (
+                             (ps.last_heartbeat_at IS NULL AND ps.created_at < (current_timestamp() - INTERVAL 15 MINUTES))
+                             OR
+                             (ps.last_heartbeat_at IS NOT NULL AND ps.last_heartbeat_at < (current_timestamp() - INTERVAL 15 MINUTES))
+                         ) THEN 'stalled'
+                    ELSE ps.status
+                END AS status,
+                ps.error_message,
+                ps.created_at AS timestamp
+            FROM {self.pipeline_table} ps
+            LEFT JOIN {self.tenants_table} t ON ps.tenant_id = t.tenant_id
+            ORDER BY ps.created_at DESC
+            LIMIT 10
+        """
+        act_rows = self._fetch_all(act_q)
+        recent_activity = [
+            {
+                "batch_id": r.get("batch_id"),
+                "tenant_id": int(r["tenant_id"]) if r.get("tenant_id") is not None else None,
+                "tenant_name": r.get("tenant_name"),
+                "stage": r.get("stage"),
+                "status": r.get("status") or "unknown",
+                "error_message": r.get("error_message"),
+                "timestamp": r.get("timestamp"),
+            }
+            for r in act_rows
+        ]
+        return organizations, recent_activity

@@ -118,6 +118,7 @@ def get_current_user(
         email=str(user_record["email"]),
         role=UserRole(user_record["role"]),
         tenant_id=int(user_record["tenant_id"]) if user_record.get("tenant_id") is not None else None,
+        business_name=user_record.get("business_name"),
         must_change_password=bool(user_record.get("must_change_password", False)),
     )
 

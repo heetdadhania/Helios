@@ -16,6 +16,7 @@ from app.schemas.oversight import (
     TenantCompareResponse,
     TenantDashboardViewAs,
     TenantHealthListResponse,
+    AdminHomeResponse,
 )
 from app.services.oversight_service import OversightService
 
@@ -157,3 +158,23 @@ def export_audit_log(
         "Access-Control-Expose-Headers": "Content-Disposition",
     }
     return Response(content=content, media_type=media_type, headers=headers)
+
+
+@router.get(
+    "/home",
+    response_model=AdminHomeResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get Admin Home Operational Dashboard",
+    description=(
+        "Retrieve system-wide summary counts, top 10 organization revenues over their last 30 days of data, "
+        "pipeline runs per day for the last 14 days split into success and failed, "
+        "and 10-row tables for organizations and recent pipeline activity. "
+        "Executed with parallel subqueries, cached for 30 seconds."
+    ),
+)
+def get_admin_home(
+    force_refresh: bool = Query(False, description="Bypass in-memory cache and recompute immediately"),
+    current_user: UserOut = Depends(require_role("admin")),
+) -> AdminHomeResponse:
+    """Consolidated Admin Home metrics with 30s cache and parallel execution."""
+    return OversightService.get_admin_home_data(force_refresh=force_refresh)

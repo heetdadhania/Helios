@@ -29,25 +29,28 @@ sys.path.insert(0, str(REPO_ROOT / "backend"))
 
 from app.core import security
 from app.db.base import databricks_cursor
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
 DEFAULT_TIMEOUT = 60
 
 # Test Accounts
 ADMIN_EMAIL = "admin@helios.io"
-ADMIN_PASS = "HeliosDemo2026!"
+ADMIN_PASS = os.environ.get("ADMIN_PASSWORD")
 
 TM1_EMAIL = "team-member-1@helios-test.dev"
-TM1_PASS = "HeliosTest2026!"
+TM1_PASS = os.environ.get("TEST_ACCOUNT_PASSWORD")
 
 SMB1_EMAIL = "smb-owner-1@helios-test.dev"
-SMB1_PASS = "HeliosTest2026!"
+SMB1_PASS = os.environ.get("TEST_ACCOUNT_PASSWORD")
 
 SMB2_EMAIL = "smb-owner-2@helios-test.dev"
-SMB2_PASS = "HeliosTest2026!"
+SMB2_PASS = os.environ.get("TEST_ACCOUNT_PASSWORD")
 
 SMB5_EMAIL = "smb-owner-5@helios-test.dev"
-SMB5_PASS = "HeliosTest2026!"
+SMB5_PASS = os.environ.get("TEST_ACCOUNT_PASSWORD")
 
 TABLE_RESULTS = []
 
@@ -86,7 +89,9 @@ def get_user_db_state(email: str) -> Optional[Dict[str, Any]]:
         }
 
 
-def reset_user_db_state(email: str, default_password: str = "HeliosTest2026!"):
+def reset_user_db_state(email: str, default_password: str = None):
+    if default_password is None:
+        default_password = os.environ.get("TEST_ACCOUNT_PASSWORD")
     new_hash = security.get_password_hash(default_password)
     with databricks_cursor() as cur:
         cur.execute(

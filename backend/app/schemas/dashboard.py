@@ -123,3 +123,29 @@ class ShippingModeComparisonResponse(BaseModel):
         description="Performance comparison across all shipping modes",
     )
     data_as_of: Optional[str] = Field(None, description="Anchor date for lookback window in ISO format YYYY-MM-DD")
+
+
+# --- 6. Organization Owner Home Summary Schemas ---
+class DashboardSummaryResponse(BaseModel):
+    """
+    Overview summary metrics for Organization Owner Home page:
+    - the 'Data as of' date
+    - four figures from the organization's own data:
+      1. total revenue in ₹
+      2. order count
+      3. late-delivery percentage
+      4. average order value in ₹
+    - the status of the latest submission in plain words (Ready, Processing, Needs attention - please resend)
+    """
+
+    data_as_of: Optional[str] = Field(None, description="Anchor date for organization data in YYYY-MM-DD")
+    total_revenue: Optional[float] = Field(None, description="Total revenue amount across organization's data")
+    order_count: Optional[int] = Field(None, description="Total order volume count")
+    late_delivery_percentage: Optional[float] = Field(None, description="Late delivery percentage rate")
+    average_order_value: Optional[float] = Field(None, description="Mean order value amount")
+    latest_submission_status: Optional[str] = Field(None, description="Status of latest submission in plain words (Ready, Processing, Needs attention - please resend)")
+    latest_submission_batch_id: Optional[str] = Field(None, description="Batch ID of latest submission if any")
+    has_data: bool = Field(False, description="Flag indicating whether organization has any data")
+
+    model_config = {"from_attributes": True}
+

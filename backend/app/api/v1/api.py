@@ -15,6 +15,7 @@ from app.api.uploads import router as uploads_router
 from app.api.dashboard import router as dashboard_router
 from app.api.data_quality import router as data_quality_router
 from app.api.team import router as team_router
+from app.api.team_home import router as team_home_router
 
 api_router = APIRouter()
 
@@ -22,6 +23,7 @@ api_router.include_router(health.router, prefix="/health", tags=["Health"])
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 api_router.include_router(tenants.router, prefix="/tenants", tags=["Tenants"])
 api_router.include_router(team_router, prefix="/team-members", tags=["Team Members"])
+api_router.include_router(team_home_router, prefix="/team", tags=["Team"])
 api_router.include_router(datasets.router, prefix="/datasets", tags=["Datasets"])
 api_router.include_router(db_connections_router, prefix="/db-connections", tags=["Database Connections"])
 api_router.include_router(api_ingest_router, prefix="/ingest", tags=["API Ingestion"])

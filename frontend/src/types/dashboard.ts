@@ -95,3 +95,15 @@ export interface DashboardData {
   shippingModes: ShippingModeComparisonResponse | null;
   uploadStatus: SimplifiedUploadStatus | null;
 }
+
+export interface DashboardSummaryResponse {
+  data_as_of: string | null;
+  total_revenue: number | null;
+  order_count: number | null;
+  late_delivery_percentage: number | null;
+  average_order_value: number | null;
+  latest_submission_status: string | null;
+  latest_submission_batch_id: string | null;
+  has_data: boolean;
+}
+

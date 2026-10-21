@@ -20,6 +20,7 @@ class UserRepository(BaseRepository):
         super().__init__(cursor)
         self.catalog = catalog or settings.DATABRICKS_CATALOG
         self.table = f"`{self.catalog}`.`platform`.`users`"
+        self.tenants_table = f"`{self.catalog}`.`platform`.`tenants`"
 
     USER_COLUMNS = """
         user_id,
@@ -38,6 +39,26 @@ class UserRepository(BaseRepository):
         coalesce(failed_login_count, 0) as failed_login_count,
         locked_until,
         password_changed_at
+    """
+
+    USER_SELECT = """
+        u.user_id,
+        u.tenant_id,
+        u.name,
+        u.email,
+        u.password_hash,
+        u.role,
+        coalesce(u.is_active, true) as is_active,
+        u.created_at,
+        u.phone_number,
+        u.staff_id,
+        u.designation,
+        coalesce(u.must_change_password, false) as must_change_password,
+        u.last_login_at,
+        coalesce(u.failed_login_count, 0) as failed_login_count,
+        u.locked_until,
+        u.password_changed_at,
+        t.business_name
     """
 
     @staticmethod
@@ -64,7 +85,12 @@ class UserRepository(BaseRepository):
         specifically around the Databricks query to absorb transient warehouse wake-up delays.
         """
         clean_email = email.strip().lower()
-        query = f"SELECT {self.USER_COLUMNS} FROM {self.table} WHERE lower(email) = :email LIMIT 1"
+        query = f"""
+            SELECT {self.USER_SELECT}
+            FROM {self.table} u
+            LEFT JOIN {self.tenants_table} t ON u.tenant_id = t.tenant_id
+            WHERE lower(u.email) = :email LIMIT 1
+        """
         parameters = {"email": clean_email}
 
         last_exception = None
@@ -112,7 +138,12 @@ class UserRepository(BaseRepository):
         base_backoff: float = 1.0,
     ) -> Optional[Dict[str, Any]]:
         """Fetch a user record by primary key user_id with retry-with-backoff."""
-        query = f"SELECT {self.USER_COLUMNS} FROM {self.table} WHERE user_id = :user_id LIMIT 1"
+        query = f"""
+            SELECT {self.USER_SELECT}
+            FROM {self.table} u
+            LEFT JOIN {self.tenants_table} t ON u.tenant_id = t.tenant_id
+            WHERE u.user_id = :user_id LIMIT 1
+        """
         parameters = {"user_id": user_id}
 
         last_exception = None

@@ -1,6 +1,7 @@
 import api from './api';
 import {
   DashboardData,
+  DashboardSummaryResponse,
   DiscountVsProfitResponse,
   LateDeliveryRiskResponse,
   RevenueTrendResponse,
@@ -10,6 +11,10 @@ import {
 } from '@/types/dashboard';
 
 export const dashboardService = {
+  async getSummary(): Promise<DashboardSummaryResponse> {
+    const response = await api.get<DashboardSummaryResponse>('/dashboard/summary');
+    return response.data;
+  },
   async getRevenueTrend(days?: number | null): Promise<RevenueTrendResponse> {
     const params: Record<string, any> = {};
     if (days && days > 0) params.days = days;

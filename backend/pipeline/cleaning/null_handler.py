@@ -7,8 +7,14 @@ logger = logging.getLogger("helios.pipeline.cleaning.nulls")
 def handle_nulls_orders(records: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     """
     Handle missing values and enforce required fields for retail orders:
-    - Rejects rows missing order_id or total.
-    - Imputes defaults: quantity=1, discount=0.0.
+    - Rejects rows missing order_id, customer_id, product_id, or order_date.
+    - Rejects rows with missing, zero or negative quantity.
+    - Rejects rows with zero or negative unit_price.
+    - Rejects rows with negative total.
+    - Rejects rows where total != quantity * unit_price - discount (tolerance 0.02).
+    - Imputes defaults: discount=0.0.
+    - Computes total from unit_price*quantity-discount when total is missing.
+    - Back-calculates unit_price from total when unit_price is missing.
     """
     valid: List[Dict[str, Any]] = []
     rejected: List[Dict[str, Any]] = []
@@ -21,6 +27,20 @@ def handle_nulls_orders(records: List[Dict[str, Any]]) -> Tuple[List[Dict[str, A
             rejected.append(r)
             continue
 
+        # Customer ID required
+        cust_id = r.get("customer_id")
+        if not cust_id or str(cust_id).strip() == "":
+            r["rejection_reason"] = "missing_required_key: customer_id"
+            rejected.append(r)
+            continue
+
+        # Product ID required
+        prod_id = r.get("product_id")
+        if not prod_id or str(prod_id).strip() == "":
+            r["rejection_reason"] = "missing_required_key: product_id"
+            rejected.append(r)
+            continue
+
         # Quantity validation
         qty = r.get("quantity")
         if qty is None or str(qty).strip() == "":
@@ -30,12 +50,12 @@ def handle_nulls_orders(records: List[Dict[str, Any]]) -> Tuple[List[Dict[str, A
         try:
             val_qty = int(float(qty))
             if val_qty <= 0:
-                r["rejection_reason"] = "invalid_quantity: quantity must be greater than zero"
+                r["rejection_reason"] = f"invalid_quantity: quantity must be greater than zero (original_value: {qty})"
                 rejected.append(r)
                 continue
             r["quantity"] = val_qty
         except (ValueError, TypeError):
-            r["rejection_reason"] = "invalid_quantity: cannot parse as integer"
+            r["rejection_reason"] = f"invalid_quantity: cannot parse as integer (original_value: {qty})"
             rejected.append(r)
             continue
 
@@ -73,6 +93,56 @@ def handle_nulls_orders(records: List[Dict[str, Any]]) -> Tuple[List[Dict[str, A
                 r["unit_price"] = round((float(r["total"]) + float(r["discount"])) / r["quantity"], 4)
             except (ValueError, TypeError):
                 pass
+
+        # Order date required (unreadable dates rejected earlier by date_standardizer;
+        # this catches completely absent order_date)
+        od = r.get("order_date")
+        if od is None or str(od).strip() == "":
+            r["rejection_reason"] = "missing_required_field: order_date"
+            rejected.append(r)
+            continue
+
+        # Unit price must be positive
+        up_val = r.get("unit_price")
+        if up_val is not None:
+            try:
+                up_float = float(up_val)
+                if up_float <= 0:
+                    r["rejection_reason"] = f"invalid_unit_price: unit_price must be greater than zero (original_value: {up_val})"
+                    rejected.append(r)
+                    continue
+            except (ValueError, TypeError):
+                pass
+
+        # Total must not be negative
+        tot_val = r.get("total")
+        if tot_val is not None:
+            try:
+                tot_float = float(tot_val)
+                if tot_float < 0:
+                    r["rejection_reason"] = f"negative_total: total must not be negative (original_value: {tot_val})"
+                    rejected.append(r)
+                    continue
+            except (ValueError, TypeError):
+                pass
+
+        # Arithmetic check: total ≈ quantity × unit_price − discount (tolerance ₹0.02)
+        try:
+            final_total = float(r.get("total", 0))
+            final_up = float(r.get("unit_price", 0))
+            final_qty = int(r.get("quantity", 0))
+            final_disc = float(r.get("discount", 0))
+            expected = round(final_up * final_qty - final_disc, 4)
+            diff = abs(final_total - expected)
+            if diff > 0.02:
+                r["rejection_reason"] = (
+                    f"arithmetic_mismatch: total does not equal quantity * unit_price - discount "
+                    f"(total={final_total}, expected={expected}, diff={diff})"
+                )
+                rejected.append(r)
+                continue
+        except (ValueError, TypeError):
+            pass
 
         valid.append(r)
 

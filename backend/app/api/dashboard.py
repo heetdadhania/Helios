@@ -14,6 +14,7 @@ from app.core.dependencies import get_db_cursor, require_role
 from app.repositories.dashboard_repository import DashboardRepository
 from app.schemas.auth import UserOut
 from app.schemas.dashboard import (
+    DashboardSummaryResponse,
     DiscountVsProfitResponse,
     LateDeliveryRiskResponse,
     RevenueTrendResponse,
@@ -79,6 +80,31 @@ def execute_with_timing(
 
 
 router = APIRouter()
+
+
+@router.get(
+    "/summary",
+    response_model=DashboardSummaryResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get Organization Dashboard Summary",
+    description="Retrieve high-level overview metrics, data as of date, and latest submission status for the authenticated SMB Owner.",
+)
+def get_dashboard_summary(
+    response: Response,
+    current_user: UserOut = Depends(require_role("smb_owner")),
+    cursor: Cursor = Depends(get_db_cursor),
+) -> DashboardSummaryResponse:
+    """
+    Return high-level summary metrics for the Organization Owner's home page.
+    """
+    repo = DashboardRepository(cursor)
+    return execute_with_timing(
+        endpoint_name="/summary",
+        cursor=cursor,
+        query_fn=lambda: DashboardService.get_dashboard_summary(current_user=current_user, repo=repo),
+        response=response,
+    )
+
 
 
 @router.get(

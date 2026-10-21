@@ -1,7 +1,13 @@
-#!/usr/bin/env python3
 import json
+import os
 import urllib.request
 import urllib.error
+from dotenv import load_dotenv
+
+load_dotenv()
+
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
+TEST_ACCOUNT_PASSWORD = os.environ.get("TEST_ACCOUNT_PASSWORD")
 
 BASE_URL = "http://127.0.0.1:8000"
 
@@ -40,7 +46,7 @@ print("\n--- Testing Login with Correct Credentials ---")
 # Credentials loaded securely from environment / known test fixtures
 status, login_resp = http_json("POST", "/api/auth/login", {
     "email": "admin@helios.io",
-    "password": "HeliosDemo2026!"
+    "password": ADMIN_PASSWORD
 })
 print(f"POST /api/auth/login [Valid Admin] -> Status {status}")
 assert status == 200, f"Expected 200, got {status}"
@@ -50,7 +56,7 @@ print(f"Logged in user info: id={user_info.get('id')}, email={user_info.get('ema
 
 status, smb_resp = http_json("POST", "/api/auth/login", {
     "email": "smb-owner-1@helios-test.dev",
-    "password": "HeliosTest2026!"
+    "password": TEST_ACCOUNT_PASSWORD
 })
 print(f"POST /api/auth/login [Valid SMB Owner] -> Status {status}")
 assert status == 200, f"Expected 200, got {status}"

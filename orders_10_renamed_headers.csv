@@ -1,0 +1,11 @@
+Order_ID,Order_Date,Cust_ID,Cust_Name,Segment,Prod_ID,Product,Category,Qty,Unit_Price,Discount,Total,Profit
+ORD-3001,2026-10-12,C203,Rohan Mehta,Corporate,P106,Desk Lamp,Home,4,1299.00,519.60,4676.40,935.28
+ORD-3002,2026-10-13,C202,Diya Patel,Consumer,P103,Wireless Earbuds,Electronics,2,1999.00,0.00,3998.00,799.60
+ORD-3003,2026-10-14,C204,Ananya Iyer,Consumer,P104,Ceramic Coffee Mug,Home,5,299.00,0.00,1495.00,299.00
+ORD-3004,2026-10-15,C205,Vikram Singh,Home Office,P101,Cotton Kurta,Apparel,1,499.00,49.90,449.10,89.82
+ORD-3005,2026-10-16,C204,Ananya Iyer,Consumer,P102,Running Shoes,Footwear,4,3499.00,0.00,13996.00,2799.20
+ORD-3006,2026-10-17,C206,Priya Nair,Corporate,P104,Ceramic Coffee Mug,Home,3,299.00,44.85,852.15,170.43
+ORD-3007,2026-10-18,C206,Priya Nair,Corporate,P101,Cotton Kurta,Apparel,2,499.00,99.80,898.20,179.64
+ORD-3008,2026-10-19,C202,Diya Patel,Consumer,P105,Yoga Mat,Sports,3,899.00,269.70,2427.30,485.46
+ORD-3009,2026-10-20,C205,Vikram Singh,Home Office,P102,Running Shoes,Footwear,5,3499.00,0.00,17495.00,3499.00
+ORD-3010,2026-10-21,C205,Vikram Singh,Home Office,P106,Desk Lamp,Home,5,1299.00,324.75,6170.25,1234.05

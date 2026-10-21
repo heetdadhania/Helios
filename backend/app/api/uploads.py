@@ -75,11 +75,11 @@ async def upload_file(
     override_duplicate_query: Optional[bool] = Query(None, alias="override_duplicate", description="Override duplicate query fallback"),
     override_reason: Optional[str] = Form(None, description="Reason for overriding duplicate (min 5 characters)"),
     override_reason_query: Optional[str] = Query(None, alias="override_reason", description="Override reason query fallback"),
-    current_user: UserOut = Depends(require_role("team_member", "admin", "smb_owner")),
+    current_user: UserOut = Depends(require_role("team_member", "admin")),
     cursor: Cursor = Depends(get_db_cursor),
 ) -> UploadResponse:
     """
-    Ingest a new batch file on behalf of a tenant by Team Member or Admin, or by SMB Owner.
+    Ingest a new batch file on behalf of an organization by Team Member or Admin.
     """
     target_tenant_id = tenant_id if tenant_id is not None else (tenant_id_query if tenant_id_query is not None else current_user.tenant_id)
     if target_tenant_id is None:

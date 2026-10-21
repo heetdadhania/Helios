@@ -203,7 +203,7 @@ export const DuplicateConflictDialog: React.FC<DuplicateConflictDialogProps> = (
                 ) : (
                   <>
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Override Duplicate & Submit</span>
+                    <span>Submit anyway</span>
                   </>
                 )}
               </button>

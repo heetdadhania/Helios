@@ -301,7 +301,7 @@ The platform includes seeded test accounts covering each system persona.
 | **Administrator** | Bootstrap Administrator | *(Configured in `.env`)* | Global | Full platform oversight, organization onboarding, system health |
 | **Administrator** | Helios Admin | `admin@helios.io` | Global | Admin console, team assignments, global data quality logs |
 | **Team Member** | Sarah Jenkins | `team@helios.io` | Assigned to Organizations 1 & 2 | Ingestion approval, pipeline triage, client support |
-| **Organization Owner** | Aarav Sharma | `owner@apexconsumer.com` | Org 1: Kaveri Textiles & Crafts | Client Portal, CSV/Excel file uploads, INR analytics |
+| **Organization Owner** | Aarav Sharma | `owner@apexconsumer.com` | Org 1: Kaveri Textiles & Crafts | Organization Portal: Home overview, INR analytics dashboards, CSV/PDF dataset export, notifications |
 | **Organization Owner** | Rohan Kulkarni | `owner@pacifictech.com` | Org 2: Sahyadri Infotech Solutions | Client Portal, PostgreSQL database sync, INR analytics |
 | **Organization Owner** | Ananya Iyer | `owner@vanguardhome.com` | Org 3: Nilgiri Home & Decor | Client Portal, REST API data push, API key management |
 

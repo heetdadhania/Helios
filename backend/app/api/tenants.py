@@ -25,7 +25,11 @@ from app.schemas.tenant import (
     TenantOut,
     ToggleOwnerActiveRequest,
 )
-from app.services.owner_service import ensure_no_active_owner, execute_password_reset
+from app.services.owner_service import (
+    check_and_safeguard_single_owner,
+    ensure_no_active_owner,
+    execute_password_reset,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -199,6 +203,8 @@ def create_tenant(
         role=UserRole.SMB_OWNER.value,
         tenant_id=new_tenant_id,
     )
+    # Safeguard check: re-count active owners; if > 1, deactivate newer and return 409
+    check_and_safeguard_single_owner(new_tenant_id, int(created_owner["user_id"]), cursor=cursor)
 
     # Secure logging without password
     logger.info(
@@ -601,6 +607,9 @@ def replace_tenant_owner(
         WHERE user_id = :user_id
     """
     cursor.execute(update_new_user_sql, {"phone_number": clean_phone, "user_id": new_user_id})
+
+    # Safeguard check: re-count active owners; if > 1, deactivate newer and return 409
+    check_and_safeguard_single_owner(tenant_id, new_user_id, cursor=cursor)
 
     # Update tenant contact info to reflect new owner
     tenant_repo.update_contact_info(

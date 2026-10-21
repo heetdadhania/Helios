@@ -472,3 +472,85 @@ class DashboardRepository:
             ORDER BY shipment_count DESC
         """
         return self._execute_query_with_retry(query, params)
+
+    def get_dashboard_summary(self, tenant_id: int) -> Dict[str, Any]:
+        """
+        Query high-level summary metrics for Organization Owner Home:
+        - "Data as of" date (latest business date with data)
+        - 4 key metrics from the organization's own data:
+          1. total revenue in ₹
+          2. order count
+          3. late delivery percentage
+          4. average order value in ₹
+        - Latest submission status in plain words (Ready, Processing, Needs attention - please resend)
+        """
+        # 1. Latest business date
+        latest_date = self.get_latest_data_date(tenant_id)
+        data_as_of_str = latest_date.isoformat() if latest_date else None
+
+        # 2. Revenue, order volume, and AOV from fact_orders
+        orders_q = f"""
+            SELECT
+                round(sum(coalesce(total, 0.0)), 2) AS total_revenue,
+                count(DISTINCT source_order_id) AS total_orders,
+                round(sum(coalesce(total, 0.0)) / nullif(count(DISTINCT source_order_id), 0), 2) AS avg_order_value
+            FROM {self.fact_orders_table}
+            WHERE tenant_id = :tenant_id
+        """
+        orders_row = self._execute_single_with_retry(orders_q, {"tenant_id": tenant_id})
+
+        tot_rev = orders_row.get("total_revenue") if orders_row else None
+        tot_orders = orders_row.get("total_orders") if orders_row else None
+        avg_val = orders_row.get("avg_order_value") if orders_row else None
+
+        has_data = bool(tot_orders and int(tot_orders) > 0)
+
+        # 3. Late delivery percentage from fact_shipments
+        shipment_q = f"""
+            SELECT
+                count(*) AS total_shipments,
+                round(sum(CASE WHEN late_flag THEN 1.0 ELSE 0.0 END) * 100.0 / nullif(count(*), 0), 2) AS late_rate_pct
+            FROM {self.fact_shipments_table}
+            WHERE tenant_id = :tenant_id
+        """
+        ship_row = self._execute_single_with_retry(shipment_q, {"tenant_id": tenant_id})
+        late_pct = None
+        if ship_row and ship_row.get("total_shipments", 0) > 0:
+            late_pct = ship_row.get("late_rate_pct")
+        elif has_data:
+            late_pct = 0.0
+
+        # 4. Latest submission status in plain words
+        pipeline_status_table = f"`{self.catalog}`.`platform`.`pipeline_status`"
+        sub_q = f"""
+            SELECT batch_id, stage, status, created_at, updated_at
+            FROM {pipeline_status_table}
+            WHERE tenant_id = :tenant_id
+            ORDER BY created_at DESC
+            LIMIT 1
+        """
+        sub_row = self._execute_single_with_retry(sub_q, {"tenant_id": tenant_id})
+
+        latest_status_plain = None
+        latest_batch_id = None
+        if sub_row and sub_row.get("status"):
+            latest_batch_id = str(sub_row.get("batch_id", ""))
+            raw_st = str(sub_row.get("status", "")).strip().lower()
+            if raw_st in ("success", "completed", "ready"):
+                latest_status_plain = "Ready"
+            elif raw_st in ("failed", "error", "rejected", "cancelled"):
+                latest_status_plain = "Needs attention - please resend"
+            else:
+                latest_status_plain = "Processing"
+
+        return {
+            "data_as_of": data_as_of_str,
+            "total_revenue": float(tot_rev) if tot_rev is not None else None,
+            "order_count": int(tot_orders) if tot_orders is not None else None,
+            "late_delivery_percentage": float(late_pct) if late_pct is not None else None,
+            "average_order_value": float(avg_val) if avg_val is not None else None,
+            "latest_submission_status": latest_status_plain,
+            "latest_submission_batch_id": latest_batch_id,
+            "has_data": has_data,
+        }
+

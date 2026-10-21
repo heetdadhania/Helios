@@ -45,8 +45,20 @@ export const TopBar: React.FC<TopBarProps> = ({ title }) => {
         {/* Theme Toggle */}
         <ThemeToggle />
 
+        {/* User Identity Info (All roles: role, email, and for Organization Owner: business name · email) */}
+        <div className="flex flex-col items-end text-right ml-2 mr-1">
+          <span className="text-xs font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark">
+            {user?.role === 'smb_owner'
+              ? (user?.business_name ? `${user.business_name} · ${user.email}` : user?.email)
+              : user?.email}
+          </span>
+          <span className="text-[10px] text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-medium">
+            {user?.role === 'smb_owner' ? 'Organization Owner' : user?.role === 'admin' ? 'Admin' : 'Team Member'}
+          </span>
+        </div>
+
         {/* User Initials Avatar */}
-        <div className="relative group pl-2">
+        <div className="relative group pl-1">
           <button
             type="button"
             className="w-8 h-8 rounded-full bg-gradient-to-tr from-helios-accent-blue to-helios-accent-teal text-white flex items-center justify-center text-xs font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-helios-accent-blue"

@@ -48,12 +48,16 @@ def http_req(method: str, path: str, body: dict = None, token: str = None, timeo
         return 500, {"error": str(e)}
 
 def get_tokens():
+    from dotenv import load_dotenv
+    load_dotenv()
+    admin_pw = os.environ.get("ADMIN_PASSWORD")
+    test_pw = os.environ.get("TEST_ACCOUNT_PASSWORD")
     # Admin login
-    _, admin_res = http_req("POST", "/api/auth/login", {"email": "admin@helios.io", "password": "HeliosDemo2026!"})
+    _, admin_res = http_req("POST", "/api/auth/login", {"email": "admin@helios.io", "password": admin_pw})
     admin_token = admin_res.get("access_token")
     
     # SMB Owner login (Tenant 1)
-    _, smb_res = http_req("POST", "/api/auth/login", {"email": "smb-owner-1@helios-test.dev", "password": "HeliosTest2026!"})
+    _, smb_res = http_req("POST", "/api/auth/login", {"email": "smb-owner-1@helios-test.dev", "password": test_pw})
     smb_token = smb_res.get("access_token")
     return admin_token, smb_token
 

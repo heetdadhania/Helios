@@ -38,9 +38,12 @@ except ImportError as exc:
     logger.error("Failed to import backend core packages: %s", exc)
     raise
 
-# Demo Password shared across all demo accounts for straightforward onboarding
-DEMO_PASSWORD_PLAIN = "HeliosDemo2026!"
-DEMO_API_KEY_PLAIN = "helios_live_vanguard_demo_api_key_2026"
+# Demo Password loaded from environment variable
+from dotenv import load_dotenv
+load_dotenv()
+
+DEMO_PASSWORD_PLAIN = os.environ.get("TEST_ACCOUNT_PASSWORD") or os.environ.get("ADMIN_PASSWORD")
+DEMO_API_KEY_PLAIN = os.environ.get("DEMO_API_KEY_PLAIN", "helios_live_vanguard_demo_api_key_2026")
 
 DEMO_TENANTS: List[Dict[str, Any]] = [
     {

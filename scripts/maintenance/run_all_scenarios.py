@@ -47,13 +47,19 @@ def http_req(method: str, path: str, body: dict = None, token: str = None, timeo
         return 500, {"error": str(e)}
 
 def get_admin_token():
-    _, res = http_req("POST", "/api/auth/login", {"email": "admin@helios.io", "password": "HeliosDemo2026!"})
+    from dotenv import load_dotenv
+    load_dotenv()
+    admin_pw = os.environ.get("ADMIN_PASSWORD")
+    _, res = http_req("POST", "/api/auth/login", {"email": "admin@helios.io", "password": admin_pw})
     return res.get("access_token")
 
 def get_smb_token(tenant_id: int):
+    from dotenv import load_dotenv
+    load_dotenv()
+    test_pw = os.environ.get("TEST_ACCOUNT_PASSWORD")
     # e.g. smb-owner-4@helios-test.dev
     email = f"smb-owner-{tenant_id}@helios-test.dev"
-    _, res = http_req("POST", "/api/auth/login", {"email": email, "password": "HeliosTest2026!"})
+    _, res = http_req("POST", "/api/auth/login", {"email": email, "password": test_pw})
     return res.get("access_token")
 
 # ==============================================================================

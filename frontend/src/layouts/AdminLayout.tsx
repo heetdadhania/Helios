@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import {
+  Home,
   Clock,
   Activity,
   CheckCircle2,
@@ -20,6 +21,7 @@ import { TopBar } from '@/components/TopBar';
 import { useAuth } from '@/hooks/useAuth';
 
 const adminNavItems: NavItem[] = [
+  { label: 'Home', to: '/admin/home', icon: Home },
   { label: 'Pending Uploads', to: '/admin/uploads', icon: Clock },
   { label: 'Upload Data', to: '/admin/upload', icon: UploadCloud },
   { label: 'Connect Database', to: '/admin/connect-db', icon: Database },
@@ -35,6 +37,7 @@ const adminNavItems: NavItem[] = [
 ];
 
 const adminTitleMap: Record<string, string> = {
+  '/admin/home': 'Home',
   '/admin/uploads': 'Pending Ingestion Approvals',
   '/admin/pending-uploads': 'Pending Ingestion Approvals',
   '/admin/upload': 'Ingest File Upload',

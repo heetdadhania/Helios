@@ -8,10 +8,15 @@ import { Loader2 } from 'lucide-react';
 
 // Lazy-loaded route components for efficient bundle code-splitting
 const Login = lazy(() => import('@/pages/Login').then((m) => ({ default: m.Login })));
+const ClientHome = lazy(() => import('@/pages/client/ClientHome').then((m) => ({ default: m.ClientHome })));
+const TeamHome = lazy(() => import('@/pages/team/TeamHome').then((m) => ({ default: m.TeamHome })));
 const Dashboard = lazy(() => import('@/pages/client/Dashboard').then((m) => ({ default: m.Dashboard })));
 const DataSourceSelect = lazy(() => import('@/pages/client/DataSourceSelect').then((m) => ({ default: m.DataSourceSelect })));
 const ApiAccess = lazy(() => import('@/pages/client/ApiAccess').then((m) => ({ default: m.ApiAccess })));
 const ExportDataPage = lazy(() => import('@/pages/client/ExportDataPage').then((m) => ({ default: m.ExportDataPage })));
+const ClientSupport = lazy(() => import('@/pages/client/ClientSupport').then((m) => ({ default: m.ClientSupport })));
+const ClientNotifications = lazy(() => import('@/pages/client/ClientNotifications').then((m) => ({ default: m.ClientNotifications })));
+
 const IngestUpload = lazy(() => import('@/pages/team/IngestUpload').then((m) => ({ default: m.IngestUpload })));
 const IngestDatabaseConnection = lazy(() => import('@/pages/team/IngestDatabaseConnection').then((m) => ({ default: m.IngestDatabaseConnection })));
 const PendingUploads = lazy(() => import('@/pages/admin/PendingUploads').then((m) => ({ default: m.PendingUploads })));
@@ -28,6 +33,7 @@ const TenantDashboardView = lazy(() => import('@/pages/admin/TenantDashboardView
 const TenantHealth = lazy(() => import('@/pages/admin/TenantHealth').then((m) => ({ default: m.TenantHealth })));
 const TenantComparison = lazy(() => import('@/pages/admin/TenantComparison').then((m) => ({ default: m.TenantComparison })));
 const UsageDashboard = lazy(() => import('@/pages/admin/UsageDashboard').then((m) => ({ default: m.UsageDashboard })));
+const AdminHome = lazy(() => import('@/pages/admin/AdminHome').then((m) => ({ default: m.AdminHome })));
 const ChangePassword = lazy(() => import('@/pages/auth/ChangePassword').then((m) => ({ default: m.ChangePassword })));
 
 const RouteLoadingIndicator: React.FC = () => (
@@ -43,9 +49,9 @@ const RootRedirect: React.FC = () => {
   if (!isAuthenticated || !user) return <Navigate to="/login" replace />;
   if (user.must_change_password) return <Navigate to="/change-password" replace />;
   return user.role === 'smb_owner' ? (
-    <Navigate to="/client/select-source" replace />
+    <Navigate to="/client/home" replace />
   ) : (
-    <Navigate to="/admin/uploads" replace />
+    <Navigate to="/admin/home" replace />
   );
 };
 
@@ -55,9 +61,9 @@ const ChangePasswordGuard: React.FC = () => {
   if (!isAuthenticated || !user) return <Navigate to="/login" replace />;
   if (!user.must_change_password) {
     return user.role === 'smb_owner' ? (
-      <Navigate to="/client/dashboard" replace />
+      <Navigate to="/client/home" replace />
     ) : (
-      <Navigate to="/admin/uploads" replace />
+      <Navigate to="/admin/home" replace />
     );
   }
   return <ChangePassword />;
@@ -68,83 +74,94 @@ const HistoryRouteSelector: React.FC = () => {
   return user?.role === 'admin' ? <AdminHistory /> : <TeamHistory />;
 };
 
+const HomeRouteSelector: React.FC = () => {
+  const { user } = useAuth();
+  return user?.role === 'admin' ? <AdminHome /> : <TeamHome />;
+};
+
 const suspenseProps = { ['fall' + 'back']: <RouteLoadingIndicator /> };
 
 export const AppRoutes: React.FC = () => {
   return (
     <Suspense {...suspenseProps}>
       <Routes>
-      {/* Root Redirection */}
-      <Route path="/" element={<RootRedirect />} />
+        {/* Root Redirection */}
+        <Route path="/" element={<RootRedirect />} />
 
-      {/* Public Login Route */}
-      <Route path="/login" element={<Login />} />
+        {/* Public Login Route */}
+        <Route path="/login" element={<Login />} />
 
-      {/* Mandatory First-Login Password Change Route */}
-      <Route path="/change-password" element={<ChangePasswordGuard />} />
+        {/* Mandatory First-Login Password Change Route */}
+        <Route path="/change-password" element={<ChangePasswordGuard />} />
 
-      {/* Client Portal Route Group (SMB Owners & Admins) - Ingestion removed */}
-      <Route element={<ProtectedRoute allowedRoles={['smb_owner', 'admin']} />}>
-        <Route path="/client" element={<ClientLayout />}>
-          <Route index element={<Navigate to="/client/select-source" replace />} />
-          <Route path="select-source" element={<DataSourceSelect />} />
-          <Route path="data-sources" element={<DataSourceSelect />} />
-          <Route path="upload" element={<IngestUpload />} />
-          <Route path="connect-db" element={<IngestDatabaseConnection />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="history" element={<SubmissionHistory />} />
-          <Route path="submission-history" element={<SubmissionHistory />} />
-          <Route path="api-access" element={<ApiAccess />} />
-          <Route path="api-keys" element={<ApiAccess />} />
-          <Route path="export" element={<ExportDataPage />} />
-        </Route>
-      </Route>
+        {/* Client Portal Route Group (SMB Owners & Admins) */}
+        <Route element={<ProtectedRoute allowedRoles={['smb_owner', 'admin']} />}>
+          <Route path="/client" element={<ClientLayout />}>
+            <Route index element={<Navigate to="/client/home" replace />} />
+            <Route path="home" element={<ClientHome />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="history" element={<SubmissionHistory />} />
+            <Route path="submission-history" element={<SubmissionHistory />} />
+            <Route path="export" element={<ExportDataPage />} />
+            <Route path="support" element={<ClientSupport />} />
+            <Route path="notifications" element={<ClientNotifications />} />
 
-      {/* Admin & Operations Route Group (Team Members & Admins) */}
-      <Route element={<ProtectedRoute allowedRoles={['team_member', 'admin']} />}>
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Navigate to="/admin/uploads" replace />} />
-          <Route path="uploads" element={<PendingUploads />} />
-          <Route path="pending-uploads" element={<PendingUploads />} />
-          <Route path="upload" element={<IngestUpload />} />
-          <Route path="ingest-upload" element={<IngestUpload />} />
-          <Route path="connect-db" element={<IngestDatabaseConnection />} />
-          <Route path="connect-database" element={<IngestDatabaseConnection />} />
-          <Route path="confirm-schema/:batchId" element={<ConfirmSchema />} />
-          <Route path="history" element={<HistoryRouteSelector />} />
-          <Route path="submission-history" element={<HistoryRouteSelector />} />
-          <Route path="support" element={<SupportInbox />} />
-          <Route path="inbox" element={<SupportInbox />} />
-          <Route path="pipeline-health" element={<PipelineHealth />} />
-          <Route path="data-quality" element={<DataQualityLog />} />
-          <Route path="tenants" element={<Tenants />} />
-          <Route path="team" element={<TeamMembers />} />
-          <Route path="oversight/dashboard/:tenantId" element={<TenantDashboardView />} />
-          <Route path="oversight/health" element={<TenantHealth />} />
-          <Route path="tenant-health" element={<TenantHealth />} />
-          <Route path="oversight/compare" element={<TenantComparison />} />
-          <Route path="tenant-compare" element={<TenantComparison />} />
-          <Route path="oversight/usage" element={<UsageDashboard />} />
-          <Route path="usage" element={<UsageDashboard />} />
+            {/* Deferred Features: Kept intact */}
+            <Route path="connect-db" element={<IngestDatabaseConnection />} />
+            <Route path="api-access" element={<ApiAccess />} />
+            <Route path="api-keys" element={<ApiAccess />} />
+            <Route path="select-source" element={<DataSourceSelect />} />
+            <Route path="data-sources" element={<DataSourceSelect />} />
+          </Route>
         </Route>
 
-        {/* /team routes alias */}
-        <Route path="/team" element={<AdminLayout />}>
-          <Route index element={<Navigate to="/admin/upload" replace />} />
-          <Route path="upload" element={<IngestUpload />} />
-          <Route path="ingest-upload" element={<IngestUpload />} />
-          <Route path="connect-db" element={<IngestDatabaseConnection />} />
-          <Route path="connect-database" element={<IngestDatabaseConnection />} />
-          <Route path="history" element={<TeamHistory />} />
-          <Route path="submission-history" element={<TeamHistory />} />
-          <Route path="support" element={<SupportInbox />} />
-          <Route path="inbox" element={<SupportInbox />} />
-        </Route>
-      </Route>
+        {/* Admin & Operations Route Group (Team Members & Admins) */}
+        <Route element={<ProtectedRoute allowedRoles={['team_member', 'admin']} />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Navigate to="/admin/home" replace />} />
+            <Route path="home" element={<HomeRouteSelector />} />
+            <Route path="uploads" element={<PendingUploads />} />
+            <Route path="pending-uploads" element={<PendingUploads />} />
+            <Route path="upload" element={<IngestUpload />} />
+            <Route path="ingest-upload" element={<IngestUpload />} />
+            <Route path="connect-db" element={<IngestDatabaseConnection />} />
+            <Route path="connect-database" element={<IngestDatabaseConnection />} />
+            <Route path="confirm-schema/:batchId" element={<ConfirmSchema />} />
+            <Route path="history" element={<HistoryRouteSelector />} />
+            <Route path="submission-history" element={<HistoryRouteSelector />} />
+            <Route path="support" element={<SupportInbox />} />
+            <Route path="inbox" element={<SupportInbox />} />
+            <Route path="pipeline-health" element={<PipelineHealth />} />
+            <Route path="data-quality" element={<DataQualityLog />} />
+            <Route path="tenants" element={<Tenants />} />
+            <Route path="team" element={<TeamMembers />} />
+            <Route path="oversight/dashboard/:tenantId" element={<TenantDashboardView />} />
+            <Route path="oversight/health" element={<TenantHealth />} />
+            <Route path="tenant-health" element={<TenantHealth />} />
+            <Route path="oversight/compare" element={<TenantComparison />} />
+            <Route path="tenant-compare" element={<TenantComparison />} />
+            <Route path="oversight/usage" element={<UsageDashboard />} />
+            <Route path="usage" element={<UsageDashboard />} />
+          </Route>
 
-      {/* Catch-all */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
-  </Suspense>
+          {/* /team routes alias */}
+          <Route path="/team" element={<AdminLayout />}>
+            <Route index element={<Navigate to="/admin/home" replace />} />
+            <Route path="home" element={<TeamHome />} />
+            <Route path="upload" element={<IngestUpload />} />
+            <Route path="ingest-upload" element={<IngestUpload />} />
+            <Route path="connect-db" element={<IngestDatabaseConnection />} />
+            <Route path="connect-database" element={<IngestDatabaseConnection />} />
+            <Route path="history" element={<TeamHistory />} />
+            <Route path="submission-history" element={<TeamHistory />} />
+            <Route path="support" element={<SupportInbox />} />
+            <Route path="inbox" element={<SupportInbox />} />
+          </Route>
+        </Route>
+
+        {/* Catch-all */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </Suspense>
   );
 };

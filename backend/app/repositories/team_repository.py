@@ -23,6 +23,10 @@ class TeamRepository(BaseRepository):
         self.users_table = f"`{self.catalog}`.`platform`.`users`"
         self.tenants_table = f"`{self.catalog}`.`platform`.`tenants`"
         self.team_assignments_table = f"`{self.catalog}`.`platform`.`team_assignments`"
+        self.pipeline_table = f"`{self.catalog}`.`platform`.`pipeline_status`"
+        self.support_table = f"`{self.catalog}`.`platform`.`support_messages`"
+        self.summary_table = f"`{self.catalog}`.`gold`.`fact_orders_daily_summary`"
+        self.dim_date_table = f"`{self.catalog}`.`gold`.`dim_date`"
 
     def create_user(
         self,
@@ -205,3 +209,152 @@ class TeamRepository(BaseRepository):
         found_ids = {int(r["tenant_id"]) for r in rows if r.get("tenant_id") is not None}
         missing = [tid for tid in unique_ids if tid not in found_ids]
         return missing
+
+    def get_team_home_data(self, user_id: int) -> Dict[str, Any]:
+        """
+        Retrieve team member home page data strictly scoped to assigned organizations:
+        - assigned organizations with their last data date
+        - counts of items pending review, running, failed, and stalled
+        - open support messages
+        - recent activity
+        """
+        # 1. Assigned organizations with last data date
+        orgs_query = f"""
+            SELECT 
+                t.tenant_id,
+                t.business_name,
+                max(d.full_date) AS gold_max_date,
+                cast(max(ps.created_at) AS date) AS ps_max_date
+            FROM {self.team_assignments_table} ta
+            INNER JOIN {self.tenants_table} t ON ta.tenant_id = t.tenant_id
+            LEFT JOIN {self.summary_table} s ON t.tenant_id = s.tenant_id
+            LEFT JOIN {self.dim_date_table} d ON s.date_id = d.date_id
+            LEFT JOIN {self.pipeline_table} ps ON t.tenant_id = ps.tenant_id
+            WHERE ta.user_id = :user_id
+            GROUP BY t.tenant_id, t.business_name
+            ORDER BY t.business_name ASC
+        """
+        org_rows = self.execute_query(orgs_query, {"user_id": user_id})
+        assigned_orgs = []
+        for r in org_rows:
+            last_date = r.get("gold_max_date") or r.get("ps_max_date")
+            assigned_orgs.append({
+                "tenant_id": int(r["tenant_id"]),
+                "business_name": r["business_name"],
+                "last_data_date": str(last_date) if last_date else None,
+            })
+
+        # 2. Pipeline counts across assigned orgs
+        counts_query = f"""
+            SELECT
+                COUNT(CASE WHEN LOWER(ps.status) IN ('pending_review', 'awaiting_confirmation') THEN 1 END) AS pending_review_count,
+                COUNT(CASE 
+                    WHEN LOWER(ps.status) IN ('running', 'ingesting', 'silver_running', 'gold_running')
+                         AND (
+                             (ps.last_heartbeat_at IS NULL AND ps.created_at >= (current_timestamp() - INTERVAL 15 MINUTES))
+                             OR
+                             (ps.last_heartbeat_at IS NOT NULL AND ps.last_heartbeat_at >= (current_timestamp() - INTERVAL 15 MINUTES))
+                         ) THEN 1 
+                END) AS running_count,
+                COUNT(CASE WHEN LOWER(ps.status) IN ('failed', 'failure', 'error') THEN 1 END) AS failed_count,
+                COUNT(CASE 
+                    WHEN LOWER(ps.status) = 'stalled'
+                         OR (
+                             LOWER(ps.status) IN ('running', 'ingesting', 'silver_running', 'gold_running')
+                             AND (
+                                 (ps.last_heartbeat_at IS NULL AND ps.created_at < (current_timestamp() - INTERVAL 15 MINUTES))
+                                 OR
+                                 (ps.last_heartbeat_at IS NOT NULL AND ps.last_heartbeat_at < (current_timestamp() - INTERVAL 15 MINUTES))
+                             )
+                         ) THEN 1 
+                END) AS stalled_count
+            FROM {self.pipeline_table} ps
+            INNER JOIN {self.team_assignments_table} ta ON ps.tenant_id = ta.tenant_id
+            WHERE ta.user_id = :user_id
+        """
+        count_row = self.execute_single(counts_query, {"user_id": user_id}) or {}
+        pipeline_counts = {
+            "pending_review": int(count_row.get("pending_review_count") or 0),
+            "running": int(count_row.get("running_count") or 0),
+            "failed": int(count_row.get("failed_count") or 0),
+            "stalled": int(count_row.get("stalled_count") or 0),
+        }
+
+        # 3. Open support messages for assigned orgs
+        messages_query = f"""
+            SELECT 
+                sm.message_id,
+                sm.tenant_id,
+                t.business_name AS tenant_name,
+                sm.from_user_id,
+                u.name AS from_user_name,
+                sm.message,
+                sm.created_at
+            FROM {self.support_table} sm
+            INNER JOIN {self.team_assignments_table} ta ON sm.tenant_id = ta.tenant_id
+            LEFT JOIN {self.tenants_table} t ON sm.tenant_id = t.tenant_id
+            LEFT JOIN {self.users_table} u ON sm.from_user_id = u.user_id
+            WHERE ta.user_id = :user_id AND lower(sm.status) = 'open'
+            ORDER BY sm.created_at DESC
+            LIMIT 20
+        """
+        msg_rows = self.execute_query(messages_query, {"user_id": user_id})
+        open_messages = [
+            {
+                "message_id": int(r["message_id"]),
+                "tenant_id": int(r["tenant_id"]),
+                "tenant_name": r.get("tenant_name"),
+                "from_user_id": int(r["from_user_id"]),
+                "from_user_name": r.get("from_user_name"),
+                "message": r.get("message") or "",
+                "created_at": r.get("created_at"),
+            }
+            for r in msg_rows
+        ]
+
+        # 4. Recent activity for assigned orgs
+        activity_query = f"""
+            SELECT 
+                ps.batch_id,
+                ps.tenant_id,
+                t.business_name AS tenant_name,
+                ps.stage,
+                CASE 
+                    WHEN LOWER(ps.status) IN ('running', 'ingesting', 'silver_running', 'gold_running')
+                         AND (
+                             (ps.last_heartbeat_at IS NULL AND ps.created_at < (current_timestamp() - INTERVAL 15 MINUTES))
+                             OR
+                             (ps.last_heartbeat_at IS NOT NULL AND ps.last_heartbeat_at < (current_timestamp() - INTERVAL 15 MINUTES))
+                         ) THEN 'stalled'
+                    ELSE ps.status
+                END AS status,
+                ps.error_message,
+                ps.created_at AS timestamp
+            FROM {self.pipeline_table} ps
+            INNER JOIN {self.team_assignments_table} ta ON ps.tenant_id = ta.tenant_id
+            LEFT JOIN {self.tenants_table} t ON ps.tenant_id = t.tenant_id
+            WHERE ta.user_id = :user_id
+            ORDER BY ps.created_at DESC
+            LIMIT 20
+        """
+        activity_rows = self.execute_query(activity_query, {"user_id": user_id})
+        recent_activity = [
+            {
+                "batch_id": r.get("batch_id"),
+                "tenant_id": int(r["tenant_id"]) if r.get("tenant_id") is not None else None,
+                "tenant_name": r.get("tenant_name"),
+                "stage": r.get("stage"),
+                "status": r.get("status"),
+                "error_message": r.get("error_message"),
+                "timestamp": r.get("timestamp"),
+            }
+            for r in activity_rows
+        ]
+
+        return {
+            "assigned_organizations": assigned_orgs,
+            "pipeline_counts": pipeline_counts,
+            "open_support_messages": open_messages,
+            "recent_activity": recent_activity,
+        }
+

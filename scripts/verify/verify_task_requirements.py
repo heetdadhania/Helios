@@ -5,8 +5,15 @@ Verification script for task requirements:
 3. 409 conflict when adding existing team member
 4. Tenant schema and listing at /api/v1/tenants
 """
+import os
 import sys
 import requests
+from dotenv import load_dotenv
+
+load_dotenv()
+
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
+TEST_ACCOUNT_PASSWORD = os.environ.get("TEST_ACCOUNT_PASSWORD")
 
 BASE_URL = "http://localhost:8000"
 
@@ -19,7 +26,7 @@ def run_tests():
     print("\n--- 1. Testing Admin Login ---")
     admin_login_res = requests.post(
         f"{BASE_URL}/api/v1/auth/login",
-        json={"email": "admin@helios.io", "password": "HeliosDemo2026!"},
+        json={"email": "admin@helios.io", "password": ADMIN_PASSWORD},
         timeout=10,
     )
     print(f"POST /api/v1/auth/login [admin@helios.io] -> Status: {admin_login_res.status_code}")
@@ -32,7 +39,7 @@ def run_tests():
     print("\n--- 2. Testing Team Member Login ---")
     tm_login_res = requests.post(
         f"{BASE_URL}/api/v1/auth/login",
-        json={"email": "team-member-1@helios-test.dev", "password": "HeliosTest2026!"},
+        json={"email": "team-member-1@helios-test.dev", "password": TEST_ACCOUNT_PASSWORD},
         timeout=10,
     )
     print(f"POST /api/v1/auth/login [team-member-1@helios-test.dev] -> Status: {tm_login_res.status_code}")
@@ -45,7 +52,7 @@ def run_tests():
     print("\n--- 3. Testing SMB Owner Login ---")
     smb_login_res = requests.post(
         f"{BASE_URL}/api/v1/auth/login",
-        json={"email": "smb-owner-1@helios-test.dev", "password": "HeliosTest2026!"},
+        json={"email": "smb-owner-1@helios-test.dev", "password": TEST_ACCOUNT_PASSWORD},
         timeout=10,
     )
     print(f"POST /api/v1/auth/login [smb-owner-1@helios-test.dev] -> Status: {smb_login_res.status_code}")

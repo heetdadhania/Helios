@@ -16,6 +16,7 @@ from app.schemas.dashboard import (
     ShippingModeComparisonResponse,
     TopProductItem,
     TopProductsResponse,
+    DashboardSummaryResponse,
 )
 
 logger = logging.getLogger("helios.services.dashboard")
@@ -386,3 +387,30 @@ class DashboardService:
         ]
 
         return ShippingModeComparisonResponse(days=days, modes=modes, data_as_of=data_as_of_str)
+
+    @classmethod
+    def get_dashboard_summary(
+        cls,
+        current_user: UserOut,
+        repo: DashboardRepository,
+    ) -> DashboardSummaryResponse:
+        """
+        Produce high-level overview metrics for Organization Owner Home:
+        - 'Data as of' date
+        - Four figures from organization's data:
+          1. total revenue in ₹
+          2. order count
+          3. late-delivery percentage
+          4. average order value in ₹
+        - Status of latest submission in plain words (Ready, Processing, Needs attention - please resend)
+        """
+        tenant_id = current_user.tenant_id
+        if tenant_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Organization ID not associated with current user.",
+            )
+
+        summary_data = repo.get_dashboard_summary(tenant_id)
+        return DashboardSummaryResponse(**summary_data)
+

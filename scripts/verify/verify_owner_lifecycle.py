@@ -23,6 +23,12 @@ from app.core.config import settings
 from app.core.security import get_password_hash
 from app.db.base import get_databricks_connection
 
+from dotenv import load_dotenv
+load_dotenv()
+
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
+TEST_ACCOUNT_PASSWORD = os.environ.get("TEST_ACCOUNT_PASSWORD")
+
 BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000/api/v1")
 CATALOG = getattr(settings, "DATABRICKS_CATALOG", "helios_catalog")
 
@@ -37,8 +43,8 @@ def main():
     print("STARTING SMB OWNER LIFECYCLE VERIFICATION")
     print("=" * 70)
 
-    admin_token = get_token("admin@helios.io", "HeliosDemo2026!")
-    tm1_token = get_token("team-member-1@helios-test.dev", "HeliosTest2026!")
+    admin_token = get_token("admin@helios.io", ADMIN_PASSWORD)
+    tm1_token = get_token("team-member-1@helios-test.dev", TEST_ACCOUNT_PASSWORD)
     admin_headers = {"Authorization": f"Bearer {admin_token}"}
     tm1_headers = {"Authorization": f"Bearer {tm1_token}"}
 
@@ -201,7 +207,7 @@ def main():
                         print(f"Cleaned up temporary test user_id={uid}")
 
                     # Restore original owner row for Tenant 1
-                    default_hash = get_password_hash("HeliosTest2026!")
+                    default_hash = get_password_hash(TEST_ACCOUNT_PASSWORD)
                     cursor.execute(
                         f"""
                         UPDATE `{CATALOG}`.`platform`.`users`

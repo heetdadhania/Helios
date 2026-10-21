@@ -41,6 +41,12 @@ sys.path.insert(0, str(REPO_ROOT / "backend"))
 
 from app.core.config import settings
 from app.db.base import get_databricks_connection
+from dotenv import load_dotenv
+
+load_dotenv()
+
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
+TEST_ACCOUNT_PASSWORD = os.environ.get("TEST_ACCOUNT_PASSWORD")
 
 BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
 CATALOG = getattr(settings, "DATABRICKS_CATALOG", "helios_catalog")
@@ -291,16 +297,16 @@ def run_tests() -> bool:
 
     # Log in real users
     print("\n--- 1. Authenticating real accounts ---")
-    admin_token, admin_user = login("admin@helios.io", "HeliosDemo2026!")
+    admin_token, admin_user = login("admin@helios.io", ADMIN_PASSWORD)
     print(f"Logged in Admin: {admin_user.get('name')} (role={admin_user.get('role')})")
 
-    smb1_token, smb1_user = login("smb-owner-1@helios-test.dev", "HeliosTest2026!")
+    smb1_token, smb1_user = login("smb-owner-1@helios-test.dev", TEST_ACCOUNT_PASSWORD)
     print(f"Logged in SMB Owner 1: {smb1_user.get('name')} (tenant={smb1_user.get('tenant_id')})")
 
-    smb2_token, smb2_user = login("smb-owner-2@helios-test.dev", "HeliosTest2026!")
+    smb2_token, smb2_user = login("smb-owner-2@helios-test.dev", TEST_ACCOUNT_PASSWORD)
     print(f"Logged in SMB Owner 2: {smb2_user.get('name')} (tenant={smb2_user.get('tenant_id')})")
 
-    tm1_token, tm1_user = login("team-member-1@helios-test.dev", "HeliosTest2026!")
+    tm1_token, tm1_user = login("team-member-1@helios-test.dev", TEST_ACCOUNT_PASSWORD)
     print(f"Logged in Team Member 1: {tm1_user.get('name')} (assigned to tenants 1 & 2)")
 
     # Seed real approved data in Tenant 1 and Tenant 2

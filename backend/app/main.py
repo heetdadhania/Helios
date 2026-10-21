@@ -127,6 +127,10 @@ def create_application() -> FastAPI:
     from app.api.data_quality import router as data_quality_router
     app.include_router(data_quality_router, prefix="/api/data-quality", tags=["Data Quality"])
 
+    # Include Team Home Router (/api/team)
+    from app.api.team_home import router as team_home_router
+    app.include_router(team_home_router, prefix="/api/team", tags=["Team"])
+
     # Include Versioned API Routers
     app.include_router(api_router, prefix=settings.API_V1_STR)
 

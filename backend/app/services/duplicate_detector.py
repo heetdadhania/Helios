@@ -3,6 +3,7 @@ import hashlib
 import io
 import json
 import logging
+import time
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -315,17 +316,25 @@ class DuplicateDetector:
                 "overlapping_rows": conflict["overlapping_rows"],
                 "file_hash": file_hash,
             })
-            cursor.execute(
-                audit_query,
-                {
-                    "actor_user_id": acting_user_id,
-                    "actor_role": acting_user_role or "system",
-                    "tenant_id": tenant_id,
-                    "batch_id": new_batch_id,
-                    "reason": override_reason.strip(),
-                    "details_json": details_json,
-                },
-            )
+            params = {
+                "actor_user_id": acting_user_id,
+                "actor_role": acting_user_role or "system",
+                "tenant_id": tenant_id,
+                "batch_id": new_batch_id,
+                "reason": override_reason.strip(),
+                "details_json": details_json,
+            }
+            max_retries = 5
+            for attempt in range(max_retries):
+                try:
+                    cursor.execute(audit_query, params)
+                    break
+                except Exception as exc:
+                    if "DELTA_METADATA_CHANGED" in str(exc) and attempt < max_retries - 1:
+                        logger.warning("Delta concurrency conflict writing audit_trail, retrying (%d/%d)...", attempt + 1, max_retries)
+                        time.sleep(1.0 * (attempt + 1))
+                        continue
+                    raise
             logger.info(
                 "Duplicate submission overridden for tenant %d (new_batch=%s, matched=%s, reason=%s)",
                 tenant_id,

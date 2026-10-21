@@ -6,6 +6,7 @@ export interface User {
   name: string;
   role: UserRole;
   tenant_id?: number | null;
+  business_name?: string | null;
   avatarUrl?: string;
   must_change_password?: boolean;
 }

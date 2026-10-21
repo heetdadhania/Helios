@@ -96,9 +96,24 @@ export const PipelineHealth: React.FC = () => {
     }
   };
 
+  const silentPollRuns = async () => {
+    try {
+      const data = await pipelineHealthService.listRuns();
+      setRuns(data);
+    } catch {
+      // Ignore background poll errors silently
+    }
+  };
+
   useEffect(() => {
     if (isAuthorized) {
       fetchRuns();
+      const interval = setInterval(() => {
+        if (document.visibilityState === 'visible') {
+          silentPollRuns();
+        }
+      }, 5000);
+      return () => clearInterval(interval);
     }
   }, [isAuthorized]);
 

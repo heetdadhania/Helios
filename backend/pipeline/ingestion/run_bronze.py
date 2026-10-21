@@ -233,6 +233,12 @@ def run_bronze_ingestion(
         except Exception as update_err:
             logger.error("Failed to persist failure status for batch %s: %s", batch_id, update_err)
 
+        try:
+            from app.services.oversight_service import OversightService
+            OversightService.clear_cache()
+        except Exception:
+            pass
+
         raise exc
 
     finally:

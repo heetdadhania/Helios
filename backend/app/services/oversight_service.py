@@ -31,6 +31,14 @@ from app.schemas.oversight import (
     TenantDashboardViewAs,
     TenantHealthItem,
     TenantHealthListResponse,
+    AdminHomeActivityItem,
+    AdminHomeCharts,
+    AdminHomeResponse,
+    AdminHomeSummary,
+    AdminHomeTables,
+    DailyPipelineRunStatus,
+    OrganizationTableRow,
+    RevenueByOrganizationItem,
 )
 from app.services.dashboard_service import DashboardService, _format_date_as_of
 
@@ -76,11 +84,18 @@ class OversightService:
     """Service orchestrating Admin-exclusive oversight, cross-tenant observability, and system exports."""
 
     _cache = OversightCache(ttl_seconds=60.0)
+    _home_cache = OversightCache(ttl_seconds=30.0)
 
     @classmethod
     def clear_cache(cls) -> None:
-        """Clear cached tenant health and platform usage aggregations."""
+        """Clear cached tenant health, platform usage, and admin home aggregations."""
         cls._cache.clear()
+        cls._home_cache.clear()
+
+    @classmethod
+    def clear_home_cache(cls) -> None:
+        """Clear cached Admin Home operational payload."""
+        cls._home_cache.clear()
 
     # -----------------------------------------------------------------------------
     # Tenant Health Evaluation Rules & Exact Thresholds:
@@ -450,3 +465,67 @@ class OversightService:
         timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         filename = f"helios_audit_export_{timestamp_str}.csv"
         return content, "text/csv; charset=utf-8", filename
+
+    @classmethod
+    def get_admin_home_data(cls, force_refresh: bool = False) -> AdminHomeResponse:
+        """
+        Consolidated Admin Home operational data.
+        Cached in-memory for 30 seconds. Cleared when a pipeline run succeeds or fails.
+        Queries run concurrently in parallel threads using isolated Databricks connections.
+        """
+        cache_key = "admin_home_data"
+        if not force_refresh:
+            cached = cls._home_cache.get(cache_key)
+            if cached is not None:
+                return cached
+
+        from concurrent.futures import ThreadPoolExecutor
+        from app.db.base import get_databricks_connection
+
+        def run_worker(query_type: str):
+            conn = get_databricks_connection()
+            cur = conn.cursor()
+            try:
+                repo = OversightRepository(cur)
+                if query_type == "summary":
+                    return repo.get_admin_home_summary()
+                elif query_type == "top_revenue":
+                    return repo.get_admin_home_top_10_revenue()
+                elif query_type == "pipeline_runs":
+                    return repo.get_admin_home_pipeline_runs_14d()
+                elif query_type == "tables":
+                    return repo.get_admin_home_tables()
+            finally:
+                try:
+                    cur.close()
+                except Exception:
+                    pass
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            fut_summary = executor.submit(run_worker, "summary")
+            fut_revenue = executor.submit(run_worker, "top_revenue")
+            fut_runs = executor.submit(run_worker, "pipeline_runs")
+            fut_tables = executor.submit(run_worker, "tables")
+
+            summary_data = fut_summary.result()
+            revenue_data = fut_revenue.result()
+            runs_data = fut_runs.result()
+            orgs_table, activity_table = fut_tables.result()
+
+        response = AdminHomeResponse(
+            summary=AdminHomeSummary(**summary_data),
+            charts=AdminHomeCharts(
+                revenue_by_organization=[RevenueByOrganizationItem(**r) for r in revenue_data],
+                pipeline_runs_per_day=[DailyPipelineRunStatus(**r) for r in runs_data],
+            ),
+            tables=AdminHomeTables(
+                organizations=[OrganizationTableRow(**r) for r in orgs_table],
+                recent_activity=[AdminHomeActivityItem(**r) for r in activity_table],
+            ),
+        )
+        cls._home_cache.set(cache_key, response)
+        return response

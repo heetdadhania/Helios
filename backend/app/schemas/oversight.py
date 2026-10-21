@@ -140,3 +140,92 @@ class PlatformUsageResponse(BaseModel):
         default_factory=list,
         description="Daily row volume ingestion trend",
     )
+
+
+# --- 5. Admin Home Schemas ---
+class AdminHomeSummary(BaseModel):
+    """Platform-wide operational counts for Admin Home."""
+
+    organizations_active: int = Field(..., description="Active organizations count")
+    organizations_inactive: int = Field(..., description="Inactive organizations count")
+    organizations_total: int = Field(..., description="Total organizations count")
+    organization_owners_active: int = Field(..., description="Active organization owners count")
+    team_members: int = Field(..., description="Active team members count")
+    pending_uploads: int = Field(..., description="Pending uploads count")
+    running_pipelines: int = Field(..., description="Running pipelines count")
+    failed_pipelines: int = Field(..., description="Failed pipelines count")
+    open_support_messages: int = Field(..., description="Open support messages count")
+
+
+class RevenueByOrganizationItem(BaseModel):
+    """Top organization revenue entry over its last 30 days of data."""
+
+    tenant_id: int = Field(..., description="Organization tenant ID")
+    organization_name: str = Field(..., description="Organization display name")
+    total_revenue: float = Field(..., description="Revenue in Indian Rupees (₹)")
+
+
+class DailyPipelineRunStatus(BaseModel):
+    """Daily pipeline run statistics for last 14 days."""
+
+    date: str = Field(..., description="Date YYYY-MM-DD")
+    successful_runs: int = Field(0, description="Successful runs")
+    failed_runs: int = Field(0, description="Failed runs")
+    total_runs: int = Field(0, description="Total runs")
+
+
+class AdminHomeCharts(BaseModel):
+    """Charts for Admin Home."""
+
+    revenue_by_organization: List[RevenueByOrganizationItem] = Field(
+        default_factory=list,
+        description="Revenue by organization for top 10 (last 30 days of each org's data)",
+    )
+    pipeline_runs_per_day: List[DailyPipelineRunStatus] = Field(
+        default_factory=list,
+        description="Pipeline runs per day split into success and failed for last 14 days",
+    )
+
+
+class OrganizationTableRow(BaseModel):
+    """Summary row for organizations table on Admin Home."""
+
+    tenant_id: int = Field(..., description="Organization tenant ID")
+    name: str = Field(..., description="Organization name")
+    owner: str = Field(..., description="Organization owner name or email")
+    assigned_team_member: str = Field(..., description="Assigned team member(s)")
+    last_data_received: Optional[str] = Field(None, description="Latest data date or None")
+    is_active: bool = Field(True, description="Active status")
+
+
+class AdminHomeActivityItem(BaseModel):
+    """Recent pipeline execution activity row."""
+
+    batch_id: Optional[str] = Field(None, description="Batch UUID")
+    tenant_id: Optional[int] = Field(None, description="Organization tenant ID")
+    tenant_name: Optional[str] = Field(None, description="Organization display name")
+    stage: Optional[str] = Field(None, description="Pipeline stage")
+    status: str = Field(..., description="Execution status")
+    error_message: Optional[str] = Field(None, description="Error message if failed")
+    timestamp: Optional[datetime] = Field(None, description="Activity timestamp")
+
+
+class AdminHomeTables(BaseModel):
+    """Tables for Admin Home."""
+
+    organizations: List[OrganizationTableRow] = Field(
+        default_factory=list,
+        description="Latest 10 organizations",
+    )
+    recent_activity: List[AdminHomeActivityItem] = Field(
+        default_factory=list,
+        description="Latest 10 pipeline activities",
+    )
+
+
+class AdminHomeResponse(BaseModel):
+    """Consolidated payload for Admin Home screen."""
+
+    summary: AdminHomeSummary
+    charts: AdminHomeCharts
+    tables: AdminHomeTables
