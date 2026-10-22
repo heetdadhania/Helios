@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   UploadCloud,
@@ -6,7 +6,6 @@ import {
   FileText,
   Building2,
   ArrowRight,
-  ShieldCheck,
   AlertCircle,
   RefreshCw,
   Sparkles,
@@ -16,7 +15,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useBasePath } from '@/hooks/useBasePath';
 import { adminService } from '@/services/adminService';
-import { Tenant, SchemaPreview } from '@/types/admin';
+import { SchemaPreview } from '@/types/admin';
 import api from '@/services/api';
 import {
   SessionProgressList,
@@ -24,18 +23,23 @@ import {
 } from '@/components/team/SessionProgressList';
 import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton';
 import { DuplicateConflictDialog } from '@/components/shared/DuplicateConflictDialog';
+import { useOrganizations } from '@/hooks/useOrganizations';
 
 export const IngestUpload: React.FC = () => {
   const navigate = useNavigate();
   const basePath = useBasePath();
-  const { user, role } = useAuth();
+  const { role } = useAuth();
   const isAdmin = role === 'admin';
 
-  // Tenant state
-  const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [selectedTenantId, setSelectedTenantId] = useState<string>('');
-  const [isLoadingTenants, setIsLoadingTenants] = useState<boolean>(true);
-  const [tenantsError, setTenantsError] = useState<string | null>(null);
+  // Organizations state from single-source hook
+  const {
+    organizations: tenants,
+    isLoading: isLoadingTenants,
+    error: tenantsError,
+    selectedOrgId: selectedTenantId,
+    setSelectedOrgId: setSelectedTenantId,
+    refetch: loadTenants,
+  } = useOrganizations();
 
   // File state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -59,60 +63,6 @@ export const IngestUpload: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const tenantSelectRef = useRef<HTMLSelectElement | null>(null);
-
-  const loadTenants = useCallback(async () => {
-    try {
-      setIsLoadingTenants(true);
-      setTenantsError(null);
-      const data = await adminService.getTenants();
-
-      if (user?.role === 'smb_owner' && user?.tenant_id) {
-        const myTenant = data.filter(
-          (t) => String(t.tenant_id) === String(user.tenant_id)
-        );
-        setTenants(myTenant);
-        setSelectedTenantId(String(user.tenant_id));
-      } else if (isAdmin) {
-        setTenants(data);
-        if (data.length > 0) {
-          setSelectedTenantId(String(data[0].tenant_id));
-        }
-      } else {
-        // Team Member: filter to assigned tenants
-        let assigned: string[] = (user as any)?.assigned_tenants;
-        if (!assigned) {
-          try {
-            const members = await adminService.getTeamMembers();
-            const me = members.find(
-              (m) => m.email === user?.email || m.user_id === String(user?.id)
-            );
-            if (me?.assigned_tenants) {
-              assigned = me.assigned_tenants;
-            }
-          } catch {
-            assigned = [];
-          }
-        }
-        const assignedList = assigned || [];
-        const filtered = data.filter(
-          (t) => assignedList.includes(String(t.tenant_id)) || assignedList.includes(t.slug)
-        );
-        setTenants(filtered);
-        if (filtered.length > 0) {
-          setSelectedTenantId(String(filtered[0].tenant_id));
-        }
-      }
-    } catch (err: any) {
-      const errMsg = err?.response?.data?.detail || err.message || 'Unable to retrieve assigned tenants.';
-      setTenantsError(errMsg);
-    } finally {
-      setIsLoadingTenants(false);
-    }
-  }, [isAdmin, user]);
-
-  useEffect(() => {
-    loadTenants();
-  }, [loadTenants]);
 
   const selectedTenant = useMemo(() => {
     return tenants.find((t) => String(t.tenant_id) === String(selectedTenantId));
@@ -297,11 +247,6 @@ export const IngestUpload: React.FC = () => {
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           )}
-
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark shadow-sm">
-            <ShieldCheck className="w-4 h-4 text-helios-accent-teal" />
-            <span>Role Guard: Team Member & Admin</span>
-          </div>
         </div>
       </div>
 
@@ -383,7 +328,7 @@ export const IngestUpload: React.FC = () => {
               <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
                 {isAdmin
                   ? 'Administrator Mode: You can upload on behalf of any active organization in the platform.'
-                  : 'Team Member Mode: Showing organizations currently assigned to your account in platform.team_assignments.'}
+                  : 'Team Member Mode: Showing organizations currently assigned to your account.'}
               </p>
             </div>
           </div>
@@ -404,7 +349,7 @@ export const IngestUpload: React.FC = () => {
               </div>
             ) : tenants.length === 0 ? (
               <div className="text-xs text-amber-500 font-medium py-2">
-                No assigned organizations found for your account.
+                No organizations are assigned to you yet. Contact your admin.
               </div>
             ) : (
               <select
@@ -430,14 +375,8 @@ export const IngestUpload: React.FC = () => {
 
         {selectedTenant && (
           <div className="mt-2 pt-3 border-t border-helios-border-light dark:border-helios-border-dark flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-            <span className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded bg-black/5 dark:bg-white/5">
-              Slug: {selectedTenant.slug}
-            </span>
-            <span className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded bg-black/5 dark:bg-white/5">
-              Catalog: {selectedTenant.catalog_name || 'helios_catalog'}.{selectedTenant.schema_name || selectedTenant.slug}
-            </span>
             <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold">
-              ● Active Tenant
+              ● Active Organization
             </span>
           </div>
         )}

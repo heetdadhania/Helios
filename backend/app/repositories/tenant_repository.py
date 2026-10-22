@@ -187,6 +187,39 @@ class TenantRepository(BaseRepository):
         raw = self.execute_query(query, {"limit": limit, "offset": offset})
         return self._attach_owners(raw)
 
+    def list_for_user(
+        self,
+        user_id: int,
+        role: str,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> List[Dict[str, Any]]:
+        """
+        Retrieve organizations scoped by caller role directly in SQL:
+          - admin: all organizations
+          - team_member: active organizations assigned via platform.team_assignments
+        Always ordered ascending by tenant_id.
+        """
+        if role == "team_member":
+            query = f"""
+                SELECT t.* FROM {self.table} t
+                INNER JOIN {self.team_assignments_table} ta ON t.tenant_id = ta.tenant_id
+                WHERE ta.user_id = :user_id AND coalesce(t.is_active, true) = true
+                ORDER BY t.tenant_id ASC
+                LIMIT :limit OFFSET :offset
+            """
+            raw = self.execute_query(query, {"user_id": user_id, "limit": limit, "offset": offset})
+            return self._attach_owners(raw)
+
+        # Admin: all organizations
+        query = f"""
+            SELECT * FROM {self.table}
+            ORDER BY tenant_id ASC
+            LIMIT :limit OFFSET :offset
+        """
+        raw = self.execute_query(query, {"limit": limit, "offset": offset})
+        return self._attach_owners(raw)
+
     def update_contact_info(
         self,
         tenant_id: int,

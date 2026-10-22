@@ -43,7 +43,7 @@ from app.core.config import settings
 from app.db.base import get_databricks_connection
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(REPO_ROOT / ".env")
 
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 TEST_ACCOUNT_PASSWORD = os.environ.get("TEST_ACCOUNT_PASSWORD")
@@ -606,6 +606,52 @@ def run_tests() -> bool:
         passed,
     )
 
+    # =========================================================================
+    # PART 3B: Team Member Scoped Tenants Listing & Security Checks
+    # =========================================================================
+    print("\n" + "=" * 80)
+    print("PART 3B: TEAM MEMBERS 1-5 SCOPED TENANTS & SECURITY CHECKS")
+    print("=" * 80)
+
+    # 1. Verify GET /api/v1/tenants for each of the five team members returns exactly their two ascending
+    expected_tms = {
+        1: [1, 2],
+        2: [3, 4],
+        3: [5, 6],
+        4: [7, 8],
+        5: [9, 10],
+    }
+    for tm_idx, exp_ids in expected_tms.items():
+        tm_email = f"team-member-{tm_idx}@helios-test.dev"
+        t_tok, _ = login(tm_email, TEST_ACCOUNT_PASSWORD)
+        r = requests.get(f"{BASE_URL}/api/v1/tenants", headers={"Authorization": f"Bearer {t_tok}"}, timeout=DEFAULT_TIMEOUT)
+        actual_ids = [t.get("tenant_id") for t in r.json()] if r.status_code == 200 and isinstance(r.json(), list) else []
+        passed = (r.status_code == 200) and (actual_ids == exp_ids)
+        record_result(f"team-member-{tm_idx}", "GET /api/v1/tenants", f"{exp_ids}", f"200 {exp_ids}", f"{r.status_code} {actual_ids}", passed)
+
+    # 2. As team-member-1 call GET /api/v1/tenants/3 and owner routes for tenant 3 (each returns 403 or 404)
+    r_t3 = requests.get(f"{BASE_URL}/api/v1/tenants/3", headers=h_tm1, timeout=DEFAULT_TIMEOUT)
+    passed = r_t3.status_code in (403, 404)
+    record_result("team-member-1", "GET /api/v1/tenants/3", "3", "403 or 404", f"{r_t3.status_code}", passed)
+
+    r_t3_owner = requests.put(f"{BASE_URL}/api/v1/tenants/3/owner", json={"name": "Attacker", "email": "att@helios-test.dev"}, headers=h_tm1, timeout=DEFAULT_TIMEOUT)
+    passed = r_t3_owner.status_code in (403, 404)
+    record_result("team-member-1", "PUT /api/v1/tenants/3/owner", "3", "403 or 404", f"{r_t3_owner.status_code}", passed)
+
+    r_t3_reset = requests.post(f"{BASE_URL}/api/v1/tenants/3/owner/reset-password", headers=h_tm1, timeout=DEFAULT_TIMEOUT)
+    passed = r_t3_reset.status_code in (403, 404)
+    record_result("team-member-1", "POST /api/v1/tenants/3/owner/reset-password", "3", "403 or 404", f"{r_t3_reset.status_code}", passed)
+
+    # 3. As Organization Owner GET /api/v1/tenants returns 403
+    r_smb_tenants = requests.get(f"{BASE_URL}/api/v1/tenants", headers=h_smb1, timeout=DEFAULT_TIMEOUT)
+    passed = r_smb_tenants.status_code == 403
+    record_result("smb-owner-1", "GET /api/v1/tenants", "ALL", "403 Forbidden", f"{r_smb_tenants.status_code}", passed)
+
+    # 4. As Admin GET /api/v1/tenants returns all 10 organizations
+    r_adm_tenants = requests.get(f"{BASE_URL}/api/v1/tenants", headers=h_adm, timeout=DEFAULT_TIMEOUT)
+    adm_tenant_ids = [t.get("tenant_id") for t in r_adm_tenants.json()] if r_adm_tenants.status_code == 200 and isinstance(r_adm_tenants.json(), list) else []
+    passed = (r_adm_tenants.status_code == 200) and (len(adm_tenant_ids) == 10) and (adm_tenant_ids == list(range(1, 11)))
+    record_result("admin", "GET /api/v1/tenants", "ALL", "200 (all 10 orgs 1-10)", f"{r_adm_tenants.status_code} ({len(adm_tenant_ids)} orgs)", passed)
 
     # =========================================================================
     # PART 4: Admin Role -> Confirm Admin Can Reach Every Tenant

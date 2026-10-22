@@ -255,12 +255,40 @@ def list_tenants(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     cursor: Cursor = Depends(get_db_cursor),
-    current_user: UserOut = Depends(require_team_or_admin),
+    current_user: UserOut = Depends(get_current_user),
 ) -> List[TenantOut]:
-    """Retrieve tenant organizations list for oversight."""
+    """Retrieve tenant organizations list scoped by user role and assignments in SQL."""
+    if current_user.role == UserRole.SMB_OWNER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: Organization Owners cannot list organizations.",
+        )
+
+    role_str = "team_member" if current_user.role == UserRole.TEAM_MEMBER else "admin"
     tenant_repo = TenantRepository(cursor)
-    raw_tenants = tenant_repo.list_all(limit=limit, offset=offset)
+    raw_tenants = tenant_repo.list_for_user(
+        user_id=current_user.id,
+        role=role_str,
+        limit=limit,
+        offset=offset,
+    )
     return [TenantOut(**t) for t in raw_tenants]
+
+
+@router.get(
+    "/assigned",
+    response_model=List[TenantOut],
+    summary="List assigned organizations for caller",
+    include_in_schema=False,
+)
+def list_assigned_tenants(
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    cursor: Cursor = Depends(get_db_cursor),
+    current_user: UserOut = Depends(get_current_user),
+) -> List[TenantOut]:
+    """Single-source alias for list_tenants."""
+    return list_tenants(limit=limit, offset=offset, cursor=cursor, current_user=current_user)
 
 
 @router.get(
@@ -271,16 +299,10 @@ def list_tenants(
 def get_tenant(
     tenant_id: int,
     cursor: Cursor = Depends(get_db_cursor),
-    current_user: UserOut = Depends(require_team_or_admin),
+    current_user: UserOut = Depends(get_current_user),
 ) -> TenantOut:
-    """Retrieve full tenant profile by numeric tenant_id."""
-    tenant_repo = TenantRepository(cursor)
-    tenant = tenant_repo.get_by_id(tenant_id)
-    if not tenant:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Organization {tenant_id} not found.",
-        )
+    """Retrieve full tenant profile by numeric tenant_id with strict role-assignment access check."""
+    tenant = _check_tenant_access(tenant_id, current_user, cursor)
     return TenantOut(**tenant)
 
 

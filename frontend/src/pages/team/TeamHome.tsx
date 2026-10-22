@@ -274,9 +274,6 @@ export const TeamHome: React.FC = () => {
                   Assigned Organizations ({data.assigned_organizations.length})
                 </h2>
               </div>
-              <span className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
-                Enforced via platform.team_assignments
-              </span>
             </div>
 
             {data.assigned_organizations.length === 0 ? (

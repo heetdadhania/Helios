@@ -9,13 +9,19 @@ import {
   CheckCircle2,
   XCircle,
 } from 'lucide-react';
-import { DataQualityLogItem, Tenant } from '@/types/admin';
+import { DataQualityLogItem } from '@/types/admin';
 import { adminService } from '@/services/adminService';
 import { Pagination } from '@/components/ui/Pagination';
+import { useOrganizations } from '@/hooks/useOrganizations';
 
 export const DataQualityLog: React.FC = () => {
   const [logs, setLogs] = useState<DataQualityLogItem[]>([]);
-  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const {
+    organizations: tenants,
+    isLoading: isOrgsLoading,
+    error: orgsError,
+    refetch: retryOrgs,
+  } = useOrganizations();
   const [selectedTenant, setSelectedTenant] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -24,16 +30,12 @@ export const DataQualityLog: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const pageSize = 15;
 
-  const loadData = async () => {
+  const loadLogs = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const [logsData, tenantsData] = await Promise.all([
-        adminService.getDataQualityLogs(),
-        adminService.getTenants(),
-      ]);
+      const logsData = await adminService.getDataQualityLogs();
       setLogs(logsData);
-      setTenants(tenantsData);
     } catch (err: any) {
       setError(err?.response?.data?.detail || err.message || 'Failed to load data quality logs.');
     } finally {
@@ -41,9 +43,19 @@ export const DataQualityLog: React.FC = () => {
     }
   };
 
+  const loadData = async () => {
+    await Promise.all([loadLogs(), retryOrgs()]);
+  };
+
   useEffect(() => {
-    loadData();
+    loadLogs();
   }, []);
+
+  useEffect(() => {
+    if (tenants.length === 1) {
+      setSelectedTenant(String(tenants[0].tenant_id));
+    }
+  }, [tenants]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -142,18 +154,39 @@ export const DataQualityLog: React.FC = () => {
         <div className="flex items-center gap-2">
           <Filter className="w-3.5 h-3.5 text-slate-400" />
           <span className="text-xs text-slate-400">Filter by Organization:</span>
-          <select
-            value={selectedTenant}
-            onChange={(e) => setSelectedTenant(e.target.value)}
-            className="px-3 py-1.5 text-xs rounded-xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
-          >
-            <option value="all">All Organizations</option>
-            {tenants.map((t) => (
-              <option key={t.tenant_id} value={t.tenant_id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
+          {isOrgsLoading ? (
+            <div className="h-8 w-36 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+          ) : orgsError ? (
+            <div className="flex items-center gap-1.5 text-rose-500 text-xs">
+              <span>Failed to load</span>
+              <button
+                type="button"
+                onClick={retryOrgs}
+                className="underline font-semibold hover:text-rose-600"
+              >
+                Retry
+              </button>
+            </div>
+          ) : (
+            <select
+              value={selectedTenant}
+              onChange={(e) => setSelectedTenant(e.target.value)}
+              className="px-3 py-1.5 text-xs rounded-xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+            >
+              {tenants.length === 0 ? (
+                <option value="">No organizations are assigned to you yet. Contact your admin.</option>
+              ) : (
+                <>
+                  {tenants.length > 1 && <option value="all">All Organizations</option>}
+                  {tenants.map((t) => (
+                    <option key={t.tenant_id} value={t.tenant_id}>
+                      {t.business_name || t.name}
+                    </option>
+                  ))}
+                </>
+              )}
+            </select>
+          )}
         </div>
       </div>
 

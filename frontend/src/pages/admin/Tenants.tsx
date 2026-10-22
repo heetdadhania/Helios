@@ -31,6 +31,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/Toast';
 import { Pagination } from '@/components/ui/Pagination';
 import { formatDateIN } from '@/utils/currency';
+import { useOrganizations } from '@/hooks/useOrganizations';
 
 const INDUSTRY_OPTIONS = [
   'Apparel & Fashion',
@@ -157,9 +158,14 @@ export const Tenants: React.FC = () => {
   const isAdmin = user?.role === 'admin';
   const toast = useToast();
 
-  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const {
+    organizations: tenants,
+    isLoading,
+    error: orgsError,
+    refetch: loadTenants,
+  } = useOrganizations();
+
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -228,24 +234,8 @@ export const Tenants: React.FC = () => {
   const contactEmailValue = watch('contact_email');
   const ownerEmailValue = watch('owner_email');
 
-  // Load tenants
-  const loadTenants = async () => {
-    setIsLoading(true);
-    setGeneralError(null);
-    try {
-      const data = await adminService.getTenants();
-      if (!isAdmin && user) {
-        const assigned = (user as any).assigned_tenants || [];
-        setTenants(data.filter((t) => assigned.includes(String(t.tenant_id)) || assigned.includes(t.slug)));
-      } else {
-        setTenants(data);
-      }
-    } catch (err: any) {
-      setGeneralError(err?.response?.data?.detail || err.message || 'Failed to load organizations.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Combined error state
+  const displayError = generalError || orgsError;
 
   // Load team members for Admin assignment dropdown
   useEffect(() => {
@@ -261,9 +251,7 @@ export const Tenants: React.FC = () => {
     }
   }, [isAdmin]);
 
-  useEffect(() => {
-    loadTenants();
-  }, [isAdmin, user]);
+
 
   // Handle contact email blur/change to default owner_email if untouched
   const handleContactEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -587,9 +575,7 @@ export const Tenants: React.FC = () => {
     if (!isAdmin) return;
     try {
       const res = await adminService.deactivateTenant(tenantId);
-      setTenants((prev) =>
-        prev.map((t) => (t.tenant_id === tenantId ? { ...t, is_active: res.is_active } : t))
-      );
+      await loadTenants();
       toast.info(`Organization status updated to ${res.is_active ? 'Active' : 'Deactivated'}.`);
     } catch {
       toast.error('Failed to update organization status.');
@@ -626,12 +612,12 @@ export const Tenants: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-helios-border-light dark:border-helios-border-dark">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-helios-text-primary-light dark:text-helios-text-primary-dark">
-            Organization Directory & Unity Catalog Isolation
+            Organization Directory
           </h1>
           <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-0.5">
             {isAdmin
-              ? 'Global registry of customer organizations, catalog schemas, and organization lifecycle.'
-              : 'Directory of your assigned customer organizations and schemas.'}
+              ? 'Global registry of customer organizations and organization lifecycle.'
+              : 'Directory of your assigned customer organizations.'}
           </p>
         </div>
 
@@ -663,7 +649,7 @@ export const Tenants: React.FC = () => {
         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-helios-text-secondary-light dark:text-helios-text-secondary-dark" />
         <input
           type="text"
-          placeholder="Search by business name, email, or slug..."
+          placeholder="Search by business name or email"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark placeholder:text-helios-text-secondary-light dark:placeholder:text-helios-text-secondary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue transition-all"
@@ -681,7 +667,6 @@ export const Tenants: React.FC = () => {
                 <th className="py-3 px-4">Contact & Phone</th>
                 <th className="py-3 px-4">Organization Owner</th>
                 <th className="py-3 px-4">Location / Address</th>
-                <th className="py-3 px-4">Catalog / Schema</th>
                 <th className="py-3 px-4">Status</th>
                 <th className="py-3 px-4">Created</th>
                 <th className="py-3 px-4 text-right">Actions</th>
@@ -690,15 +675,15 @@ export const Tenants: React.FC = () => {
             <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark">
               {isLoading ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
+                  <td colSpan={8} className="py-12 text-center text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
                     <RefreshCw className="w-5 h-5 mx-auto animate-spin mb-2 text-helios-accent-blue" />
                     <span>Loading organization directory...</span>
                   </td>
                 </tr>
-              ) : generalError ? (
+              ) : displayError ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-rose-500">
-                    <p className="font-semibold text-sm">{generalError}</p>
+                  <td colSpan={8} className="py-12 text-center text-rose-500">
+                    <p className="font-semibold text-sm">{displayError}</p>
                     <button
                       type="button"
                       onClick={loadTenants}
@@ -710,10 +695,20 @@ export const Tenants: React.FC = () => {
                 </tr>
               ) : paginatedTenants.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
+                  <td colSpan={8} className="py-12 text-center text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
                     <Building2 className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                    <p className="font-semibold text-sm">No organizations found</p>
-                    <p className="text-xs mt-1">Try adjusting your search query or onboard a new organization.</p>
+                    <p className="font-semibold text-sm">
+                      {searchQuery
+                        ? 'No organizations found'
+                        : (!isAdmin
+                            ? 'No organizations are assigned to you yet. Contact your admin.'
+                            : 'No organizations found')}
+                    </p>
+                    <p className="text-xs mt-1">
+                      {searchQuery
+                        ? 'Try adjusting your search query.'
+                        : (isAdmin ? 'Onboard a new organization to get started.' : '')}
+                    </p>
                   </td>
                 </tr>
               ) : (
@@ -812,9 +807,7 @@ export const Tenants: React.FC = () => {
                           </div>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 font-mono text-[11px] text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
-                        {t.catalog_name || 'helios_catalog'}.{t.schema_name || 'default'}
-                      </td>
+
                       <td className="py-3.5 px-4">
                         <span
                           className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   Database,
   Server,
-  ShieldCheck,
   CheckCircle2,
   AlertTriangle,
   RefreshCw,
@@ -27,10 +26,9 @@ import {
   ToastNotification,
 } from '@/types/dbConnection';
 import { dbConnectionService } from '@/services/dbConnectionService';
-import { adminService } from '@/services/adminService';
-import { Tenant } from '@/types/admin';
 import { useAuth } from '@/hooks/useAuth';
 import { useBasePath } from '@/hooks/useBasePath';
+import { useOrganizations } from '@/hooks/useOrganizations';
 import api from '@/services/api';
 import {
   SessionProgressList,
@@ -61,13 +59,18 @@ const DB_TYPE_OPTIONS: DbTypeOption[] = [
 export const IngestDatabaseConnection: React.FC = () => {
   const navigate = useNavigate();
   const basePath = useBasePath();
-  const { user, role } = useAuth();
+  const { role } = useAuth();
   const isAdmin = role === 'admin';
 
-  // Tenant state
-  const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [selectedTenantId, setSelectedTenantId] = useState<string>('');
-  const [isLoadingTenants, setIsLoadingTenants] = useState<boolean>(true);
+  // Organizations state from single-source hook
+  const {
+    organizations: tenants,
+    isLoading: isLoadingTenants,
+    error: tenantsError,
+    selectedOrgId: selectedTenantId,
+    setSelectedOrgId: setSelectedTenantId,
+    refetch: loadTenants,
+  } = useOrganizations();
 
   // Form State
   const [dbType, setDbType] = useState<SupportedDbType>('postgresql');
@@ -111,60 +114,6 @@ export const IngestDatabaseConnection: React.FC = () => {
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
-
-  // Load tenants on mount
-  useEffect(() => {
-    const loadTenants = async () => {
-      try {
-        setIsLoadingTenants(true);
-        const data = await adminService.getTenants();
-
-        if (user?.role === 'smb_owner' && user?.tenant_id) {
-          const myTenant = data.filter(
-            (t) => String(t.tenant_id) === String(user.tenant_id)
-          );
-          setTenants(myTenant.length > 0 ? myTenant : data);
-          setSelectedTenantId(String(user.tenant_id));
-        } else if (isAdmin) {
-          setTenants(data);
-          if (data.length > 0) {
-            setSelectedTenantId(String(data[0].tenant_id));
-          }
-        } else {
-          // Team Member: filter to assigned tenants
-          let assigned: string[] = (user as any)?.assigned_tenants;
-          if (!assigned) {
-            try {
-              const members = await adminService.getTeamMembers();
-              const me = members.find(
-                (m) => m.email === user?.email || m.user_id === String(user?.id)
-              );
-              if (me?.assigned_tenants) {
-                assigned = me.assigned_tenants;
-              }
-            } catch {
-              assigned = [];
-            }
-          }
-          const assignedList = assigned || [];
-          const filtered = data.filter(
-            (t) => assignedList.includes(String(t.tenant_id)) || assignedList.includes(t.slug)
-          );
-          setTenants(filtered);
-          if (filtered.length > 0) {
-            setSelectedTenantId(String(filtered[0].tenant_id));
-          }
-        }
-      } catch (err: any) {
-        console.error('Failed to load tenants:', err);
-        addToast('error', 'Failed to load tenants', 'Could not retrieve assigned tenant organizations.');
-      } finally {
-        setIsLoadingTenants(false);
-      }
-    };
-
-    loadTenants();
-  }, [isAdmin, user]);
 
   const selectedTenant = useMemo(() => {
     return tenants.find((t) => String(t.tenant_id) === String(selectedTenantId));
@@ -501,11 +450,6 @@ export const IngestDatabaseConnection: React.FC = () => {
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           )}
-
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark shadow-sm">
-            <ShieldCheck className="w-4 h-4 text-helios-accent-teal" />
-            <span>Role Guard: Team Member & Admin</span>
-          </div>
         </div>
       </div>
 
@@ -559,7 +503,7 @@ export const IngestDatabaseConnection: React.FC = () => {
               <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
                 {isAdmin
                   ? 'Administrator Mode: You can manage database connections for any organization.'
-                  : 'Team Member Mode: Showing organizations assigned to your account in platform.team_assignments.'}
+                  : 'Team Member Mode: Showing organizations currently assigned to your account.'}
               </p>
             </div>
           </div>
@@ -570,9 +514,20 @@ export const IngestDatabaseConnection: React.FC = () => {
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                 <span>Loading assigned organizations...</span>
               </div>
+            ) : tenantsError ? (
+              <div className="flex items-center justify-between gap-2 text-xs text-rose-500 py-1">
+                <span>{tenantsError}</span>
+                <button
+                  type="button"
+                  onClick={loadTenants}
+                  className="px-2 py-1 text-xs font-semibold rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400"
+                >
+                  Retry
+                </button>
+              </div>
             ) : tenants.length === 0 ? (
-              <div className="text-xs text-amber-500 font-medium">
-                No assigned organizations found for your account.
+              <div className="text-xs text-amber-500 font-medium py-2">
+                No organizations are assigned to you yet. Contact your admin.
               </div>
             ) : (
               <select
@@ -599,14 +554,8 @@ export const IngestDatabaseConnection: React.FC = () => {
 
         {selectedTenant && (
           <div className="mt-2 pt-3 border-t border-helios-border-light dark:border-helios-border-dark flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-            <span className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded bg-black/5 dark:bg-white/5">
-              Slug: {selectedTenant.slug}
-            </span>
-            <span className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded bg-black/5 dark:bg-white/5">
-              Scope: helios_tenant_{selectedTenant.tenant_id}
-            </span>
             <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold">
-              ● Active Tenant
+              ● Active Organization
             </span>
           </div>
         )}
