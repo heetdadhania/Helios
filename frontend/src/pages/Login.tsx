@@ -51,12 +51,23 @@ export const Login: React.FC = () => {
 
       // Role-based redirect:
       // smb_owner -> /client/home
-      // team_member or admin -> /admin/home
+      // team_member -> /team/home
+      // admin -> /admin/home
       const from = (location.state as any)?.from?.pathname;
       if (from && from !== '/login') {
-        navigate(from, { replace: true });
+        if (user.role === 'team_member' && from.startsWith('/admin')) {
+          const adminOnlyPrefixes = ['/admin/team', '/admin/oversight', '/admin/tenant-health', '/admin/tenant-compare', '/admin/usage'];
+          const isAdminOnly = adminOnlyPrefixes.some((p) => from.startsWith(p));
+          navigate(isAdminOnly ? '/team/home' : from.replace(/^\/admin/, '/team'), { replace: true });
+        } else if (user.role === 'admin' && from.startsWith('/team')) {
+          navigate(from.replace(/^\/team/, '/admin'), { replace: true });
+        } else {
+          navigate(from, { replace: true });
+        }
       } else if (user.role === 'smb_owner') {
         navigate('/client/home', { replace: true });
+      } else if (user.role === 'team_member') {
+        navigate('/team/home', { replace: true });
       } else {
         navigate('/admin/home', { replace: true });
       }

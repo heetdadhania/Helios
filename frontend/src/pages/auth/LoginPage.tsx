@@ -38,8 +38,9 @@ export const LoginPage: React.FC = () => {
     setErrorMsg(null);
     try {
       await login(data);
-      // Route appropriately based on email role convention
-      if (data.email.includes('admin') || data.email.includes('team')) {
+      if (data.email.includes('team')) {
+        navigate('/team/home');
+      } else if (data.email.includes('admin')) {
         navigate('/admin/home');
       } else {
         navigate('/client/home');

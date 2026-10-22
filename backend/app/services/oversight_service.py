@@ -315,7 +315,7 @@ class OversightService:
         )
 
         metrics: List[TenantComparisonMetric] = []
-        for tid in tenant_ids:
+        for tid in sorted(tenant_ids):
             tenant_row = tenant_map.get(tid)
             tenant_name = tenant_row.get("business_name") if tenant_row else f"Tenant #{tid}"
             tier = tenant_row.get("tier") if tenant_row else "starter"

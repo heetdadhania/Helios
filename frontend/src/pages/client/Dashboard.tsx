@@ -1,11 +1,8 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
-  ArrowRight,
   Database,
   Loader2,
-  PlusCircle,
   RefreshCw,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,6 +15,7 @@ import { ShippingModeWidget } from '@/components/dashboard/ShippingModeWidget';
 import { dashboardService } from '@/services/dashboardService';
 import { DashboardData } from '@/types/dashboard';
 import { formatDateAsOf } from '@/utils/formatters';
+import { ContactSupportButton } from '@/components/client/ContactSupportButton';
 
 interface WidgetLoadingStates {
   revenueTrend: boolean;
@@ -28,7 +26,6 @@ interface WidgetLoadingStates {
 }
 
 export const Dashboard: React.FC = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
 
   const [days, setDays] = useState<number>(30);
@@ -308,22 +305,14 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="max-w-md mx-auto">
             <h3 className="text-base font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-              No data yet for this business.
+              No data yet for this organization.
             </h3>
             <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1.5 leading-relaxed">
-              You haven't synchronized any sales or order data yet. Upload a spreadsheet, connect a live database, or use the ingestion API to populate your private lakehouse.
+              Your organization does not have any processed sales or order records yet. Your assigned operations team will upload and process data batches for you.
             </p>
           </div>
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={() => navigate('/client/select-source')}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-helios-accent-blue text-white hover:bg-blue-600 transition-all shadow-md"
-            >
-              <PlusCircle className="w-4 h-4" />
-              <span>Connect Ingestion Source</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+          <div className="pt-2 flex justify-center">
+            <ContactSupportButton variant="button" />
           </div>
         </div>
       )}

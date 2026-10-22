@@ -140,7 +140,7 @@ class TeamRepository(BaseRepository):
         users_query = f"""
             SELECT {self.USER_COLUMNS} FROM {self.users_table}
             WHERE role IN ('team_member', 'admin')
-            ORDER BY user_id DESC
+            ORDER BY user_id ASC
         """
         users = self.execute_query(users_query)
         if not users:
@@ -232,7 +232,7 @@ class TeamRepository(BaseRepository):
             LEFT JOIN {self.pipeline_table} ps ON t.tenant_id = ps.tenant_id
             WHERE ta.user_id = :user_id
             GROUP BY t.tenant_id, t.business_name
-            ORDER BY t.business_name ASC
+            ORDER BY t.tenant_id ASC
         """
         org_rows = self.execute_query(orgs_query, {"user_id": user_id})
         assigned_orgs = []

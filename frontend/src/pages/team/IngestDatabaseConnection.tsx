@@ -30,6 +30,7 @@ import { dbConnectionService } from '@/services/dbConnectionService';
 import { adminService } from '@/services/adminService';
 import { Tenant } from '@/types/admin';
 import { useAuth } from '@/hooks/useAuth';
+import { useBasePath } from '@/hooks/useBasePath';
 import api from '@/services/api';
 import {
   SessionProgressList,
@@ -59,6 +60,7 @@ const DB_TYPE_OPTIONS: DbTypeOption[] = [
 
 export const IngestDatabaseConnection: React.FC = () => {
   const navigate = useNavigate();
+  const basePath = useBasePath();
   const { user, role } = useAuth();
   const isAdmin = role === 'admin';
 
@@ -375,7 +377,7 @@ export const IngestDatabaseConnection: React.FC = () => {
   };
 
   const handleDoneForNow = () => {
-    navigate('/admin/uploads');
+    navigate(`${basePath}/uploads`);
   };
 
   // Individual row Sync Now

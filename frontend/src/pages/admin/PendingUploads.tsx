@@ -17,9 +17,11 @@ import {
 import { PendingUpload, SourceType } from '@/types/admin';
 import { adminService } from '@/services/adminService';
 import { Pagination } from '@/components/ui/Pagination';
+import { useBasePath } from '@/hooks/useBasePath';
 
 export const PendingUploads: React.FC = () => {
   const navigate = useNavigate();
+  const basePath = useBasePath();
   const [uploads, setUploads] = useState<PendingUpload[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -234,7 +236,7 @@ export const PendingUploads: React.FC = () => {
                         }`}
                         onClick={() => {
                           if (!isPreparing) {
-                            navigate(`/admin/confirm-schema/${upl.batch_id}`);
+                            navigate(`${basePath}/confirm-schema/${upl.batch_id}`);
                           }
                         }}
                       >
@@ -288,7 +290,7 @@ export const PendingUploads: React.FC = () => {
                             onClick={(e) => {
                               e.stopPropagation();
                               if (!isPreparing) {
-                                navigate(`/admin/confirm-schema/${upl.batch_id}`);
+                                navigate(`${basePath}/confirm-schema/${upl.batch_id}`);
                               }
                             }}
                             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${

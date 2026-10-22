@@ -53,7 +53,7 @@ export const TeamMembers: React.FC = () => {
 
   // Role-gate TeamMembers.tsx to admin only
   if (!authLoading && user?.role !== 'admin') {
-    return <Navigate to="/admin/uploads" replace />;
+    return <Navigate to="/team/home" replace />;
   }
 
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);

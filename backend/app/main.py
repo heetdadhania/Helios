@@ -131,6 +131,10 @@ def create_application() -> FastAPI:
     from app.api.team_home import router as team_home_router
     app.include_router(team_home_router, prefix="/api/team", tags=["Team"])
 
+    # Include User Profile Router (/api/profile)
+    from app.api.profile import router as profile_router
+    app.include_router(profile_router, prefix="/api/profile", tags=["Profile"])
+
     # Include Versioned API Routers
     app.include_router(api_router, prefix=settings.API_V1_STR)
 

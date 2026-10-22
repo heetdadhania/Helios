@@ -114,11 +114,11 @@ async def upload_file(
     response_model=UploadStatusOut,
     status_code=status.HTTP_200_OK,
     summary="Get Upload Pipeline Status",
-    description="Retrieve simplified customer-friendly status for an upload batch without exposing pipeline internals.",
+    description="Retrieve simplified status for an upload batch. Scoped to operations team.",
 )
 def get_upload_status(
     upload_id: int,
-    current_user: UserOut = Depends(require_role("smb_owner")),
+    current_user: UserOut = Depends(require_role("team_member", "admin")),
     cursor: Cursor = Depends(get_db_cursor),
 ) -> UploadStatusOut:
     """

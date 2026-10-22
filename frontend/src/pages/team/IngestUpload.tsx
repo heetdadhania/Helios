@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useBasePath } from '@/hooks/useBasePath';
 import { adminService } from '@/services/adminService';
 import { Tenant, SchemaPreview } from '@/types/admin';
 import api from '@/services/api';
@@ -26,6 +27,7 @@ import { DuplicateConflictDialog } from '@/components/shared/DuplicateConflictDi
 
 export const IngestUpload: React.FC = () => {
   const navigate = useNavigate();
+  const basePath = useBasePath();
   const { user, role } = useAuth();
   const isAdmin = role === 'admin';
 
@@ -265,7 +267,7 @@ export const IngestUpload: React.FC = () => {
   };
 
   const handleDoneForNow = () => {
-    navigate('/admin/uploads');
+    navigate(`${basePath}/uploads`);
   };
 
   return (

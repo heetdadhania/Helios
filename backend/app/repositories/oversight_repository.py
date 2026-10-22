@@ -682,7 +682,7 @@ class OversightRepository:
             LEFT JOIN owners o ON t.tenant_id = o.tenant_id
             LEFT JOIN team_members tm ON t.tenant_id = tm.tenant_id
             LEFT JOIN last_dates ld ON t.tenant_id = ld.tenant_id
-            ORDER BY t.created_at DESC, t.tenant_id DESC
+            ORDER BY t.tenant_id ASC
             LIMIT 10
         """
         org_rows = self._fetch_all(orgs_q)

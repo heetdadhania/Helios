@@ -14,6 +14,7 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useBasePath } from '@/hooks/useBasePath';
 import { authService } from '@/services/authService';
 import { HeliosLogo } from '@/components/HeliosLogo';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -39,6 +40,7 @@ type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 
 export const ChangePassword: React.FC = () => {
   const { user, updateUser, logout } = useAuth();
+  const basePath = useBasePath();
   const navigate = useNavigate();
 
   const [showCurrent, setShowCurrent] = useState<boolean>(false);
@@ -70,9 +72,9 @@ export const ChangePassword: React.FC = () => {
       // Redirect user to their landing page after brief acknowledgment
       setTimeout(() => {
         if (user?.role === 'smb_owner') {
-          navigate('/client/dashboard', { replace: true });
+          navigate('/client/profile', { replace: true });
         } else {
-          navigate('/admin/uploads', { replace: true });
+          navigate(`${basePath}/profile`, { replace: true });
         }
       }, 1200);
     } catch (err: any) {
@@ -84,6 +86,16 @@ export const ChangePassword: React.FC = () => {
   const handleSignOut = () => {
     logout();
     navigate('/login', { replace: true });
+  };
+
+  const isForced = Boolean(user?.must_change_password);
+
+  const handleBack = () => {
+    if (user?.role === 'smb_owner') {
+      navigate('/client/profile');
+    } else {
+      navigate(`${basePath}/profile`);
+    }
   };
 
   return (
@@ -105,14 +117,15 @@ export const ChangePassword: React.FC = () => {
 
             <div className="mt-8">
               <span className="text-xs font-semibold tracking-wider uppercase text-blue-200">
-                Security Requirement
+                {isForced ? 'Security Requirement' : 'Account Security'}
               </span>
               <h2 className="mt-2 text-2xl lg:text-3xl font-extrabold tracking-tight leading-tight">
-                First-Login Password Reset
+                {isForced ? 'First-Login Password Reset' : 'Update Account Password'}
               </h2>
               <p className="mt-3 text-sm text-blue-100/80 leading-relaxed">
-                Your account was provisioned with a temporary administrative password.
-                Please choose a permanent, confidential password before accessing the platform.
+                {isForced
+                  ? 'Your account was provisioned with a temporary administrative password. Please choose a permanent, confidential password before accessing the platform.'
+                  : 'Maintain account security by regularly updating your credentials with a high-entropy password.'}
               </p>
             </div>
           </div>
@@ -124,8 +137,8 @@ export const ChangePassword: React.FC = () => {
             </div>
             <ul className="list-disc list-inside space-y-1 text-blue-100/80 text-[11px]">
               <li>Must be at least 10 characters in length</li>
-              <li>Must differ from your temporary password</li>
-              <li>Cannot navigate to any other screen until completed</li>
+              <li>Must differ from your current password</li>
+              {isForced && <li>Cannot navigate to any other screen until completed</li>}
             </ul>
           </div>
         </div>
@@ -136,10 +149,10 @@ export const ChangePassword: React.FC = () => {
             <div>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 mb-3">
                 <KeyRound className="w-3.5 h-3.5" />
-                <span>Password Change Required</span>
+                <span>{isForced ? 'Password Change Required' : 'Change Password'}</span>
               </div>
               <h1 className="text-xl font-bold tracking-tight text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                Set Permanent Password
+                {isForced ? 'Set Permanent Password' : 'Change Your Password'}
               </h1>
               <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1">
                 Authenticated as <span className="font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark">{user?.email}</span>
@@ -279,11 +292,21 @@ export const ChangePassword: React.FC = () => {
               </button>
             </form>
 
-            {/* Sign Out link */}
+            {/* Footer navigation */}
             <div className="pt-2 border-t border-helios-border-light dark:border-helios-border-dark flex justify-between items-center text-xs">
-              <span className="text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
-                Need to use another account?
-              </span>
+              {!isForced ? (
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="inline-flex items-center gap-1 font-semibold text-helios-accent-blue hover:underline transition-colors"
+                >
+                  ← Back to Profile
+                </button>
+              ) : (
+                <span className="text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
+                  Need to use another account?
+                </span>
+              )}
               <button
                 type="button"
                 onClick={handleSignOut}

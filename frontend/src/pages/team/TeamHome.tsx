@@ -19,9 +19,11 @@ import {
 import { teamHomeService } from '@/services/teamHomeService';
 import { TeamHomeResponse } from '@/types/teamHome';
 import { formatDateTimeIN } from '@/utils/currency';
+import { useBasePath } from '@/hooks/useBasePath';
 
 export const TeamHome: React.FC = () => {
   const navigate = useNavigate();
+  const basePath = useBasePath();
   const [loading, setLoading] = useState<boolean>(true);
   const [data, setData] = useState<TeamHomeResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -119,7 +121,7 @@ export const TeamHome: React.FC = () => {
           </button>
           <button
             type="button"
-            onClick={() => navigate('/admin/upload')}
+            onClick={() => navigate(`${basePath}/upload`)}
             className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg bg-helios-accent-blue text-white hover:bg-blue-600 transition shadow-sm"
           >
             <UploadCloud className="w-4 h-4" />
@@ -160,7 +162,7 @@ export const TeamHome: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {/* Pending Review */}
             <div
-              onClick={() => navigate('/admin/uploads')}
+              onClick={() => navigate(`${basePath}/uploads`)}
               className="p-5 rounded-2xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-xs transition hover:shadow-soft cursor-pointer group"
             >
               <div className="flex items-center justify-between">
@@ -186,7 +188,7 @@ export const TeamHome: React.FC = () => {
 
             {/* Running */}
             <div
-              onClick={() => navigate('/admin/pipeline-health')}
+              onClick={() => navigate(`${basePath}/pipeline-health`)}
               className="p-5 rounded-2xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-xs transition hover:shadow-soft cursor-pointer group"
             >
               <div className="flex items-center justify-between">
@@ -212,7 +214,7 @@ export const TeamHome: React.FC = () => {
 
             {/* Failed */}
             <div
-              onClick={() => navigate('/admin/pipeline-health')}
+              onClick={() => navigate(`${basePath}/pipeline-health`)}
               className="p-5 rounded-2xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-xs transition hover:shadow-soft cursor-pointer group"
             >
               <div className="flex items-center justify-between">
@@ -238,7 +240,7 @@ export const TeamHome: React.FC = () => {
 
             {/* Stalled */}
             <div
-              onClick={() => navigate('/admin/pipeline-health')}
+              onClick={() => navigate(`${basePath}/pipeline-health`)}
               className="p-5 rounded-2xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-xs transition hover:shadow-soft cursor-pointer group"
             >
               <div className="flex items-center justify-between">
@@ -323,7 +325,7 @@ export const TeamHome: React.FC = () => {
                         <td className="py-3.5 px-4 text-right">
                           <button
                             type="button"
-                            onClick={() => navigate('/admin/upload')}
+                            onClick={() => navigate(`${basePath}/upload`)}
                             className="inline-flex items-center gap-1 px-3 py-1 rounded-md text-xs font-semibold bg-helios-accent-blue/10 text-helios-accent-blue hover:bg-helios-accent-blue hover:text-white transition"
                           >
                             <UploadCloud className="w-3.5 h-3.5" />
@@ -351,7 +353,7 @@ export const TeamHome: React.FC = () => {
                 </div>
                 <button
                   type="button"
-                  onClick={() => navigate('/admin/support')}
+                  onClick={() => navigate(`${basePath}/support`)}
                   className="text-xs font-semibold text-helios-accent-blue hover:underline flex items-center gap-1"
                 >
                   <span>Support Inbox</span>
@@ -374,7 +376,7 @@ export const TeamHome: React.FC = () => {
                   {data.open_support_messages.map((msg) => (
                     <div
                       key={msg.message_id}
-                      onClick={() => navigate('/admin/support')}
+                      onClick={() => navigate(`${basePath}/support`)}
                       className="p-3.5 rounded-xl border border-helios-border-light dark:border-helios-border-dark bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition cursor-pointer"
                     >
                       <div className="flex items-center justify-between text-xs mb-1">
@@ -411,7 +413,7 @@ export const TeamHome: React.FC = () => {
                 </div>
                 <button
                   type="button"
-                  onClick={() => navigate('/admin/history')}
+                  onClick={() => navigate(`${basePath}/history`)}
                   className="text-xs font-semibold text-helios-accent-blue hover:underline flex items-center gap-1"
                 >
                   <span>All History</span>

@@ -53,6 +53,7 @@ CATALOG = getattr(settings, "DATABRICKS_CATALOG", "helios_catalog")
 DEFAULT_TIMEOUT = 90
 
 RESULTS: List[Dict[str, str]] = []
+CREATED_BATCH_IDS: List[str] = []
 
 
 def record_result(
@@ -76,9 +77,9 @@ def record_result(
 
 
 def login(email: str, password: str) -> Tuple[str, Dict[str, Any]]:
-    """Log in against /api/auth/login and return (token, user_dict)."""
+    """Log in against /api/v1/auth/login and return (token, user_dict)."""
     resp = requests.post(
-        f"{BASE_URL}/api/auth/login",
+        f"{BASE_URL}/api/v1/auth/login",
         json={"email": email, "password": password},
         timeout=DEFAULT_TIMEOUT,
     )
@@ -192,6 +193,7 @@ def load_and_approve_batch(
     upload_data = resp.json()
     batch_id = upload_data["batch_id"]
     upload_id = int(upload_data["upload_id"])
+    CREATED_BATCH_IDS.append(batch_id)
     print(f"    Uploaded: batch_id={batch_id}, upload_id={upload_id}", flush=True)
 
     print("    Waiting for schema inference -> pending_review / awaiting_confirmation...", flush=True)
@@ -285,6 +287,7 @@ def create_pending_batch(tenant_id: int, admin_token: str) -> str:
     if resp.status_code not in (200, 201):
         raise RuntimeError(f"Failed to create pending batch for tenant {tenant_id}: {resp.text}")
     b_id = resp.json()["batch_id"]
+    CREATED_BATCH_IDS.append(b_id)
     print(f"    Pending batch uploaded: {b_id} for tenant {tenant_id}", flush=True)
     wait_for_pipeline_status(b_id, ["pending_review", "awaiting_confirmation", "failed"], timeout_seconds=180)
     return b_id
@@ -318,7 +321,7 @@ def run_tests() -> bool:
         tenant_id=1,
         filename=f"orders_30_valid_{ts_now}.csv",
         file_bytes=csv_t1,
-        uploader_token=smb1_token,
+        uploader_token=tm1_token,
         reviewer_token=tm1_token,
     )
 
@@ -326,7 +329,7 @@ def run_tests() -> bool:
         tenant_id=2,
         filename=f"orders_10_renamed_headers_{ts_now}.csv",
         file_bytes=csv_t2,
-        uploader_token=smb2_token,
+        uploader_token=tm1_token,
         reviewer_token=tm1_token,
     )
 
@@ -486,6 +489,26 @@ def run_tests() -> bool:
     passed = r.status_code in (403, 404)
     record_result("smb-owner-1", f"DELETE /api/db-connections/{conn_t2}", "2", "403 or 404", f"{r.status_code}", passed)
 
+    # 24. Profile: GET /api/v1/profile/me (Owner contains only own organization, no password hash)
+    r = requests.get(f"{BASE_URL}/api/v1/profile/me", headers=h_smb1)
+    p_data = r.json() if r.status_code == 200 else {}
+    org_data = p_data.get("organization") or {}
+    no_hash = "password_hash" not in r.text.lower()
+    only_own_org = (
+        r.status_code == 200
+        and "Kaveri" in str(org_data.get("business_name", ""))
+        and "2" not in str(org_data.get("business_name", ""))
+    )
+    passed = only_own_org and no_hash
+    record_result(
+        "smb-owner-1",
+        "GET /api/v1/profile/me",
+        "2",
+        "200 (only own org, no hash)",
+        f"{r.status_code} (no_hash={no_hash})",
+        passed,
+    )
+
 
     # =========================================================================
     # PART 3: Team Member 1 (assigned to 1 and 2) -> Try Unassigned Tenants (5 and 9)
@@ -565,6 +588,24 @@ def run_tests() -> bool:
         passed = r.status_code in (403, 404)
         record_result("team-member-1", "GET /api/db-connections", tid_str, "403 Forbidden", f"{r.status_code}", passed)
 
+    # 12. Profile: GET /api/v1/profile/me (Team member contains only assigned organizations, no password hash)
+    r = requests.get(f"{BASE_URL}/api/v1/profile/me", headers=h_tm1)
+    tm_data = r.json() if r.status_code == 200 else {}
+    assigned_orgs = tm_data.get("assigned_organizations", [])
+    assigned_tids = {o.get("tenant_id") for o in assigned_orgs}
+    no_unassigned = (5 not in assigned_tids) and (9 not in assigned_tids)
+    has_assigned = (1 in assigned_tids) or (2 in assigned_tids)
+    no_hash = "password_hash" not in r.text.lower()
+    passed = r.status_code == 200 and no_unassigned and has_assigned and no_hash
+    record_result(
+        "team-member-1",
+        "GET /api/v1/profile/me",
+        "5, 9",
+        "200 (only assigned orgs, no hash)",
+        f"{r.status_code} (orgs={sorted(list(assigned_tids))}, no_hash={no_hash})",
+        passed,
+    )
+
 
     # =========================================================================
     # PART 4: Admin Role -> Confirm Admin Can Reach Every Tenant
@@ -612,6 +653,21 @@ def run_tests() -> bool:
     passed = r.status_code == 200 and any(c.get("tenant_id") == 2 for c in r.json())
     record_result("admin", "GET /api/db-connections", "2", "200 (T2 connections)", f"{r.status_code}", passed)
 
+    # 8. Profile: GET /api/v1/profile/me (Admin platform summary & team members, no password hash)
+    r = requests.get(f"{BASE_URL}/api/v1/profile/me", headers=h_adm)
+    adm_data = r.json() if r.status_code == 200 else {}
+    no_hash = "password_hash" not in r.text.lower()
+    has_summary = "platform_summary" in adm_data and "team_members" in adm_data
+    passed = r.status_code == 200 and has_summary and no_hash
+    record_result(
+        "admin",
+        "GET /api/v1/profile/me",
+        "ALL",
+        "200 (summary & team, no hash)",
+        f"{r.status_code} (no_hash={no_hash})",
+        passed,
+    )
+
 
     # =========================================================================
     # PART 5: Print Formatted Table
@@ -658,23 +714,24 @@ def run_tests() -> bool:
 
 
 def reset_runtime_data() -> None:
+    """DATA RULE: Do not delete or reset any table and do not run reset_runtime_data.py.
+    Remove only rows that this task itself created for its own test batches."""
     print("\n" + "=" * 80)
-    print("RESETTING RUNTIME DATA AS REQUESTED")
+    print("DATA RULE COMPLIANT CLEANUP: REMOVING ONLY TEST RUN BATCHES")
     print("=" * 80)
-    reset_script = REPO_ROOT / "scripts" / "maintenance" / "reset_runtime_data.py"
-    res = subprocess.run(
-        [sys.executable, str(reset_script), "--confirm"],
-        cwd=str(REPO_ROOT),
-        capture_output=True,
-        text=True,
-    )
-    print(res.stdout)
-    if res.stderr:
-        print("Reset stderr:", res.stderr)
-    if res.returncode == 0:
-        print("Runtime data reset completed successfully!")
-    else:
-        print(f"WARNING: Reset runtime data exited with code {res.returncode}")
+    if not CREATED_BATCH_IDS:
+        print("No test batches were created during this run.")
+        return
+    try:
+        with get_databricks_connection(catalog=CATALOG) as conn:
+            with conn.cursor() as cur:
+                for b in CREATED_BATCH_IDS:
+                    cur.execute(f"DELETE FROM `{CATALOG}`.`platform`.`pipeline_status` WHERE batch_id = :b", {"b": b})
+                    cur.execute(f"DELETE FROM `{CATALOG}`.`platform`.`pending_uploads` WHERE batch_id = :b", {"b": b})
+                    cur.execute(f"DELETE FROM `{CATALOG}`.`platform`.`inferred_schema` WHERE batch_id = :b", {"b": b})
+        print(f"Removed only test batches created for this run: {CREATED_BATCH_IDS}")
+    except Exception as exc:
+        print(f"Warning cleaning up test batches: {exc}")
 
 
 if __name__ == "__main__":

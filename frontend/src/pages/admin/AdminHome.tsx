@@ -30,9 +30,11 @@ import { formatINR, formatCountIN, formatDateIN, formatDateTimeIN } from '@/util
 import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton';
 import { StageStatusBadge } from '@/components/admin/StageStatusBadge';
 import { useTheme } from '@/hooks/useTheme';
+import { useBasePath } from '@/hooks/useBasePath';
 
 export const AdminHome: React.FC = () => {
   const navigate = useNavigate();
+  const basePath = useBasePath();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
@@ -116,7 +118,7 @@ export const AdminHome: React.FC = () => {
         {/* Quick Actions Bar */}
         <div className="flex flex-wrap items-center gap-2.5">
           <button
-            onClick={() => navigate('/admin/tenants', { state: { openCreate: true } })}
+            onClick={() => navigate(`${basePath}/tenants`, { state: { openCreate: true } })}
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-control bg-helios-accent-blue hover:bg-blue-600 text-white text-xs font-semibold transition shadow-sm"
             title="Register a new organization"
           >
@@ -132,7 +134,7 @@ export const AdminHome: React.FC = () => {
             <span>Add Team Member</span>
           </button>
           <button
-            onClick={() => navigate('/admin/uploads')}
+            onClick={() => navigate(`${basePath}/uploads`)}
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-control bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-helios-text-primary-light dark:text-helios-text-primary-dark text-xs font-semibold transition border border-helios-border-light dark:border-helios-border-dark"
             title="Review pending file uploads"
           >
@@ -140,7 +142,7 @@ export const AdminHome: React.FC = () => {
             <span>Review Pending Uploads</span>
           </button>
           <button
-            onClick={() => navigate('/admin/pipeline-health')}
+            onClick={() => navigate(`${basePath}/pipeline-health`)}
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-control bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-helios-text-primary-light dark:text-helios-text-primary-dark text-xs font-semibold transition border border-helios-border-light dark:border-helios-border-dark"
             title="View pipeline health"
           >
@@ -169,7 +171,7 @@ export const AdminHome: React.FC = () => {
             <>
               {/* Card 1: Organizations */}
               <div
-                onClick={() => navigate('/admin/tenants')}
+                onClick={() => navigate(`${basePath}/tenants`)}
                 className="p-4 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm hover:border-helios-accent-blue/50 cursor-pointer transition"
               >
                 <div className="flex items-center justify-between text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
@@ -193,7 +195,7 @@ export const AdminHome: React.FC = () => {
 
               {/* Card 2: Organization Owners */}
               <div
-                onClick={() => navigate('/admin/tenants')}
+                onClick={() => navigate(`${basePath}/tenants`)}
                 className="p-4 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm hover:border-helios-accent-blue/50 cursor-pointer transition"
               >
                 <div className="flex items-center justify-between text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
@@ -231,7 +233,7 @@ export const AdminHome: React.FC = () => {
 
               {/* Card 4: Pending Uploads */}
               <div
-                onClick={() => navigate('/admin/uploads')}
+                onClick={() => navigate(`${basePath}/uploads`)}
                 className={`p-4 rounded-card bg-helios-card-light dark:bg-helios-card-dark border shadow-sm cursor-pointer transition ${
                   (data?.summary.pending_uploads || 0) > 0
                     ? 'border-amber-500/50 hover:border-amber-500'
@@ -262,7 +264,7 @@ export const AdminHome: React.FC = () => {
 
               {/* Card 5: Running Pipelines */}
               <div
-                onClick={() => navigate('/admin/pipeline-health')}
+                onClick={() => navigate(`${basePath}/pipeline-health`)}
                 className="p-4 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm hover:border-helios-accent-blue/50 cursor-pointer transition"
               >
                 <div className="flex items-center justify-between text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
@@ -283,7 +285,7 @@ export const AdminHome: React.FC = () => {
 
               {/* Card 6: Failed Pipelines */}
               <div
-                onClick={() => navigate('/admin/pipeline-health')}
+                onClick={() => navigate(`${basePath}/pipeline-health`)}
                 className={`p-4 rounded-card bg-helios-card-light dark:bg-helios-card-dark border shadow-sm cursor-pointer transition ${
                   (data?.summary.failed_pipelines || 0) > 0
                     ? 'border-rose-500/50 hover:border-rose-500'
@@ -314,7 +316,7 @@ export const AdminHome: React.FC = () => {
 
               {/* Card 7: Open Support Messages */}
               <div
-                onClick={() => navigate('/admin/support')}
+                onClick={() => navigate(`${basePath}/support`)}
                 className={`p-4 rounded-card bg-helios-card-light dark:bg-helios-card-dark border shadow-sm cursor-pointer transition ${
                   (data?.summary.open_support_messages || 0) > 0
                     ? 'border-amber-500/50 hover:border-amber-500'
@@ -528,7 +530,7 @@ export const AdminHome: React.FC = () => {
               </p>
             </div>
             <Link
-              to="/admin/tenants"
+              to={`${basePath}/tenants`}
               className="text-xs font-semibold text-helios-accent-blue hover:underline flex items-center gap-1"
             >
               <span>View all</span>
@@ -605,7 +607,7 @@ export const AdminHome: React.FC = () => {
               </p>
             </div>
             <Link
-              to="/admin/pipeline-health"
+              to={`${basePath}/pipeline-health`}
               className="text-xs font-semibold text-helios-accent-blue hover:underline flex items-center gap-1"
             >
               <span>View telemetry</span>
@@ -639,7 +641,7 @@ export const AdminHome: React.FC = () => {
                   {data?.tables.recent_activity.map((act, idx) => (
                     <tr
                       key={act.batch_id || idx}
-                      onClick={() => navigate('/admin/pipeline-health')}
+                      onClick={() => navigate(`${basePath}/pipeline-health`)}
                       className="hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer transition"
                     >
                       <td className="py-2.5">

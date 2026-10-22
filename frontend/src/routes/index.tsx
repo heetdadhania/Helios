@@ -1,5 +1,5 @@
-import React, { Suspense, lazy } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense, lazy, useEffect } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ClientLayout } from '@/layouts/ClientLayout';
 import { AdminLayout } from '@/layouts/AdminLayout';
 import { ProtectedRoute } from './ProtectedRoute';
@@ -11,8 +11,6 @@ const Login = lazy(() => import('@/pages/Login').then((m) => ({ default: m.Login
 const ClientHome = lazy(() => import('@/pages/client/ClientHome').then((m) => ({ default: m.ClientHome })));
 const TeamHome = lazy(() => import('@/pages/team/TeamHome').then((m) => ({ default: m.TeamHome })));
 const Dashboard = lazy(() => import('@/pages/client/Dashboard').then((m) => ({ default: m.Dashboard })));
-const DataSourceSelect = lazy(() => import('@/pages/client/DataSourceSelect').then((m) => ({ default: m.DataSourceSelect })));
-const ApiAccess = lazy(() => import('@/pages/client/ApiAccess').then((m) => ({ default: m.ApiAccess })));
 const ExportDataPage = lazy(() => import('@/pages/client/ExportDataPage').then((m) => ({ default: m.ExportDataPage })));
 const ClientSupport = lazy(() => import('@/pages/client/ClientSupport').then((m) => ({ default: m.ClientSupport })));
 const ClientNotifications = lazy(() => import('@/pages/client/ClientNotifications').then((m) => ({ default: m.ClientNotifications })));
@@ -35,6 +33,7 @@ const TenantComparison = lazy(() => import('@/pages/admin/TenantComparison').the
 const UsageDashboard = lazy(() => import('@/pages/admin/UsageDashboard').then((m) => ({ default: m.UsageDashboard })));
 const AdminHome = lazy(() => import('@/pages/admin/AdminHome').then((m) => ({ default: m.AdminHome })));
 const ChangePassword = lazy(() => import('@/pages/auth/ChangePassword').then((m) => ({ default: m.ChangePassword })));
+const Profile = lazy(() => import('@/pages/profile/Profile').then((m) => ({ default: m.Profile })));
 
 const RouteLoadingIndicator: React.FC = () => (
   <div className="min-h-[50vh] flex flex-col items-center justify-center p-8 text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
@@ -50,6 +49,8 @@ const RootRedirect: React.FC = () => {
   if (user.must_change_password) return <Navigate to="/change-password" replace />;
   return user.role === 'smb_owner' ? (
     <Navigate to="/client/home" replace />
+  ) : user.role === 'team_member' ? (
+    <Navigate to="/team/home" replace />
   ) : (
     <Navigate to="/admin/home" replace />
   );
@@ -59,29 +60,94 @@ const ChangePasswordGuard: React.FC = () => {
   const { isAuthenticated, user, isLoading } = useAuth();
   if (isLoading) return null;
   if (!isAuthenticated || !user) return <Navigate to="/login" replace />;
-  if (!user.must_change_password) {
-    return user.role === 'smb_owner' ? (
-      <Navigate to="/client/home" replace />
-    ) : (
-      <Navigate to="/admin/home" replace />
-    );
-  }
   return <ChangePassword />;
 };
 
-const HistoryRouteSelector: React.FC = () => {
-  const { user } = useAuth();
-  return user?.role === 'admin' ? <AdminHistory /> : <TeamHistory />;
+const ADMIN_ONLY_PREFIXES = [
+  '/admin/team',
+  '/admin/oversight',
+  '/admin/tenant-health',
+  '/admin/tenant-compare',
+  '/admin/usage',
+];
+
+const AdminPrefixGuard: React.FC = () => {
+  const { role } = useAuth();
+  const location = useLocation();
+
+  if (role === 'team_member') {
+    const pathname = location.pathname;
+    const isAdminOnly = ADMIN_ONLY_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+    if (isAdminOnly || pathname === '/admin' || pathname === '/admin/') {
+      return <Navigate to="/team/home" replace />;
+    }
+    const targetPath = pathname.replace(/^\/admin/, '/team');
+    return <Navigate to={`${targetPath}${location.search}`} replace />;
+  }
+
+  return <OutletWrapper />;
 };
 
-const HomeRouteSelector: React.FC = () => {
-  const { user } = useAuth();
-  return user?.role === 'admin' ? <AdminHome /> : <TeamHome />;
+const TeamPrefixGuard: React.FC = () => {
+  const { role } = useAuth();
+  const location = useLocation();
+
+  if (role === 'admin') {
+    const pathname = location.pathname;
+    if (pathname === '/team' || pathname === '/team/') {
+      return <Navigate to="/admin/home" replace />;
+    }
+    const targetPath = pathname.replace(/^\/team/, '/admin');
+    return <Navigate to={`${targetPath}${location.search}`} replace />;
+  }
+
+  return <OutletWrapper />;
 };
+
+const OutletWrapper: React.FC = () => {
+  return <AdminLayout />;
+};
+
+const useDocumentTitle = () => {
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user?.role === 'team_member') {
+      document.title = 'Helios \u2014 Team Portal';
+    } else if (user?.role === 'admin') {
+      document.title = 'Helios \u2014 Admin Portal';
+    } else if (user?.role === 'smb_owner') {
+      document.title = 'Helios \u2014 Organization Portal';
+    } else {
+      document.title = 'Helios \u2014 Multi-Organization Data Platform';
+    }
+  }, [user?.role]);
+};
+
+const renderOperationalRoutes = (prefix: 'admin' | 'team') => [
+  <Route key="home" path="home" element={prefix === 'admin' ? <AdminHome /> : <TeamHome />} />,
+  <Route key="uploads" path="uploads" element={<PendingUploads />} />,
+  <Route key="pending-uploads" path="pending-uploads" element={<PendingUploads />} />,
+  <Route key="upload" path="upload" element={<IngestUpload />} />,
+  <Route key="ingest-upload" path="ingest-upload" element={<IngestUpload />} />,
+  <Route key="connect-db" path="connect-db" element={<IngestDatabaseConnection />} />,
+  <Route key="connect-database" path="connect-database" element={<IngestDatabaseConnection />} />,
+  <Route key="confirm-schema" path="confirm-schema/:batchId" element={<ConfirmSchema />} />,
+  <Route key="history" path="history" element={prefix === 'admin' ? <AdminHistory /> : <TeamHistory />} />,
+  <Route key="submission-history" path="submission-history" element={prefix === 'admin' ? <AdminHistory /> : <TeamHistory />} />,
+  <Route key="support" path="support" element={<SupportInbox />} />,
+  <Route key="inbox" path="inbox" element={<SupportInbox />} />,
+  <Route key="pipeline-health" path="pipeline-health" element={<PipelineHealth />} />,
+  <Route key="data-quality" path="data-quality" element={<DataQualityLog />} />,
+  <Route key="tenants" path="tenants" element={<Tenants />} />,
+  <Route key="profile" path="profile" element={<Profile />} />,
+];
 
 const suspenseProps = { ['fall' + 'back']: <RouteLoadingIndicator /> };
 
 export const AppRoutes: React.FC = () => {
+  useDocumentTitle();
+
   return (
     <Suspense {...suspenseProps}>
       <Routes>
@@ -104,36 +170,33 @@ export const AppRoutes: React.FC = () => {
             <Route path="submission-history" element={<SubmissionHistory />} />
             <Route path="export" element={<ExportDataPage />} />
             <Route path="support" element={<ClientSupport />} />
+            <Route path="profile" element={<Profile />} />
             <Route path="notifications" element={<ClientNotifications />} />
 
-            {/* Deferred Features: Kept intact */}
-            <Route path="connect-db" element={<IngestDatabaseConnection />} />
-            <Route path="api-access" element={<ApiAccess />} />
-            <Route path="api-keys" element={<ApiAccess />} />
-            <Route path="select-source" element={<DataSourceSelect />} />
-            <Route path="data-sources" element={<DataSourceSelect />} />
+            {/* Ingestion, file, database-connection and API-access routes redirect to Home */}
+            <Route path="connect-db" element={<Navigate to="/client/home" replace />} />
+            <Route path="connect-database" element={<Navigate to="/client/home" replace />} />
+            <Route path="api-access" element={<Navigate to="/client/home" replace />} />
+            <Route path="api-keys" element={<Navigate to="/client/home" replace />} />
+            <Route path="select-source" element={<Navigate to="/client/home" replace />} />
+            <Route path="data-sources" element={<Navigate to="/client/home" replace />} />
+            <Route path="upload" element={<Navigate to="/client/home" replace />} />
+            <Route path="uploads" element={<Navigate to="/client/home" replace />} />
+            <Route path="ingest" element={<Navigate to="/client/home" replace />} />
+            <Route path="ingest-upload" element={<Navigate to="/client/home" replace />} />
+            <Route path="ingest-database-connection" element={<Navigate to="/client/home" replace />} />
+            <Route path="files" element={<Navigate to="/client/home" replace />} />
+            <Route path="file" element={<Navigate to="/client/home" replace />} />
           </Route>
         </Route>
 
-        {/* Admin & Operations Route Group (Team Members & Admins) */}
-        <Route element={<ProtectedRoute allowedRoles={['team_member', 'admin']} />}>
-          <Route path="/admin" element={<AdminLayout />}>
+        {/* Admin Portal Route Group (Admins & Team Members with redirect guard) */}
+        <Route element={<ProtectedRoute allowedRoles={['admin', 'team_member']} />}>
+          <Route path="/admin" element={<AdminPrefixGuard />}>
             <Route index element={<Navigate to="/admin/home" replace />} />
-            <Route path="home" element={<HomeRouteSelector />} />
-            <Route path="uploads" element={<PendingUploads />} />
-            <Route path="pending-uploads" element={<PendingUploads />} />
-            <Route path="upload" element={<IngestUpload />} />
-            <Route path="ingest-upload" element={<IngestUpload />} />
-            <Route path="connect-db" element={<IngestDatabaseConnection />} />
-            <Route path="connect-database" element={<IngestDatabaseConnection />} />
-            <Route path="confirm-schema/:batchId" element={<ConfirmSchema />} />
-            <Route path="history" element={<HistoryRouteSelector />} />
-            <Route path="submission-history" element={<HistoryRouteSelector />} />
-            <Route path="support" element={<SupportInbox />} />
-            <Route path="inbox" element={<SupportInbox />} />
-            <Route path="pipeline-health" element={<PipelineHealth />} />
-            <Route path="data-quality" element={<DataQualityLog />} />
-            <Route path="tenants" element={<Tenants />} />
+            {renderOperationalRoutes('admin')}
+
+            {/* Admin-only routes */}
             <Route path="team" element={<TeamMembers />} />
             <Route path="oversight/dashboard/:tenantId" element={<TenantDashboardView />} />
             <Route path="oversight/health" element={<TenantHealth />} />
@@ -143,19 +206,13 @@ export const AppRoutes: React.FC = () => {
             <Route path="oversight/usage" element={<UsageDashboard />} />
             <Route path="usage" element={<UsageDashboard />} />
           </Route>
+        </Route>
 
-          {/* /team routes alias */}
-          <Route path="/team" element={<AdminLayout />}>
-            <Route index element={<Navigate to="/admin/home" replace />} />
-            <Route path="home" element={<TeamHome />} />
-            <Route path="upload" element={<IngestUpload />} />
-            <Route path="ingest-upload" element={<IngestUpload />} />
-            <Route path="connect-db" element={<IngestDatabaseConnection />} />
-            <Route path="connect-database" element={<IngestDatabaseConnection />} />
-            <Route path="history" element={<TeamHistory />} />
-            <Route path="submission-history" element={<TeamHistory />} />
-            <Route path="support" element={<SupportInbox />} />
-            <Route path="inbox" element={<SupportInbox />} />
+        {/* Team Portal Route Group (Team Members & Admins with redirect guard) */}
+        <Route element={<ProtectedRoute allowedRoles={['team_member', 'admin']} />}>
+          <Route path="/team" element={<TeamPrefixGuard />}>
+            <Route index element={<Navigate to="/team/home" replace />} />
+            {renderOperationalRoutes('team')}
           </Route>
         </Route>
 

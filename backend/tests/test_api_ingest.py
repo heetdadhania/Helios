@@ -241,15 +241,15 @@ class TestApiIngestEndpoints(unittest.TestCase):
             self.assertEqual(data["records_received"], 2)
             self.assertEqual(data["status"], "ingested")
 
-    def test_get_api_key_requires_smb_owner(self):
-        app.dependency_overrides[get_current_user] = lambda: self.team_user
+    def test_get_api_key_rejects_smb_owner(self):
+        app.dependency_overrides[get_current_user] = lambda: self.smb_user
         app.dependency_overrides[get_db_cursor] = lambda: MagicMock()
 
         res = self.client.get("/api/api-keys")
         self.assertEqual(res.status_code, 403)
 
     def test_get_api_key_success(self):
-        app.dependency_overrides[get_current_user] = lambda: self.smb_user
+        app.dependency_overrides[get_current_user] = lambda: self.team_user
         app.dependency_overrides[get_db_cursor] = lambda: MagicMock()
 
         with patch.object(
@@ -264,14 +264,14 @@ class TestApiIngestEndpoints(unittest.TestCase):
                 is_active=True,
             ),
         ):
-            res = self.client.get("/api/api-keys")
+            res = self.client.get("/api/api-keys?tenant_id=1")
             self.assertEqual(res.status_code, 200)
             data = res.json()
             self.assertEqual(data["masked_key"], "helios_live_••••9999")
             self.assertNotIn("key_hash", data)
 
     def test_regenerate_api_key_success(self):
-        app.dependency_overrides[get_current_user] = lambda: self.smb_user
+        app.dependency_overrides[get_current_user] = lambda: self.team_user
         app.dependency_overrides[get_db_cursor] = lambda: MagicMock()
 
         with patch.object(
@@ -286,7 +286,7 @@ class TestApiIngestEndpoints(unittest.TestCase):
                 message="Save this key now.",
             ),
         ):
-            res = self.client.post("/api/api-keys/regenerate")
+            res = self.client.post("/api/api-keys/regenerate?tenant_id=1")
             self.assertEqual(res.status_code, 201)
             data = res.json()
             self.assertEqual(data["api_key"], "helios_live_new_secret_raw_key_123")

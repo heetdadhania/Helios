@@ -322,6 +322,13 @@ class TestDbConnectionAPIEndpoints(unittest.TestCase):
             role=UserRole.TEAM_MEMBER,
             tenant_id=None,
         )
+        self.admin_user = UserOut(
+            id=1,
+            name="Admin User",
+            email="admin@helios.io",
+            role=UserRole.ADMIN,
+            tenant_id=None,
+        )
 
     def tearDown(self):
         app.dependency_overrides.clear()
@@ -338,8 +345,8 @@ class TestDbConnectionAPIEndpoints(unittest.TestCase):
         })
         self.assertEqual(res.status_code, 401)
 
-    def test_endpoints_require_smb_owner(self):
-        app.dependency_overrides[get_current_user] = lambda: self.team_user
+    def test_endpoints_reject_smb_owner(self):
+        app.dependency_overrides[get_current_user] = lambda: self.smb_user
         app.dependency_overrides[get_db_cursor] = lambda: MagicMock()
 
         res = self.client.post("/api/db-connections/test", json={
@@ -350,12 +357,13 @@ class TestDbConnectionAPIEndpoints(unittest.TestCase):
             "username": "user",
             "password": "pwd",
             "table_or_query": "table",
+            "tenant_id": 1,
         })
         self.assertEqual(res.status_code, 403)
 
     @patch.object(DbConnectionService, "test_connection")
     def test_post_test_connection_endpoint(self, mock_test):
-        app.dependency_overrides[get_current_user] = lambda: self.smb_user
+        app.dependency_overrides[get_current_user] = lambda: self.admin_user
         app.dependency_overrides[get_db_cursor] = lambda: MagicMock()
 
         mock_test.return_value = DbConnectionTestResult(
@@ -371,6 +379,7 @@ class TestDbConnectionAPIEndpoints(unittest.TestCase):
             "username": "reader",
             "password": "supersecretpassword",
             "table_or_query": "orders",
+            "tenant_id": 1,
         })
         self.assertEqual(res.status_code, 200)
         data = res.json()
@@ -379,7 +388,7 @@ class TestDbConnectionAPIEndpoints(unittest.TestCase):
 
     @patch.object(DbConnectionService, "save_connection")
     def test_post_create_connection_endpoint(self, mock_save):
-        app.dependency_overrides[get_current_user] = lambda: self.smb_user
+        app.dependency_overrides[get_current_user] = lambda: self.admin_user
         app.dependency_overrides[get_db_cursor] = lambda: MagicMock()
 
         mock_save.return_value = DbConnectionOut(
@@ -404,6 +413,7 @@ class TestDbConnectionAPIEndpoints(unittest.TestCase):
             "username": "reader",
             "password": "supersecretpassword",
             "table_or_query": "orders",
+            "tenant_id": 1,
         })
         self.assertEqual(res.status_code, 201)
         data = res.json()
@@ -413,7 +423,7 @@ class TestDbConnectionAPIEndpoints(unittest.TestCase):
 
     @patch.object(DbConnectionRepository, "list_by_tenant")
     def test_get_connections_list(self, mock_list):
-        app.dependency_overrides[get_current_user] = lambda: self.smb_user
+        app.dependency_overrides[get_current_user] = lambda: self.admin_user
         app.dependency_overrides[get_db_cursor] = lambda: MagicMock()
 
         mock_list.return_value = [
@@ -432,7 +442,7 @@ class TestDbConnectionAPIEndpoints(unittest.TestCase):
             }
         ]
 
-        res = self.client.get("/api/db-connections")
+        res = self.client.get("/api/db-connections?tenant_id=1")
         self.assertEqual(res.status_code, 200)
         data = res.json()
         self.assertEqual(len(data), 1)
@@ -443,7 +453,7 @@ class TestDbConnectionAPIEndpoints(unittest.TestCase):
     def test_post_sync_endpoint(self, mock_sync):
         from app.schemas.upload import UploadResponse
 
-        app.dependency_overrides[get_current_user] = lambda: self.smb_user
+        app.dependency_overrides[get_current_user] = lambda: self.admin_user
         app.dependency_overrides[get_db_cursor] = lambda: MagicMock()
 
         mock_sync.return_value = UploadResponse(
@@ -452,7 +462,7 @@ class TestDbConnectionAPIEndpoints(unittest.TestCase):
             status="ingested",
         )
 
-        res = self.client.post("/api/db-connections/1/sync")
+        res = self.client.post("/api/db-connections/1/sync?tenant_id=1")
         self.assertEqual(res.status_code, 200)
         data = res.json()
         self.assertEqual(data["upload_id"], 88)

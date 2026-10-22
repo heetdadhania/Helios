@@ -32,9 +32,9 @@ export function formatINR(amount: number | string | null | undefined): string {
  *   85000    -> ₹85,000.00
  */
 export function formatINRCompact(amount: number | string | null | undefined): string {
-  if (amount === null || amount === undefined || amount === '') return '₹0.00';
+  if (amount === null || amount === undefined || amount === '') return '₹0';
   const val = typeof amount === 'string' ? parseFloat(amount) : amount;
-  if (isNaN(val)) return '₹0.00';
+  if (isNaN(val)) return '₹0';
 
   const sign = val < 0 ? '-' : '';
   const abs = Math.abs(val);
@@ -51,7 +51,9 @@ export function formatINRCompact(amount: number | string | null | undefined): st
     return `${sign}₹${formatted}L`;
   }
 
-  return formatINR(val);
+  const rounded = Math.round(abs);
+  const formatted = new Intl.NumberFormat('en-IN').format(rounded);
+  return `${sign}₹${formatted}`;
 }
 
 /**

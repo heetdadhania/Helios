@@ -22,7 +22,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ portalTitle, items }) => {
         {/* Top Logo & Portal Badge */}
         <div className="h-16 px-6 flex items-center justify-between border-b border-helios-border-light dark:border-helios-border-dark">
           <HeliosLogo size={28} />
-          <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-helios-accent-blue/10 text-helios-accent-blue border border-helios-accent-blue/20">
+          <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-helios-accent-blue/10 text-helios-accent-blue border border-helios-accent-blue/20 whitespace-nowrap shrink-0">
             {portalTitle}
           </span>
         </div>

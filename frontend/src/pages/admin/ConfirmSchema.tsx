@@ -21,6 +21,7 @@ import {
 import { BatchCompleteness, DataQualityLogItem, SchemaPreview, SourceType } from '@/types/admin';
 import { adminService } from '@/services/adminService';
 import { FlagForAdminButton } from '@/components/team/FlagForAdminButton';
+import { useBasePath } from '@/hooks/useBasePath';
 
 const ORDERS_TARGET_FIELDS = [
   { value: 'order_id', label: 'order_id', required: true },
@@ -54,6 +55,7 @@ const SHIPPING_TARGET_FIELDS = [
 export const ConfirmSchema: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
   const navigate = useNavigate();
+  const basePath = useBasePath();
 
   const [preview, setPreview] = useState<SchemaPreview | null>(null);
   const [columnOverrides, setColumnOverrides] = useState<Record<string, string>>({});
@@ -292,14 +294,14 @@ export const ConfirmSchema: React.FC = () => {
         <div className="flex items-center justify-center gap-3 pt-4">
           <button
             type="button"
-            onClick={() => navigate('/admin/pipeline-health')}
+            onClick={() => navigate(`${basePath}/pipeline-health`)}
             className="px-4 py-2 text-xs font-bold rounded-xl bg-helios-accent-blue hover:bg-blue-600 text-white transition-colors"
           >
             Track in Pipeline Health
           </button>
           <button
             type="button"
-            onClick={() => navigate('/admin/uploads')}
+            onClick={() => navigate(`${basePath}/uploads`)}
             className="px-4 py-2 text-xs font-semibold rounded-xl border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           >
             Return to Pending Uploads
@@ -327,7 +329,7 @@ export const ConfirmSchema: React.FC = () => {
         <div className="flex items-center justify-center gap-3 pt-4">
           <button
             type="button"
-            onClick={() => navigate('/admin/uploads')}
+            onClick={() => navigate(`${basePath}/uploads`)}
             className="px-4 py-2 text-xs font-bold rounded-xl bg-helios-accent-blue hover:bg-blue-600 text-white transition-colors"
           >
             Return to Pending Uploads
@@ -344,7 +346,7 @@ export const ConfirmSchema: React.FC = () => {
       <div className="flex items-center justify-between pb-3 border-b border-helios-border-light dark:border-helios-border-dark">
         <button
           type="button"
-          onClick={() => navigate('/admin/uploads')}
+          onClick={() => navigate(`${basePath}/uploads`)}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-helios-text-primary-light dark:hover:text-helios-text-primary-dark transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />

@@ -10,46 +10,44 @@ import {
   Database,
   History,
   MessageSquare,
+  User,
 } from 'lucide-react';
 import { Sidebar, NavItem } from '@/components/Sidebar';
 import { TopBar } from '@/components/TopBar';
+import { useBasePath } from '@/hooks/useBasePath';
 
-const teamNavItems: NavItem[] = [
-  { label: 'Home', to: '/admin/home', icon: Home },
-  { label: 'Pending Uploads', to: '/admin/uploads', icon: Clock },
-  { label: 'Upload Data', to: '/admin/upload', icon: UploadCloud },
-  { label: 'Connect Database', to: '/admin/connect-db', icon: Database },
-  { label: 'Submission History', to: '/admin/history', icon: History },
-  { label: 'Support Inbox', to: '/admin/support', icon: MessageSquare },
-  { label: 'Pipeline Health', to: '/admin/pipeline-health', icon: Activity },
-  { label: 'Data Quality', to: '/admin/data-quality', icon: CheckCircle2 },
-  { label: 'Organizations', to: '/admin/tenants', icon: Building2 },
-];
-
-const teamTitleMap: Record<string, string> = {
-  '/admin/uploads': 'Pending Ingestion Approvals',
-  '/admin/pending-uploads': 'Pending Ingestion Approvals',
-  '/admin/upload': 'Ingest File Upload',
-  '/admin/ingest-upload': 'Ingest File Upload',
-  '/admin/connect-db': 'Connect Database Ingestion',
-  '/admin/connect-database': 'Connect Database Ingestion',
-  '/admin/history': 'Submission History',
-  '/team/history': 'Submission History',
-  '/admin/support': 'Support & Update Requests',
-  '/team/support': 'Support & Update Requests',
-  '/team/upload': 'Ingest File Upload',
-  '/team/ingest-upload': 'Ingest File Upload',
-  '/team/connect-db': 'Connect Database Ingestion',
-  '/team/connect-database': 'Connect Database Ingestion',
-  '/admin/pipeline-health': 'Pipeline Health & Telemetry',
-  '/admin/data-quality': 'Data Quality & Rejection Audit',
-  '/admin/tenants': 'Assigned Organizations',
+const getTeamPageTitle = (pathname: string): string => {
+  const normalized = pathname.replace(/^\/(admin|team)/, '');
+  if (!normalized || normalized === '/home') return 'Home';
+  if (normalized === '/profile') return 'User Profile';
+  if (normalized === '/uploads' || normalized === '/pending-uploads') return 'Pending Ingestion Approvals';
+  if (normalized === '/upload' || normalized === '/ingest-upload') return 'Ingest File Upload';
+  if (normalized === '/connect-db' || normalized === '/connect-database') return 'Connect Database Ingestion';
+  if (normalized === '/history' || normalized === '/submission-history') return 'Submission History';
+  if (normalized === '/support' || normalized === '/inbox') return 'Support & Update Requests';
+  if (normalized === '/pipeline-health') return 'Pipeline Health & Telemetry';
+  if (normalized === '/data-quality') return 'Data Quality & Rejection Audit';
+  if (normalized === '/tenants') return 'Assigned Organizations';
+  return 'Operations Console';
 };
 
 export const TeamLayout: React.FC = () => {
+  const basePath = useBasePath();
   const location = useLocation();
-  const currentPath = location.pathname;
-  const currentTitle = teamTitleMap[currentPath] || 'Operations Console';
+  const currentTitle = getTeamPageTitle(location.pathname);
+
+  const teamNavItems: NavItem[] = React.useMemo(() => [
+    { label: 'Home', to: `${basePath}/home`, icon: Home },
+    { label: 'Pending Uploads', to: `${basePath}/uploads`, icon: Clock },
+    { label: 'Upload Data', to: `${basePath}/upload`, icon: UploadCloud },
+    { label: 'Connect Database', to: `${basePath}/connect-db`, icon: Database },
+    { label: 'Submission History', to: `${basePath}/history`, icon: History },
+    { label: 'Support Inbox', to: `${basePath}/support`, icon: MessageSquare },
+    { label: 'Pipeline Health', to: `${basePath}/pipeline-health`, icon: Activity },
+    { label: 'Data Quality', to: `${basePath}/data-quality`, icon: CheckCircle2 },
+    { label: 'Organizations', to: `${basePath}/tenants`, icon: Building2 },
+    { label: 'Profile', to: `${basePath}/profile`, icon: User },
+  ], [basePath]);
 
   return (
     <div className="flex min-h-screen bg-helios-bg-light dark:bg-helios-bg-dark transition-colors duration-200">

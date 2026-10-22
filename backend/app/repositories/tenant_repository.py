@@ -173,7 +173,7 @@ class TenantRepository(BaseRepository):
             query = f"""
                 SELECT * FROM {self.table}
                 WHERE is_active = :is_active
-                ORDER BY tenant_id DESC
+                ORDER BY tenant_id ASC
                 LIMIT :limit OFFSET :offset
             """
             raw = self.execute_query(query, {"is_active": is_active, "limit": limit, "offset": offset})
@@ -181,7 +181,7 @@ class TenantRepository(BaseRepository):
 
         query = f"""
             SELECT * FROM {self.table}
-            ORDER BY tenant_id DESC
+            ORDER BY tenant_id ASC
             LIMIT :limit OFFSET :offset
         """
         raw = self.execute_query(query, {"limit": limit, "offset": offset})

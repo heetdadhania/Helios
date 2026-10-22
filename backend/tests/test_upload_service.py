@@ -133,18 +133,19 @@ class TestUploadAPIEndpoints(unittest.TestCase):
         response = self.client.post("/api/uploads", files={"file": ("test.csv", b"a,b\n1,2")})
         self.assertEqual(response.status_code, 401)
 
-    def test_upload_endpoint_rejects_non_smb_owner(self):
-        app.dependency_overrides[get_current_user] = lambda: self.team_user
+    def test_upload_endpoint_rejects_smb_owner(self):
+        app.dependency_overrides[get_current_user] = lambda: self.smb_user
         app.dependency_overrides[get_db_cursor] = lambda: MagicMock()
 
         response = self.client.post(
             "/api/uploads",
             files={"file": ("test.csv", b"a,b\n1,2", "text/csv")},
+            data={"tenant_id": 1},
         )
         self.assertEqual(response.status_code, 403)
 
     def test_upload_endpoint_success(self):
-        app.dependency_overrides[get_current_user] = lambda: self.smb_user
+        app.dependency_overrides[get_current_user] = lambda: self.admin_user
         mock_cursor = MagicMock()
         app.dependency_overrides[get_db_cursor] = lambda: mock_cursor
 
@@ -164,6 +165,7 @@ class TestUploadAPIEndpoints(unittest.TestCase):
             response = self.client.post(
                 "/api/uploads",
                 files={"file": ("sales.csv", csv_content, "text/csv")},
+                data={"tenant_id": 1},
             )
             self.assertEqual(response.status_code, 201)
             data = response.json()
@@ -173,7 +175,7 @@ class TestUploadAPIEndpoints(unittest.TestCase):
             mock_pipeline.assert_called_once()
 
     def test_status_endpoint_simplified(self):
-        app.dependency_overrides[get_current_user] = lambda: self.smb_user
+        app.dependency_overrides[get_current_user] = lambda: self.team_user
         mock_cursor = MagicMock()
         app.dependency_overrides[get_db_cursor] = lambda: mock_cursor
 

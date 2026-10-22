@@ -34,7 +34,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) 
 
   // If role is not authorized for this specific route group, redirect to authorized portal
   if (allowedRoles && role && !allowedRoles.includes(role)) {
-    const defaultTarget = role === 'smb_owner' ? '/client/home' : '/admin/home';
+    const defaultTarget = role === 'smb_owner' ? '/client/home' : role === 'team_member' ? '/team/home' : '/admin/home';
     return <Navigate to={defaultTarget} replace />;
   }
 

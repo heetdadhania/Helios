@@ -6,9 +6,8 @@ import {
   DownloadCloud,
   History,
   MessageSquare,
+  User,
   Bell,
-  Database,
-  Key,
 } from 'lucide-react';
 import { Sidebar, NavItem } from '@/components/Sidebar';
 import { TopBar } from '@/components/TopBar';
@@ -16,26 +15,22 @@ import { TopBar } from '@/components/TopBar';
 const clientNavItems: NavItem[] = [
   { label: 'Home', to: '/client/home', icon: Home },
   { label: 'Dashboard', to: '/client/dashboard', icon: LayoutDashboard },
-  { label: 'Export Datasets', to: '/client/export', icon: DownloadCloud },
+  { label: 'Export', to: '/client/export', icon: DownloadCloud },
   { label: 'Submission History', to: '/client/history', icon: History },
   { label: 'Support', to: '/client/support', icon: MessageSquare },
+  { label: 'Profile', to: '/client/profile', icon: User },
   { label: 'Notifications', to: '/client/notifications', icon: Bell },
-  // Deferred features: connect database and API access are left exactly as they are
-  { label: 'Connect Database', to: '/client/connect-db', icon: Database },
-  { label: 'API Access', to: '/client/api-access', icon: Key },
 ];
 
 const titleMap: Record<string, string> = {
   '/client/home': 'Home',
   '/client/dashboard': 'Analytics Overview',
-  '/client/export': 'Export Datasets',
+  '/client/export': 'Export',
   '/client/history': 'Submission History',
   '/client/submission-history': 'Submission History',
   '/client/support': 'Support & Inquiries',
+  '/client/profile': 'User Profile',
   '/client/notifications': 'Notifications & Alerts',
-  '/client/connect-db': 'Connect Database',
-  '/client/api-access': 'Programmatic API Access',
-  '/client/api-keys': 'Programmatic API Access',
 };
 
 export const ClientLayout: React.FC = () => {
