@@ -1,0 +1,121 @@
+order_id,order_date,customer_id,customer_name,segment,product_id,product_name,category,quantity,unit_price,discount,total,profit
+ORD-09-00001,2026-07-01,C09021,Vivaan Verma,Consumer,P0902,Gold-Plated Earrings,Fashion,1,1999.00,0.00,1999.00,645.87
+ORD-09-00002,2026-07-01,C09003,Rahul Iyer,Consumer,P0907,Bangle Set,Fashion,2,899.00,269.70,1528.30,469.76
+ORD-09-00003,2026-07-02,C09019,Divya Patel,Consumer,P0902,Gold-Plated Earrings,Fashion,1,1999.00,0.00,1999.00,675.24
+ORD-09-00004,2026-07-02,C09005,Arjun Sharma,Home Office,P0907,Bangle Set,Fashion,2,899.00,0.00,1798.00,516.88
+ORD-09-00005,2026-07-06,C09008,Anjali Kulkarni,Consumer,P0902,Gold-Plated Earrings,Fashion,2,1999.00,599.70,3398.30,1135.36
+ORD-09-00006,2026-07-06,C09025,Deepak Rao,Consumer,P0904,Pearl Studs,Fashion,1,1499.00,149.90,1349.10,419.18
+ORD-09-00007,2026-07-07,C09021,Vivaan Verma,Consumer,P0905,Temple Jewellery Haram,Bridal,2,12999.00,3899.70,22098.30,6390.42
+ORD-09-00008,2026-07-10,C09017,Meera Joshi,Home Office,P0906,Silver Ring,Silver,2,1299.00,0.00,2598.00,798.47
+ORD-09-00009,2026-07-11,C09029,Siddharth Pillai,Home Office,P0907,Bangle Set,Fashion,1,899.00,134.85,764.15,257.78
+ORD-09-00010,2026-07-11,C09028,Riya Gupta,Consumer,P0907,Bangle Set,Fashion,2,899.00,0.00,1798.00,460.06
+ORD-09-00011,2026-07-15,C09006,Swati Pillai,Consumer,P0901,Silver Anklet Pair,Silver,2,2499.00,0.00,4998.00,1311.51
+ORD-09-00012,2026-07-17,C09027,Harsh Malhotra,Corporate,P0906,Silver Ring,Silver,1,1299.00,0.00,1299.00,386.76
+ORD-09-00013,2026-07-17,C09014,Priya Bhatt,Consumer,P0906,Silver Ring,Silver,1,1299.00,129.90,1169.10,390.65
+ORD-09-00014,2026-07-17,C09029,Siddharth Pillai,Home Office,P0904,Pearl Studs,Fashion,1,1499.00,149.90,1349.10,415.70
+ORD-09-00015,2026-07-17,C09009,Rahul Sharma,Consumer,P0902,Gold-Plated Earrings,Fashion,1,1999.00,0.00,1999.00,546.19
+ORD-09-00016,2026-07-17,C09009,Rahul Sharma,Consumer,P0901,Silver Anklet Pair,Silver,1,2499.00,0.00,2499.00,809.64
+ORD-09-00017,2026-07-18,C09026,Manish Iyer,Corporate,P0905,Temple Jewellery Haram,Bridal,1,12999.00,649.95,12349.05,3923.63
+ORD-09-00018,2026-07-19,C09004,Manish Shah,Corporate,P0901,Silver Anklet Pair,Silver,2,2499.00,0.00,4998.00,1413.27
+ORD-09-00019,2026-07-20,C09021,Vivaan Verma,Consumer,P0902,Gold-Plated Earrings,Fashion,2,1999.00,0.00,3998.00,1124.01
+ORD-09-00020,2026-07-22,C09025,Deepak Rao,Consumer,P0906,Silver Ring,Silver,1,1299.00,64.95,1234.05,421.88
+ORD-09-00021,2026-07-23,C09023,Isha Shah,Consumer,P0905,Temple Jewellery Haram,Bridal,2,12999.00,3899.70,22098.30,6839.36
+ORD-09-00022,2026-07-24,C09010,Vikram Patel,Consumer,P0902,Gold-Plated Earrings,Fashion,1,1999.00,99.95,1899.05,515.46
+ORD-09-00023,2026-07-24,C09020,Karan Chopra,Corporate,P0907,Bangle Set,Fashion,2,899.00,0.00,1798.00,613.31
+ORD-09-00024,2026-07-24,C09030,Vivaan Joshi,Corporate,P0904,Pearl Studs,Fashion,1,1499.00,0.00,1499.00,461.26
+ORD-09-00025,2026-07-25,C09002,Harsh Desai,Home Office,P0907,Bangle Set,Fashion,1,899.00,0.00,899.00,292.59
+ORD-09-00026,2026-07-28,C09008,Anjali Kulkarni,Consumer,P0907,Bangle Set,Fashion,1,899.00,0.00,899.00,285.26
+ORD-09-00027,2026-07-29,C09009,Rahul Sharma,Consumer,P0904,Pearl Studs,Fashion,1,1499.00,0.00,1499.00,491.92
+ORD-09-00028,2026-07-30,C09026,Manish Iyer,Corporate,P0907,Bangle Set,Fashion,1,899.00,0.00,899.00,236.07
+ORD-09-00029,2026-07-31,C09030,Vivaan Joshi,Corporate,P0908,Mangalsutra,Bridal,2,8499.00,849.90,16148.10,4511.35
+ORD-09-00030,2026-08-01,C09012,Rahul Iyer,Corporate,P0905,Temple Jewellery Haram,Bridal,2,12999.00,0.00,25998.00,7538.25
+ORD-09-00031,2026-08-01,C09023,Isha Shah,Consumer,P0907,Bangle Set,Fashion,2,899.00,0.00,1798.00,543.46
+ORD-09-00032,2026-08-03,C09014,Priya Bhatt,Consumer,P0902,Gold-Plated Earrings,Fashion,1,1999.00,0.00,1999.00,673.42
+ORD-09-00033,2026-08-04,C09028,Riya Gupta,Consumer,P0904,Pearl Studs,Fashion,2,1499.00,0.00,2998.00,972.21
+ORD-09-00034,2026-08-06,C09011,Diya Malhotra,Home Office,P0903,Kundan Necklace Set,Bridal,1,6999.00,1049.85,5949.15,1662.64
+ORD-09-00035,2026-08-06,C09023,Isha Shah,Consumer,P0902,Gold-Plated Earrings,Fashion,2,1999.00,0.00,3998.00,1245.71
+ORD-09-00036,2026-08-11,C09025,Deepak Rao,Consumer,P0904,Pearl Studs,Fashion,2,1499.00,299.80,2698.20,861.23
+ORD-09-00037,2026-08-12,C09016,Tanvi Kulkarni,Home Office,P0901,Silver Anklet Pair,Silver,1,2499.00,0.00,2499.00,727.88
+ORD-09-00038,2026-08-12,C09003,Rahul Iyer,Consumer,P0902,Gold-Plated Earrings,Fashion,2,1999.00,0.00,3998.00,1097.65
+ORD-09-00039,2026-08-12,C09025,Deepak Rao,Consumer,P0904,Pearl Studs,Fashion,1,1499.00,224.85,1274.15,375.38
+ORD-09-00040,2026-08-13,C09006,Swati Pillai,Consumer,P0906,Silver Ring,Silver,2,1299.00,259.80,2338.20,608.03
+ORD-09-00041,2026-08-14,C09010,Vikram Patel,Consumer,P0904,Pearl Studs,Fashion,2,1499.00,299.80,2698.20,706.41
+ORD-09-00042,2026-08-14,C09001,Riya Deshmukh,Corporate,P0907,Bangle Set,Fashion,1,899.00,0.00,899.00,308.79
+ORD-09-00043,2026-08-15,C09029,Siddharth Pillai,Home Office,P0904,Pearl Studs,Fashion,1,1499.00,0.00,1499.00,396.28
+ORD-09-00044,2026-08-15,C09001,Riya Deshmukh,Corporate,P0904,Pearl Studs,Fashion,2,1499.00,149.90,2848.10,939.96
+ORD-09-00045,2026-08-16,C09015,Sanjay Shah,Corporate,P0907,Bangle Set,Fashion,2,899.00,0.00,1798.00,547.82
+ORD-09-00046,2026-08-16,C09024,Swati Mehta,Consumer,P0901,Silver Anklet Pair,Silver,1,2499.00,0.00,2499.00,679.19
+ORD-09-00047,2026-08-16,C09010,Vikram Patel,Consumer,P0902,Gold-Plated Earrings,Fashion,2,1999.00,399.80,3598.20,1068.47
+ORD-09-00048,2026-08-23,C09018,Vivaan Shah,Home Office,P0908,Mangalsutra,Bridal,2,8499.00,1699.80,15298.20,4527.75
+ORD-09-00049,2026-08-24,C09030,Vivaan Joshi,Corporate,P0905,Temple Jewellery Haram,Bridal,2,12999.00,2599.80,23398.20,7477.08
+ORD-09-00050,2026-08-25,C09006,Swati Pillai,Consumer,P0901,Silver Anklet Pair,Silver,1,2499.00,124.95,2374.05,736.53
+ORD-09-00051,2026-08-25,C09013,Vikram Desai,Corporate,P0908,Mangalsutra,Bridal,1,8499.00,849.90,7649.10,2197.36
+ORD-09-00052,2026-08-29,C09007,Diya Desai,Home Office,P0904,Pearl Studs,Fashion,2,1499.00,449.70,2548.30,863.24
+ORD-09-00053,2026-09-01,C09022,Rahul Kulkarni,Consumer,P0903,Kundan Necklace Set,Bridal,2,6999.00,1399.80,12598.20,3225.65
+ORD-09-00054,2026-09-02,C09027,Harsh Malhotra,Corporate,P0904,Pearl Studs,Fashion,2,1499.00,0.00,2998.00,842.39
+ORD-09-00055,2026-09-03,C09023,Isha Shah,Consumer,P0902,Gold-Plated Earrings,Fashion,2,1999.00,0.00,3998.00,1020.27
+ORD-09-00056,2026-09-03,C09014,Priya Bhatt,Consumer,P0904,Pearl Studs,Fashion,1,1499.00,0.00,1499.00,404.45
+ORD-09-00057,2026-09-03,C09016,Tanvi Kulkarni,Home Office,P0905,Temple Jewellery Haram,Bridal,2,12999.00,1299.90,24698.10,8365.71
+ORD-09-00058,2026-09-04,C09028,Riya Gupta,Consumer,P0907,Bangle Set,Fashion,1,899.00,0.00,899.00,293.74
+ORD-09-00059,2026-09-04,C09011,Diya Malhotra,Home Office,P0907,Bangle Set,Fashion,1,899.00,0.00,899.00,269.31
+ORD-09-00060,2026-09-05,C09014,Priya Bhatt,Consumer,P0903,Kundan Necklace Set,Bridal,2,6999.00,0.00,13998.00,4691.30
+ORD-09-00061,2026-09-06,C09029,Siddharth Pillai,Home Office,P0903,Kundan Necklace Set,Bridal,2,6999.00,0.00,13998.00,3895.67
+ORD-09-00062,2026-09-08,C09009,Rahul Sharma,Consumer,P0908,Mangalsutra,Bridal,2,8499.00,1699.80,15298.20,4031.18
+ORD-09-00063,2026-09-09,C09018,Vivaan Shah,Home Office,P0904,Pearl Studs,Fashion,2,1499.00,0.00,2998.00,895.58
+ORD-09-00064,2026-09-11,C09029,Siddharth Pillai,Home Office,P0902,Gold-Plated Earrings,Fashion,2,1999.00,199.90,3798.10,1283.19
+ORD-09-00065,2026-09-12,C09010,Vikram Patel,Consumer,P0902,Gold-Plated Earrings,Fashion,1,1999.00,199.90,1799.10,607.70
+ORD-09-00066,2026-09-13,C09009,Rahul Sharma,Consumer,P0906,Silver Ring,Silver,1,1299.00,64.95,1234.05,329.04
+ORD-09-00067,2026-09-13,C09026,Manish Iyer,Corporate,P0907,Bangle Set,Fashion,2,899.00,0.00,1798.00,507.99
+ORD-09-00068,2026-09-13,C09012,Rahul Iyer,Corporate,P0905,Temple Jewellery Haram,Bridal,1,12999.00,0.00,12999.00,3443.25
+ORD-09-00069,2026-09-14,C09030,Vivaan Joshi,Corporate,P0902,Gold-Plated Earrings,Fashion,2,1999.00,0.00,3998.00,1051.89
+ORD-09-00070,2026-09-15,C09026,Manish Iyer,Corporate,P0907,Bangle Set,Fashion,1,899.00,134.85,764.15,213.63
+ORD-09-00071,2026-09-16,C09002,Harsh Desai,Home Office,P0902,Gold-Plated Earrings,Fashion,1,1999.00,0.00,1999.00,588.54
+ORD-09-00072,2026-09-17,C09018,Vivaan Shah,Home Office,P0906,Silver Ring,Silver,1,1299.00,129.90,1169.10,298.64
+ORD-09-00073,2026-09-17,C09027,Harsh Malhotra,Corporate,P0904,Pearl Studs,Fashion,2,1499.00,0.00,2998.00,955.63
+ORD-09-00074,2026-09-18,C09013,Vikram Desai,Corporate,P0906,Silver Ring,Silver,2,1299.00,129.90,2468.10,773.24
+ORD-09-00075,2026-09-20,C09011,Diya Malhotra,Home Office,P0907,Bangle Set,Fashion,2,899.00,89.90,1708.10,485.91
+ORD-09-00076,2026-09-20,C09004,Manish Shah,Corporate,P0903,Kundan Necklace Set,Bridal,1,6999.00,0.00,6999.00,2236.78
+ORD-09-00077,2026-09-24,C09024,Swati Mehta,Consumer,P0907,Bangle Set,Fashion,1,899.00,0.00,899.00,241.98
+ORD-09-00078,2026-09-25,C09006,Swati Pillai,Consumer,P0902,Gold-Plated Earrings,Fashion,1,1999.00,199.90,1799.10,465.28
+ORD-09-00079,2026-09-27,C09013,Vikram Desai,Corporate,P0904,Pearl Studs,Fashion,2,1499.00,299.80,2698.20,806.48
+ORD-09-00080,2026-09-27,C09016,Tanvi Kulkarni,Home Office,P0906,Silver Ring,Silver,1,1299.00,0.00,1299.00,372.49
+ORD-09-00081,2026-09-30,C09006,Swati Pillai,Consumer,P0904,Pearl Studs,Fashion,2,1499.00,0.00,2998.00,817.76
+ORD-09-00082,2026-10-01,C09010,Vikram Patel,Consumer,P0903,Kundan Necklace Set,Bridal,1,6999.00,699.90,6299.10,1789.37
+ORD-09-00083,2026-10-01,C09012,Rahul Iyer,Corporate,P0902,Gold-Plated Earrings,Fashion,2,1999.00,399.80,3598.20,927.84
+ORD-09-00084,2026-10-01,C09017,Meera Joshi,Home Office,P0902,Gold-Plated Earrings,Fashion,2,1999.00,399.80,3598.20,925.37
+ORD-09-00085,2026-10-03,C09002,Harsh Desai,Home Office,P0908,Mangalsutra,Bridal,2,8499.00,0.00,16998.00,5043.48
+ORD-09-00086,2026-10-04,C09027,Harsh Malhotra,Corporate,P0902,Gold-Plated Earrings,Fashion,1,1999.00,299.85,1699.15,534.08
+ORD-09-00087,2026-10-05,C09017,Meera Joshi,Home Office,P0904,Pearl Studs,Fashion,2,1499.00,0.00,2998.00,798.39
+ORD-09-00088,2026-10-05,C09018,Vivaan Shah,Home Office,P0903,Kundan Necklace Set,Bridal,1,6999.00,1049.85,5949.15,1976.30
+ORD-09-00089,2026-10-06,C09007,Diya Desai,Home Office,P0907,Bangle Set,Fashion,2,899.00,0.00,1798.00,483.89
+ORD-09-00090,2026-10-07,C09015,Sanjay Shah,Corporate,P0905,Temple Jewellery Haram,Bridal,2,12999.00,1299.90,24698.10,7275.16
+ORD-09-00091,2026-10-07,C09005,Arjun Sharma,Home Office,P0907,Bangle Set,Fashion,2,899.00,0.00,1798.00,471.27
+ORD-09-00092,2026-10-07,C09015,Sanjay Shah,Corporate,P0908,Mangalsutra,Bridal,1,8499.00,424.95,8074.05,2102.62
+ORD-09-00093,2026-10-08,C09014,Priya Bhatt,Consumer,P0904,Pearl Studs,Fashion,1,1499.00,0.00,1499.00,497.40
+ORD-09-00094,2026-10-08,C09025,Deepak Rao,Consumer,P0907,Bangle Set,Fashion,1,899.00,134.85,764.15,212.90
+ORD-09-00095,2026-10-09,C09008,Anjali Kulkarni,Consumer,P0902,Gold-Plated Earrings,Fashion,2,1999.00,599.70,3398.30,1081.89
+ORD-09-00096,2026-10-09,C09019,Divya Patel,Consumer,P0908,Mangalsutra,Bridal,2,8499.00,1699.80,15298.20,5042.05
+ORD-09-00097,2026-10-10,C09015,Sanjay Shah,Corporate,P0901,Silver Anklet Pair,Silver,1,2499.00,374.85,2124.15,566.60
+ORD-09-00098,2026-10-10,C09014,Priya Bhatt,Consumer,P0903,Kundan Necklace Set,Bridal,2,6999.00,699.90,13298.10,4169.32
+ORD-09-00099,2026-10-10,C09003,Rahul Iyer,Consumer,P0902,Gold-Plated Earrings,Fashion,1,1999.00,0.00,1999.00,689.03
+ORD-09-00100,2026-10-10,C09018,Vivaan Shah,Home Office,P0904,Pearl Studs,Fashion,1,1499.00,0.00,1499.00,504.71
+ORD-09-00101,2026-10-10,C09023,Isha Shah,Consumer,P0901,Silver Anklet Pair,Silver,1,2499.00,249.90,2249.10,773.99
+ORD-09-00102,2026-10-11,C09012,Rahul Iyer,Corporate,P0902,Gold-Plated Earrings,Fashion,1,1999.00,0.00,1999.00,629.68
+ORD-09-00103,2026-10-11,C09021,Vivaan Verma,Consumer,P0903,Kundan Necklace Set,Bridal,1,6999.00,0.00,6999.00,2293.27
+ORD-09-00104,2026-10-11,C09018,Vivaan Shah,Home Office,P0902,Gold-Plated Earrings,Fashion,1,1999.00,199.90,1799.10,567.88
+ORD-09-00105,2026-10-12,C09012,Rahul Iyer,Corporate,P0903,Kundan Necklace Set,Bridal,2,6999.00,0.00,13998.00,4013.80
+ORD-09-00106,2026-10-12,C09008,Anjali Kulkarni,Consumer,P0904,Pearl Studs,Fashion,2,1499.00,149.90,2848.10,832.56
+ORD-09-00107,2026-10-12,C09005,Arjun Sharma,Home Office,P0908,Mangalsutra,Bridal,2,8499.00,0.00,16998.00,5863.24
+ORD-09-00108,2026-10-12,C09013,Vikram Desai,Corporate,P0904,Pearl Studs,Fashion,1,1499.00,0.00,1499.00,429.03
+ORD-09-00109,2026-10-12,C09004,Manish Shah,Corporate,P0901,Silver Anklet Pair,Silver,2,2499.00,249.90,4748.10,1288.05
+ORD-09-00110,2026-10-13,C09030,Vivaan Joshi,Corporate,P0906,Silver Ring,Silver,2,1299.00,389.70,2208.30,696.28
+ORD-09-00111,2026-10-14,C09008,Anjali Kulkarni,Consumer,P0903,Kundan Necklace Set,Bridal,2,6999.00,0.00,13998.00,3574.85
+ORD-09-00112,2026-10-15,C09022,Rahul Kulkarni,Consumer,P0901,Silver Anklet Pair,Silver,1,2499.00,124.95,2374.05,634.76
+ORD-09-00113,2026-10-15,C09001,Riya Deshmukh,Corporate,P0905,Temple Jewellery Haram,Bridal,1,12999.00,0.00,12999.00,3904.42
+ORD-09-00114,2026-10-16,C09007,Diya Desai,Home Office,P0903,Kundan Necklace Set,Bridal,1,6999.00,699.90,6299.10,1974.83
+ORD-09-00115,2026-10-17,C09010,Vikram Patel,Consumer,P0904,Pearl Studs,Fashion,2,1499.00,0.00,2998.00,994.78
+ORD-09-00116,2026-10-17,C09022,Rahul Kulkarni,Consumer,P0906,Silver Ring,Silver,2,1299.00,0.00,2598.00,715.24
+ORD-09-00117,2026-10-17,C09017,Meera Joshi,Home Office,P0906,Silver Ring,Silver,1,1299.00,0.00,1299.00,351.17
+ORD-09-00118,2026-10-18,C09007,Diya Desai,Home Office,P0902,Gold-Plated Earrings,Fashion,1,1999.00,299.85,1699.15,503.36
+ORD-09-00119,2026-10-18,C09018,Vivaan Shah,Home Office,P0908,Mangalsutra,Bridal,2,8499.00,0.00,16998.00,4525.73
+ORD-09-00120,2026-10-19,C09022,Rahul Kulkarni,Consumer,P0907,Bangle Set,Fashion,1,899.00,0.00,899.00,272.66

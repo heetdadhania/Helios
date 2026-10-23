@@ -14,6 +14,10 @@ export interface OrganizationProfile {
   contact_email: string | null;
   phone: string | null;
   full_address: string | null;
+  address_line1?: string | null;
+  address_line2?: string | null;
+  city?: string | null;
+  state?: string | null;
   pin_code: string | null;
   website: string | null;
   gstin: string | null;
@@ -84,3 +88,25 @@ export interface AdminProfileData {
 }
 
 export type ProfileData = OwnerProfileData | TeamMemberProfileData | AdminProfileData;
+
+export interface ProfileUpdateMePayload {
+  name?: string;
+  phone?: string | null;
+}
+
+export interface ProfileUpdateEmailPayload {
+  new_email: string;
+  current_password: string;
+}
+
+export interface ProfileUpdateOrganizationPayload {
+  contact_person_name?: string | null;
+  phone_number?: string | null;
+  address_line1?: string | null;
+  address_line2?: string | null;
+  city?: string | null;
+  state?: string | null;
+  postal_code?: string | null;
+  website_url?: string | null;
+  tax_id?: string | null;
+}

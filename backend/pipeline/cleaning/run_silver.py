@@ -203,15 +203,20 @@ def run_silver_pipeline(
         rejected_stage1: List[Dict[str, Any]] = []
 
         for rec in remapped_records:
+            raw_orig = dict(rec)
             cur_cleaned, cur_errs = clean_currency_fields(rec, currency_fields)
             if cur_errs:
-                cur_cleaned["rejection_reason"] = "Amount could not be read"
+                err_f = cur_errs[0]
+                orig_v = raw_orig.get(err_f)
+                cur_cleaned["rejection_reason"] = f"invalid_currency_fields: {err_f} could not be parsed as currency (original_value: {orig_v})"
                 rejected_stage1.append(cur_cleaned)
                 continue
 
             date_cleaned, date_errs = standardize_date_fields(cur_cleaned, date_fields)
             if date_errs:
-                date_cleaned["rejection_reason"] = f"invalid_date_fields: {','.join(date_errs)}"
+                err_f = date_errs[0]
+                orig_v = raw_orig.get(err_f)
+                date_cleaned["rejection_reason"] = f"invalid_date_fields: {','.join(date_errs)} (original_value: {orig_v})"
                 rejected_stage1.append(date_cleaned)
                 continue
 

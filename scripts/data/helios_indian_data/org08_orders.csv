@@ -1,0 +1,301 @@
+order_id,order_date,customer_id,customer_name,segment,product_id,product_name,category,quantity,unit_price,discount,total,profit
+ORD-08-00001,2026-07-01,C08030,Sneha Iyer,Corporate,P0808,Turmeric Powder 200g,Spices,3,99.00,0.00,297.00,37.46
+ORD-08-00002,2026-07-02,C08015,Amit Rao,Consumer,P0803,Organic Toor Dal 1kg,Pulses,5,189.00,0.00,945.00,119.19
+ORD-08-00003,2026-07-02,C08024,Riya Kulkarni,Corporate,P0802,Groundnut Oil 1L,Oils,5,349.00,0.00,1745.00,209.60
+ORD-08-00004,2026-07-02,C08011,Meera Malhotra,Consumer,P0801,Basmati Rice 5kg,Staples,2,549.00,54.90,1043.10,107.97
+ORD-08-00005,2026-07-02,C08011,Meera Malhotra,Consumer,P0806,Jaggery 1kg,Staples,4,119.00,71.40,404.60,46.68
+ORD-08-00006,2026-07-02,C08013,Neha Joshi,Consumer,P0805,Masala Chai 250g,Beverages,3,179.00,0.00,537.00,58.13
+ORD-08-00007,2026-07-02,C08006,Neha Sharma,Home Office,P0802,Groundnut Oil 1L,Oils,4,349.00,69.80,1326.20,139.30
+ORD-08-00008,2026-07-03,C08027,Sneha Iyer,Corporate,P0806,Jaggery 1kg,Staples,4,119.00,23.80,452.20,51.77
+ORD-08-00009,2026-07-03,C08027,Sneha Iyer,Corporate,P0803,Organic Toor Dal 1kg,Pulses,2,189.00,37.80,340.20,35.91
+ORD-08-00010,2026-07-03,C08019,Kavya Mehta,Consumer,P0805,Masala Chai 250g,Beverages,5,179.00,0.00,895.00,119.66
+ORD-08-00011,2026-07-03,C08005,Karan Shah,Consumer,P0805,Masala Chai 250g,Beverages,3,179.00,26.85,510.15,59.92
+ORD-08-00012,2026-07-03,C08007,Rohan Shah,Consumer,P0805,Masala Chai 250g,Beverages,1,179.00,0.00,179.00,18.58
+ORD-08-00013,2026-07-03,C08022,Nikhil Shah,Consumer,P0803,Organic Toor Dal 1kg,Pulses,5,189.00,0.00,945.00,125.97
+ORD-08-00014,2026-07-04,C08014,Neha Pillai,Consumer,P0805,Masala Chai 250g,Beverages,3,179.00,26.85,510.15,65.53
+ORD-08-00015,2026-07-04,C08012,Isha Reddy,Consumer,P0806,Jaggery 1kg,Staples,2,119.00,11.90,226.10,29.29
+ORD-08-00016,2026-07-07,C08012,Isha Reddy,Consumer,P0804,Whole Wheat Atta 5kg,Staples,6,299.00,269.10,1524.90,170.86
+ORD-08-00017,2026-07-07,C08030,Sneha Iyer,Corporate,P0807,Mixed Dry Fruits 500g,Snacks,1,699.00,0.00,699.00,90.41
+ORD-08-00018,2026-07-07,C08016,Aarav Reddy,Corporate,P0804,Whole Wheat Atta 5kg,Staples,5,299.00,74.75,1420.25,168.11
+ORD-08-00019,2026-07-07,C08016,Aarav Reddy,Corporate,P0801,Basmati Rice 5kg,Staples,6,549.00,0.00,3294.00,444.40
+ORD-08-00020,2026-07-07,C08028,Kavya Singh,Consumer,P0801,Basmati Rice 5kg,Staples,3,549.00,164.70,1482.30,165.37
+ORD-08-00021,2026-07-07,C08007,Rohan Shah,Consumer,P0804,Whole Wheat Atta 5kg,Staples,1,299.00,29.90,269.10,34.76
+ORD-08-00022,2026-07-08,C08014,Neha Pillai,Consumer,P0802,Groundnut Oil 1L,Oils,2,349.00,69.80,628.20,75.86
+ORD-08-00023,2026-07-08,C08010,Kavya Sharma,Consumer,P0802,Groundnut Oil 1L,Oils,2,349.00,0.00,698.00,86.96
+ORD-08-00024,2026-07-09,C08007,Rohan Shah,Consumer,P0805,Masala Chai 250g,Beverages,3,179.00,26.85,510.15,54.78
+ORD-08-00025,2026-07-09,C08004,Diya Chopra,Consumer,P0808,Turmeric Powder 200g,Spices,5,99.00,49.50,445.50,47.76
+ORD-08-00026,2026-07-09,C08015,Amit Rao,Consumer,P0805,Masala Chai 250g,Beverages,4,179.00,71.60,644.40,81.24
+ORD-08-00027,2026-07-09,C08025,Priya Menon,Corporate,P0801,Basmati Rice 5kg,Staples,1,549.00,54.90,494.10,57.14
+ORD-08-00028,2026-07-11,C08028,Kavya Singh,Consumer,P0806,Jaggery 1kg,Staples,6,119.00,0.00,714.00,79.44
+ORD-08-00029,2026-07-11,C08018,Priya Gupta,Consumer,P0801,Basmati Rice 5kg,Staples,5,549.00,411.75,2333.25,300.66
+ORD-08-00030,2026-07-11,C08013,Neha Joshi,Consumer,P0801,Basmati Rice 5kg,Staples,4,549.00,0.00,2196.00,224.92
+ORD-08-00031,2026-07-12,C08024,Riya Kulkarni,Corporate,P0806,Jaggery 1kg,Staples,4,119.00,0.00,476.00,61.49
+ORD-08-00032,2026-07-13,C08023,Neha Reddy,Consumer,P0805,Masala Chai 250g,Beverages,4,179.00,71.60,644.40,69.68
+ORD-08-00033,2026-07-13,C08006,Neha Sharma,Home Office,P0805,Masala Chai 250g,Beverages,2,179.00,0.00,358.00,39.60
+ORD-08-00034,2026-07-13,C08015,Amit Rao,Consumer,P0805,Masala Chai 250g,Beverages,3,179.00,26.85,510.15,61.66
+ORD-08-00035,2026-07-13,C08021,Sanjay Nair,Corporate,P0803,Organic Toor Dal 1kg,Pulses,1,189.00,0.00,189.00,21.22
+ORD-08-00036,2026-07-14,C08003,Shreya Shah,Home Office,P0808,Turmeric Powder 200g,Spices,1,99.00,0.00,99.00,13.39
+ORD-08-00037,2026-07-14,C08015,Amit Rao,Consumer,P0804,Whole Wheat Atta 5kg,Staples,6,299.00,269.10,1524.90,166.90
+ORD-08-00038,2026-07-14,C08019,Kavya Mehta,Consumer,P0801,Basmati Rice 5kg,Staples,5,549.00,411.75,2333.25,247.43
+ORD-08-00039,2026-07-15,C08006,Neha Sharma,Home Office,P0807,Mixed Dry Fruits 500g,Snacks,6,699.00,629.10,3564.90,381.97
+ORD-08-00040,2026-07-15,C08023,Neha Reddy,Consumer,P0808,Turmeric Powder 200g,Spices,2,99.00,29.70,168.30,19.97
+ORD-08-00041,2026-07-15,C08028,Kavya Singh,Consumer,P0801,Basmati Rice 5kg,Staples,3,549.00,82.35,1564.65,173.60
+ORD-08-00042,2026-07-16,C08014,Neha Pillai,Consumer,P0801,Basmati Rice 5kg,Staples,2,549.00,109.80,988.20,110.08
+ORD-08-00043,2026-07-16,C08015,Amit Rao,Consumer,P0801,Basmati Rice 5kg,Staples,3,549.00,0.00,1647.00,176.32
+ORD-08-00044,2026-07-16,C08006,Neha Sharma,Home Office,P0808,Turmeric Powder 200g,Spices,4,99.00,19.80,376.20,47.12
+ORD-08-00045,2026-07-17,C08005,Karan Shah,Consumer,P0808,Turmeric Powder 200g,Spices,5,99.00,74.25,420.75,50.41
+ORD-08-00046,2026-07-18,C08020,Harsh Verma,Consumer,P0803,Organic Toor Dal 1kg,Pulses,4,189.00,0.00,756.00,77.62
+ORD-08-00047,2026-07-18,C08007,Rohan Shah,Consumer,P0801,Basmati Rice 5kg,Staples,3,549.00,82.35,1564.65,184.41
+ORD-08-00048,2026-07-18,C08023,Neha Reddy,Consumer,P0804,Whole Wheat Atta 5kg,Staples,6,299.00,0.00,1794.00,226.05
+ORD-08-00049,2026-07-18,C08020,Harsh Verma,Consumer,P0802,Groundnut Oil 1L,Oils,6,349.00,0.00,2094.00,283.04
+ORD-08-00050,2026-07-18,C08025,Priya Menon,Corporate,P0805,Masala Chai 250g,Beverages,5,179.00,0.00,895.00,112.39
+ORD-08-00051,2026-07-19,C08003,Shreya Shah,Home Office,P0803,Organic Toor Dal 1kg,Pulses,4,189.00,113.40,642.60,67.22
+ORD-08-00052,2026-07-19,C08012,Isha Reddy,Consumer,P0805,Masala Chai 250g,Beverages,5,179.00,44.75,850.25,113.76
+ORD-08-00053,2026-07-21,C08021,Sanjay Nair,Corporate,P0805,Masala Chai 250g,Beverages,4,179.00,107.40,608.60,74.35
+ORD-08-00054,2026-07-21,C08003,Shreya Shah,Home Office,P0804,Whole Wheat Atta 5kg,Staples,4,299.00,0.00,1196.00,131.10
+ORD-08-00055,2026-07-22,C08025,Priya Menon,Corporate,P0807,Mixed Dry Fruits 500g,Snacks,4,699.00,279.60,2516.40,284.58
+ORD-08-00056,2026-07-22,C08005,Karan Shah,Consumer,P0803,Organic Toor Dal 1kg,Pulses,3,189.00,0.00,567.00,68.93
+ORD-08-00057,2026-07-22,C08027,Sneha Iyer,Corporate,P0801,Basmati Rice 5kg,Staples,2,549.00,0.00,1098.00,126.35
+ORD-08-00058,2026-07-23,C08012,Isha Reddy,Consumer,P0806,Jaggery 1kg,Staples,1,119.00,11.90,107.10,11.95
+ORD-08-00059,2026-07-23,C08021,Sanjay Nair,Corporate,P0804,Whole Wheat Atta 5kg,Staples,5,299.00,0.00,1495.00,192.78
+ORD-08-00060,2026-07-23,C08029,Isha Gupta,Corporate,P0801,Basmati Rice 5kg,Staples,4,549.00,0.00,2196.00,231.60
+ORD-08-00061,2026-07-23,C08026,Anjali Malhotra,Corporate,P0806,Jaggery 1kg,Staples,6,119.00,107.10,606.90,66.92
+ORD-08-00062,2026-07-23,C08022,Nikhil Shah,Consumer,P0805,Masala Chai 250g,Beverages,1,179.00,0.00,179.00,20.03
+ORD-08-00063,2026-07-24,C08024,Riya Kulkarni,Corporate,P0807,Mixed Dry Fruits 500g,Snacks,1,699.00,34.95,664.05,77.09
+ORD-08-00064,2026-07-25,C08005,Karan Shah,Consumer,P0801,Basmati Rice 5kg,Staples,4,549.00,0.00,2196.00,259.09
+ORD-08-00065,2026-07-26,C08006,Neha Sharma,Home Office,P0801,Basmati Rice 5kg,Staples,4,549.00,109.80,2086.20,279.12
+ORD-08-00066,2026-07-26,C08002,Neha Pillai,Consumer,P0802,Groundnut Oil 1L,Oils,1,349.00,34.90,314.10,33.12
+ORD-08-00067,2026-07-27,C08021,Sanjay Nair,Corporate,P0804,Whole Wheat Atta 5kg,Staples,4,299.00,0.00,1196.00,158.39
+ORD-08-00068,2026-07-27,C08025,Priya Menon,Corporate,P0803,Organic Toor Dal 1kg,Pulses,4,189.00,0.00,756.00,103.72
+ORD-08-00069,2026-07-27,C08019,Kavya Mehta,Consumer,P0807,Mixed Dry Fruits 500g,Snacks,1,699.00,34.95,664.05,86.07
+ORD-08-00070,2026-07-28,C08003,Shreya Shah,Home Office,P0801,Basmati Rice 5kg,Staples,3,549.00,247.05,1399.95,177.28
+ORD-08-00071,2026-07-28,C08019,Kavya Mehta,Consumer,P0807,Mixed Dry Fruits 500g,Snacks,5,699.00,174.75,3320.25,393.90
+ORD-08-00072,2026-07-28,C08009,Sanjay Reddy,Home Office,P0805,Masala Chai 250g,Beverages,1,179.00,0.00,179.00,22.58
+ORD-08-00073,2026-07-29,C08019,Kavya Mehta,Consumer,P0802,Groundnut Oil 1L,Oils,4,349.00,0.00,1396.00,191.67
+ORD-08-00074,2026-07-29,C08019,Kavya Mehta,Consumer,P0802,Groundnut Oil 1L,Oils,2,349.00,0.00,698.00,88.57
+ORD-08-00075,2026-07-30,C08022,Nikhil Shah,Consumer,P0805,Masala Chai 250g,Beverages,4,179.00,0.00,716.00,75.21
+ORD-08-00076,2026-07-30,C08029,Isha Gupta,Corporate,P0808,Turmeric Powder 200g,Spices,4,99.00,0.00,396.00,51.18
+ORD-08-00077,2026-07-31,C08027,Sneha Iyer,Corporate,P0801,Basmati Rice 5kg,Staples,5,549.00,0.00,2745.00,340.95
+ORD-08-00078,2026-07-31,C08018,Priya Gupta,Consumer,P0802,Groundnut Oil 1L,Oils,1,349.00,17.45,331.55,38.32
+ORD-08-00079,2026-07-31,C08013,Neha Joshi,Consumer,P0801,Basmati Rice 5kg,Staples,3,549.00,0.00,1647.00,203.60
+ORD-08-00080,2026-07-31,C08012,Isha Reddy,Consumer,P0801,Basmati Rice 5kg,Staples,5,549.00,0.00,2745.00,326.48
+ORD-08-00081,2026-07-31,C08030,Sneha Iyer,Corporate,P0804,Whole Wheat Atta 5kg,Staples,2,299.00,0.00,598.00,74.00
+ORD-08-00082,2026-08-01,C08021,Sanjay Nair,Corporate,P0803,Organic Toor Dal 1kg,Pulses,6,189.00,0.00,1134.00,127.42
+ORD-08-00083,2026-08-01,C08007,Rohan Shah,Consumer,P0804,Whole Wheat Atta 5kg,Staples,6,299.00,269.10,1524.90,159.01
+ORD-08-00084,2026-08-01,C08007,Rohan Shah,Consumer,P0807,Mixed Dry Fruits 500g,Snacks,1,699.00,0.00,699.00,92.49
+ORD-08-00085,2026-08-02,C08018,Priya Gupta,Consumer,P0807,Mixed Dry Fruits 500g,Snacks,3,699.00,0.00,2097.00,255.03
+ORD-08-00086,2026-08-02,C08010,Kavya Sharma,Consumer,P0807,Mixed Dry Fruits 500g,Snacks,2,699.00,0.00,1398.00,179.59
+ORD-08-00087,2026-08-02,C08010,Kavya Sharma,Consumer,P0805,Masala Chai 250g,Beverages,4,179.00,35.80,680.20,72.86
+ORD-08-00088,2026-08-03,C08014,Neha Pillai,Consumer,P0803,Organic Toor Dal 1kg,Pulses,1,189.00,9.45,179.55,21.24
+ORD-08-00089,2026-08-04,C08007,Rohan Shah,Consumer,P0807,Mixed Dry Fruits 500g,Snacks,3,699.00,0.00,2097.00,251.09
+ORD-08-00090,2026-08-05,C08005,Karan Shah,Consumer,P0801,Basmati Rice 5kg,Staples,4,549.00,109.80,2086.20,242.67
+ORD-08-00091,2026-08-05,C08013,Neha Joshi,Consumer,P0806,Jaggery 1kg,Staples,2,119.00,0.00,238.00,30.13
+ORD-08-00092,2026-08-05,C08002,Neha Pillai,Consumer,P0805,Masala Chai 250g,Beverages,4,179.00,71.60,644.40,88.92
+ORD-08-00093,2026-08-06,C08025,Priya Menon,Corporate,P0803,Organic Toor Dal 1kg,Pulses,6,189.00,0.00,1134.00,137.70
+ORD-08-00094,2026-08-06,C08028,Kavya Singh,Consumer,P0801,Basmati Rice 5kg,Staples,4,549.00,329.40,1866.60,220.22
+ORD-08-00095,2026-08-06,C08004,Diya Chopra,Consumer,P0808,Turmeric Powder 200g,Spices,6,99.00,0.00,594.00,63.82
+ORD-08-00096,2026-08-06,C08027,Sneha Iyer,Corporate,P0807,Mixed Dry Fruits 500g,Snacks,1,699.00,0.00,699.00,73.10
+ORD-08-00097,2026-08-06,C08017,Priya Joshi,Consumer,P0802,Groundnut Oil 1L,Oils,6,349.00,209.40,1884.60,194.69
+ORD-08-00098,2026-08-06,C08005,Karan Shah,Consumer,P0806,Jaggery 1kg,Staples,1,119.00,0.00,119.00,12.35
+ORD-08-00099,2026-08-07,C08010,Kavya Sharma,Consumer,P0805,Masala Chai 250g,Beverages,6,179.00,161.10,912.90,98.55
+ORD-08-00100,2026-08-08,C08010,Kavya Sharma,Consumer,P0803,Organic Toor Dal 1kg,Pulses,6,189.00,170.10,963.90,111.60
+ORD-08-00101,2026-08-08,C08003,Shreya Shah,Home Office,P0808,Turmeric Powder 200g,Spices,1,99.00,0.00,99.00,12.67
+ORD-08-00102,2026-08-09,C08030,Sneha Iyer,Corporate,P0803,Organic Toor Dal 1kg,Pulses,1,189.00,0.00,189.00,19.85
+ORD-08-00103,2026-08-09,C08028,Kavya Singh,Consumer,P0807,Mixed Dry Fruits 500g,Snacks,4,699.00,419.40,2376.60,253.65
+ORD-08-00104,2026-08-09,C08015,Amit Rao,Consumer,P0803,Organic Toor Dal 1kg,Pulses,1,189.00,0.00,189.00,20.99
+ORD-08-00105,2026-08-09,C08007,Rohan Shah,Consumer,P0806,Jaggery 1kg,Staples,5,119.00,59.50,535.50,70.97
+ORD-08-00106,2026-08-11,C08014,Neha Pillai,Consumer,P0808,Turmeric Powder 200g,Spices,1,99.00,9.90,89.10,11.22
+ORD-08-00107,2026-08-11,C08012,Isha Reddy,Consumer,P0802,Groundnut Oil 1L,Oils,4,349.00,0.00,1396.00,178.29
+ORD-08-00108,2026-08-11,C08014,Neha Pillai,Consumer,P0801,Basmati Rice 5kg,Staples,3,549.00,247.05,1399.95,183.39
+ORD-08-00109,2026-08-11,C08022,Nikhil Shah,Consumer,P0803,Organic Toor Dal 1kg,Pulses,2,189.00,0.00,378.00,49.21
+ORD-08-00110,2026-08-11,C08006,Neha Sharma,Home Office,P0801,Basmati Rice 5kg,Staples,5,549.00,411.75,2333.25,251.22
+ORD-08-00111,2026-08-11,C08017,Priya Joshi,Consumer,P0807,Mixed Dry Fruits 500g,Snacks,3,699.00,0.00,2097.00,246.56
+ORD-08-00112,2026-08-12,C08001,Rohan Gupta,Home Office,P0807,Mixed Dry Fruits 500g,Snacks,1,699.00,0.00,699.00,87.83
+ORD-08-00113,2026-08-12,C08012,Isha Reddy,Consumer,P0808,Turmeric Powder 200g,Spices,2,99.00,19.80,178.20,19.16
+ORD-08-00114,2026-08-13,C08030,Sneha Iyer,Corporate,P0801,Basmati Rice 5kg,Staples,2,549.00,0.00,1098.00,120.44
+ORD-08-00115,2026-08-13,C08013,Neha Joshi,Consumer,P0804,Whole Wheat Atta 5kg,Staples,4,299.00,0.00,1196.00,158.01
+ORD-08-00116,2026-08-14,C08006,Neha Sharma,Home Office,P0805,Masala Chai 250g,Beverages,1,179.00,0.00,179.00,18.81
+ORD-08-00117,2026-08-14,C08002,Neha Pillai,Consumer,P0804,Whole Wheat Atta 5kg,Staples,5,299.00,0.00,1495.00,153.52
+ORD-08-00118,2026-08-14,C08011,Meera Malhotra,Consumer,P0806,Jaggery 1kg,Staples,3,119.00,0.00,357.00,42.31
+ORD-08-00119,2026-08-14,C08008,Rahul Mehta,Home Office,P0808,Turmeric Powder 200g,Spices,3,99.00,14.85,282.15,38.36
+ORD-08-00120,2026-08-15,C08001,Rohan Gupta,Home Office,P0806,Jaggery 1kg,Staples,2,119.00,23.80,214.20,22.14
+ORD-08-00121,2026-08-15,C08026,Anjali Malhotra,Corporate,P0807,Mixed Dry Fruits 500g,Snacks,2,699.00,0.00,1398.00,187.00
+ORD-08-00122,2026-08-15,C08022,Nikhil Shah,Consumer,P0802,Groundnut Oil 1L,Oils,2,349.00,0.00,698.00,74.33
+ORD-08-00123,2026-08-16,C08009,Sanjay Reddy,Home Office,P0801,Basmati Rice 5kg,Staples,6,549.00,329.40,2964.60,334.08
+ORD-08-00124,2026-08-16,C08030,Sneha Iyer,Corporate,P0801,Basmati Rice 5kg,Staples,5,549.00,0.00,2745.00,359.08
+ORD-08-00125,2026-08-16,C08005,Karan Shah,Consumer,P0801,Basmati Rice 5kg,Staples,2,549.00,0.00,1098.00,135.25
+ORD-08-00126,2026-08-16,C08020,Harsh Verma,Consumer,P0805,Masala Chai 250g,Beverages,4,179.00,0.00,716.00,78.11
+ORD-08-00127,2026-08-17,C08030,Sneha Iyer,Corporate,P0805,Masala Chai 250g,Beverages,1,179.00,0.00,179.00,23.15
+ORD-08-00128,2026-08-18,C08023,Neha Reddy,Consumer,P0808,Turmeric Powder 200g,Spices,6,99.00,29.70,564.30,62.09
+ORD-08-00129,2026-08-20,C08012,Isha Reddy,Consumer,P0804,Whole Wheat Atta 5kg,Staples,1,299.00,0.00,299.00,39.52
+ORD-08-00130,2026-08-20,C08011,Meera Malhotra,Consumer,P0805,Masala Chai 250g,Beverages,2,179.00,0.00,358.00,49.09
+ORD-08-00131,2026-08-20,C08028,Kavya Singh,Consumer,P0805,Masala Chai 250g,Beverages,3,179.00,80.55,456.45,48.70
+ORD-08-00132,2026-08-21,C08012,Isha Reddy,Consumer,P0808,Turmeric Powder 200g,Spices,3,99.00,44.55,252.45,30.62
+ORD-08-00133,2026-08-21,C08011,Meera Malhotra,Consumer,P0802,Groundnut Oil 1L,Oils,3,349.00,104.70,942.30,116.75
+ORD-08-00134,2026-08-21,C08013,Neha Joshi,Consumer,P0806,Jaggery 1kg,Staples,3,119.00,17.85,339.15,38.31
+ORD-08-00135,2026-08-21,C08011,Meera Malhotra,Consumer,P0807,Mixed Dry Fruits 500g,Snacks,2,699.00,0.00,1398.00,171.41
+ORD-08-00136,2026-08-22,C08028,Kavya Singh,Consumer,P0805,Masala Chai 250g,Beverages,5,179.00,44.75,850.25,110.64
+ORD-08-00137,2026-08-22,C08008,Rahul Mehta,Home Office,P0802,Groundnut Oil 1L,Oils,4,349.00,69.80,1326.20,160.57
+ORD-08-00138,2026-08-22,C08004,Diya Chopra,Consumer,P0806,Jaggery 1kg,Staples,4,119.00,71.40,404.60,50.96
+ORD-08-00139,2026-08-23,C08008,Rahul Mehta,Home Office,P0808,Turmeric Powder 200g,Spices,4,99.00,39.60,356.40,48.97
+ORD-08-00140,2026-08-23,C08019,Kavya Mehta,Consumer,P0801,Basmati Rice 5kg,Staples,1,549.00,82.35,466.65,48.74
+ORD-08-00141,2026-08-23,C08020,Harsh Verma,Consumer,P0803,Organic Toor Dal 1kg,Pulses,6,189.00,170.10,963.90,118.20
+ORD-08-00142,2026-08-23,C08019,Kavya Mehta,Consumer,P0807,Mixed Dry Fruits 500g,Snacks,6,699.00,0.00,4194.00,485.40
+ORD-08-00143,2026-08-24,C08007,Rohan Shah,Consumer,P0802,Groundnut Oil 1L,Oils,6,349.00,209.40,1884.60,235.67
+ORD-08-00144,2026-08-24,C08015,Amit Rao,Consumer,P0801,Basmati Rice 5kg,Staples,4,549.00,0.00,2196.00,271.09
+ORD-08-00145,2026-08-24,C08027,Sneha Iyer,Corporate,P0806,Jaggery 1kg,Staples,2,119.00,23.80,214.20,24.67
+ORD-08-00146,2026-08-25,C08021,Sanjay Nair,Corporate,P0804,Whole Wheat Atta 5kg,Staples,1,299.00,14.95,284.05,30.59
+ORD-08-00147,2026-08-25,C08027,Sneha Iyer,Corporate,P0803,Organic Toor Dal 1kg,Pulses,5,189.00,0.00,945.00,110.46
+ORD-08-00148,2026-08-25,C08006,Neha Sharma,Home Office,P0803,Organic Toor Dal 1kg,Pulses,1,189.00,0.00,189.00,24.22
+ORD-08-00149,2026-08-25,C08010,Kavya Sharma,Consumer,P0801,Basmati Rice 5kg,Staples,3,549.00,247.05,1399.95,148.69
+ORD-08-00150,2026-08-25,C08018,Priya Gupta,Consumer,P0807,Mixed Dry Fruits 500g,Snacks,3,699.00,0.00,2097.00,222.91
+ORD-08-00151,2026-08-26,C08024,Riya Kulkarni,Corporate,P0805,Masala Chai 250g,Beverages,2,179.00,0.00,358.00,44.30
+ORD-08-00152,2026-08-26,C08027,Sneha Iyer,Corporate,P0802,Groundnut Oil 1L,Oils,2,349.00,0.00,698.00,93.79
+ORD-08-00153,2026-08-26,C08028,Kavya Singh,Consumer,P0805,Masala Chai 250g,Beverages,5,179.00,0.00,895.00,121.69
+ORD-08-00154,2026-08-26,C08026,Anjali Malhotra,Corporate,P0802,Groundnut Oil 1L,Oils,2,349.00,0.00,698.00,95.51
+ORD-08-00155,2026-08-26,C08009,Sanjay Reddy,Home Office,P0808,Turmeric Powder 200g,Spices,5,99.00,0.00,495.00,55.16
+ORD-08-00156,2026-08-26,C08017,Priya Joshi,Consumer,P0808,Turmeric Powder 200g,Spices,1,99.00,0.00,99.00,11.87
+ORD-08-00157,2026-08-27,C08024,Riya Kulkarni,Corporate,P0801,Basmati Rice 5kg,Staples,6,549.00,494.10,2799.90,329.83
+ORD-08-00158,2026-08-27,C08023,Neha Reddy,Consumer,P0808,Turmeric Powder 200g,Spices,1,99.00,14.85,84.15,9.99
+ORD-08-00159,2026-08-27,C08026,Anjali Malhotra,Corporate,P0801,Basmati Rice 5kg,Staples,4,549.00,0.00,2196.00,282.85
+ORD-08-00160,2026-08-28,C08013,Neha Joshi,Consumer,P0808,Turmeric Powder 200g,Spices,6,99.00,59.40,534.60,56.61
+ORD-08-00161,2026-08-28,C08003,Shreya Shah,Home Office,P0803,Organic Toor Dal 1kg,Pulses,6,189.00,170.10,963.90,112.08
+ORD-08-00162,2026-08-28,C08008,Rahul Mehta,Home Office,P0805,Masala Chai 250g,Beverages,3,179.00,26.85,510.15,69.73
+ORD-08-00163,2026-08-29,C08011,Meera Malhotra,Consumer,P0802,Groundnut Oil 1L,Oils,6,349.00,0.00,2094.00,238.49
+ORD-08-00164,2026-08-29,C08004,Diya Chopra,Consumer,P0802,Groundnut Oil 1L,Oils,1,349.00,52.35,296.65,34.61
+ORD-08-00165,2026-08-30,C08009,Sanjay Reddy,Home Office,P0805,Masala Chai 250g,Beverages,2,179.00,35.80,322.20,41.48
+ORD-08-00166,2026-08-30,C08007,Rohan Shah,Consumer,P0805,Masala Chai 250g,Beverages,5,179.00,44.75,850.25,104.54
+ORD-08-00167,2026-08-30,C08019,Kavya Mehta,Consumer,P0801,Basmati Rice 5kg,Staples,2,549.00,109.80,988.20,126.42
+ORD-08-00168,2026-08-30,C08029,Isha Gupta,Corporate,P0807,Mixed Dry Fruits 500g,Snacks,3,699.00,0.00,2097.00,250.62
+ORD-08-00169,2026-08-31,C08018,Priya Gupta,Consumer,P0808,Turmeric Powder 200g,Spices,1,99.00,0.00,99.00,12.46
+ORD-08-00170,2026-08-31,C08011,Meera Malhotra,Consumer,P0805,Masala Chai 250g,Beverages,5,179.00,0.00,895.00,103.14
+ORD-08-00171,2026-08-31,C08012,Isha Reddy,Consumer,P0805,Masala Chai 250g,Beverages,4,179.00,0.00,716.00,98.70
+ORD-08-00172,2026-09-01,C08014,Neha Pillai,Consumer,P0801,Basmati Rice 5kg,Staples,1,549.00,27.45,521.55,53.21
+ORD-08-00173,2026-09-01,C08026,Anjali Malhotra,Corporate,P0807,Mixed Dry Fruits 500g,Snacks,6,699.00,0.00,4194.00,451.95
+ORD-08-00174,2026-09-01,C08004,Diya Chopra,Consumer,P0804,Whole Wheat Atta 5kg,Staples,6,299.00,0.00,1794.00,194.07
+ORD-08-00175,2026-09-02,C08019,Kavya Mehta,Consumer,P0808,Turmeric Powder 200g,Spices,1,99.00,0.00,99.00,12.34
+ORD-08-00176,2026-09-02,C08025,Priya Menon,Corporate,P0808,Turmeric Powder 200g,Spices,5,99.00,24.75,470.25,60.48
+ORD-08-00177,2026-09-03,C08018,Priya Gupta,Consumer,P0804,Whole Wheat Atta 5kg,Staples,1,299.00,0.00,299.00,34.70
+ORD-08-00178,2026-09-03,C08023,Neha Reddy,Consumer,P0808,Turmeric Powder 200g,Spices,4,99.00,0.00,396.00,54.31
+ORD-08-00179,2026-09-03,C08014,Neha Pillai,Consumer,P0808,Turmeric Powder 200g,Spices,4,99.00,39.60,356.40,39.91
+ORD-08-00180,2026-09-04,C08026,Anjali Malhotra,Corporate,P0805,Masala Chai 250g,Beverages,6,179.00,0.00,1074.00,140.18
+ORD-08-00181,2026-09-04,C08008,Rahul Mehta,Home Office,P0801,Basmati Rice 5kg,Staples,2,549.00,0.00,1098.00,128.27
+ORD-08-00182,2026-09-04,C08027,Sneha Iyer,Corporate,P0801,Basmati Rice 5kg,Staples,6,549.00,0.00,3294.00,422.31
+ORD-08-00183,2026-09-05,C08004,Diya Chopra,Consumer,P0801,Basmati Rice 5kg,Staples,3,549.00,0.00,1647.00,198.08
+ORD-08-00184,2026-09-06,C08004,Diya Chopra,Consumer,P0805,Masala Chai 250g,Beverages,5,179.00,0.00,895.00,117.65
+ORD-08-00185,2026-09-06,C08024,Riya Kulkarni,Corporate,P0802,Groundnut Oil 1L,Oils,3,349.00,0.00,1047.00,143.23
+ORD-08-00186,2026-09-08,C08002,Neha Pillai,Consumer,P0801,Basmati Rice 5kg,Staples,6,549.00,0.00,3294.00,382.69
+ORD-08-00187,2026-09-08,C08027,Sneha Iyer,Corporate,P0801,Basmati Rice 5kg,Staples,6,549.00,0.00,3294.00,424.39
+ORD-08-00188,2026-09-09,C08004,Diya Chopra,Consumer,P0801,Basmati Rice 5kg,Staples,1,549.00,82.35,466.65,58.51
+ORD-08-00189,2026-09-10,C08029,Isha Gupta,Corporate,P0801,Basmati Rice 5kg,Staples,5,549.00,0.00,2745.00,341.83
+ORD-08-00190,2026-09-11,C08025,Priya Menon,Corporate,P0807,Mixed Dry Fruits 500g,Snacks,5,699.00,349.50,3145.50,343.11
+ORD-08-00191,2026-09-11,C08001,Rohan Gupta,Home Office,P0801,Basmati Rice 5kg,Staples,5,549.00,274.50,2470.50,318.67
+ORD-08-00192,2026-09-12,C08013,Neha Joshi,Consumer,P0801,Basmati Rice 5kg,Staples,2,549.00,0.00,1098.00,148.60
+ORD-08-00193,2026-09-12,C08017,Priya Joshi,Consumer,P0801,Basmati Rice 5kg,Staples,4,549.00,0.00,2196.00,280.56
+ORD-08-00194,2026-09-12,C08030,Sneha Iyer,Corporate,P0805,Masala Chai 250g,Beverages,1,179.00,0.00,179.00,24.49
+ORD-08-00195,2026-09-13,C08007,Rohan Shah,Consumer,P0804,Whole Wheat Atta 5kg,Staples,2,299.00,89.70,508.30,53.72
+ORD-08-00196,2026-09-13,C08011,Meera Malhotra,Consumer,P0804,Whole Wheat Atta 5kg,Staples,5,299.00,0.00,1495.00,159.33
+ORD-08-00197,2026-09-13,C08029,Isha Gupta,Corporate,P0806,Jaggery 1kg,Staples,3,119.00,53.55,303.45,35.15
+ORD-08-00198,2026-09-13,C08024,Riya Kulkarni,Corporate,P0803,Organic Toor Dal 1kg,Pulses,4,189.00,113.40,642.60,67.08
+ORD-08-00199,2026-09-13,C08007,Rohan Shah,Consumer,P0802,Groundnut Oil 1L,Oils,1,349.00,52.35,296.65,39.27
+ORD-08-00200,2026-09-13,C08020,Harsh Verma,Consumer,P0802,Groundnut Oil 1L,Oils,5,349.00,0.00,1745.00,180.59
+ORD-08-00201,2026-09-14,C08023,Neha Reddy,Consumer,P0801,Basmati Rice 5kg,Staples,1,549.00,27.45,521.55,66.08
+ORD-08-00202,2026-09-14,C08014,Neha Pillai,Consumer,P0806,Jaggery 1kg,Staples,5,119.00,0.00,595.00,69.77
+ORD-08-00203,2026-09-14,C08003,Shreya Shah,Home Office,P0801,Basmati Rice 5kg,Staples,2,549.00,109.80,988.20,123.01
+ORD-08-00204,2026-09-14,C08005,Karan Shah,Consumer,P0803,Organic Toor Dal 1kg,Pulses,5,189.00,0.00,945.00,97.32
+ORD-08-00205,2026-09-14,C08016,Aarav Reddy,Corporate,P0806,Jaggery 1kg,Staples,2,119.00,0.00,238.00,27.23
+ORD-08-00206,2026-09-15,C08014,Neha Pillai,Consumer,P0801,Basmati Rice 5kg,Staples,4,549.00,0.00,2196.00,283.18
+ORD-08-00207,2026-09-15,C08009,Sanjay Reddy,Home Office,P0803,Organic Toor Dal 1kg,Pulses,3,189.00,28.35,538.65,67.85
+ORD-08-00208,2026-09-16,C08019,Kavya Mehta,Consumer,P0801,Basmati Rice 5kg,Staples,6,549.00,0.00,3294.00,395.00
+ORD-08-00209,2026-09-16,C08025,Priya Menon,Corporate,P0808,Turmeric Powder 200g,Spices,1,99.00,0.00,99.00,10.56
+ORD-08-00210,2026-09-16,C08003,Shreya Shah,Home Office,P0801,Basmati Rice 5kg,Staples,1,549.00,0.00,549.00,72.59
+ORD-08-00211,2026-09-17,C08015,Amit Rao,Consumer,P0806,Jaggery 1kg,Staples,3,119.00,53.55,303.45,41.12
+ORD-08-00212,2026-09-18,C08011,Meera Malhotra,Consumer,P0806,Jaggery 1kg,Staples,3,119.00,35.70,321.30,38.58
+ORD-08-00213,2026-09-20,C08014,Neha Pillai,Consumer,P0808,Turmeric Powder 200g,Spices,6,99.00,29.70,564.30,64.01
+ORD-08-00214,2026-09-20,C08025,Priya Menon,Corporate,P0807,Mixed Dry Fruits 500g,Snacks,6,699.00,209.70,3984.30,518.29
+ORD-08-00215,2026-09-20,C08006,Neha Sharma,Home Office,P0801,Basmati Rice 5kg,Staples,3,549.00,164.70,1482.30,185.25
+ORD-08-00216,2026-09-20,C08011,Meera Malhotra,Consumer,P0805,Masala Chai 250g,Beverages,4,179.00,71.60,644.40,86.25
+ORD-08-00217,2026-09-21,C08020,Harsh Verma,Consumer,P0808,Turmeric Powder 200g,Spices,4,99.00,0.00,396.00,44.11
+ORD-08-00218,2026-09-21,C08011,Meera Malhotra,Consumer,P0802,Groundnut Oil 1L,Oils,2,349.00,0.00,698.00,90.95
+ORD-08-00219,2026-09-21,C08025,Priya Menon,Corporate,P0806,Jaggery 1kg,Staples,1,119.00,0.00,119.00,13.15
+ORD-08-00220,2026-09-22,C08017,Priya Joshi,Consumer,P0806,Jaggery 1kg,Staples,5,119.00,0.00,595.00,67.27
+ORD-08-00221,2026-09-22,C08019,Kavya Mehta,Consumer,P0807,Mixed Dry Fruits 500g,Snacks,2,699.00,0.00,1398.00,170.78
+ORD-08-00222,2026-09-22,C08017,Priya Joshi,Consumer,P0804,Whole Wheat Atta 5kg,Staples,1,299.00,0.00,299.00,39.99
+ORD-08-00223,2026-09-22,C08004,Diya Chopra,Consumer,P0805,Masala Chai 250g,Beverages,6,179.00,107.40,966.60,100.56
+ORD-08-00224,2026-09-23,C08023,Neha Reddy,Consumer,P0804,Whole Wheat Atta 5kg,Staples,6,299.00,0.00,1794.00,196.63
+ORD-08-00225,2026-09-23,C08016,Aarav Reddy,Corporate,P0807,Mixed Dry Fruits 500g,Snacks,2,699.00,139.80,1258.20,140.58
+ORD-08-00226,2026-09-23,C08007,Rohan Shah,Consumer,P0806,Jaggery 1kg,Staples,3,119.00,0.00,357.00,36.79
+ORD-08-00227,2026-09-24,C08019,Kavya Mehta,Consumer,P0804,Whole Wheat Atta 5kg,Staples,5,299.00,0.00,1495.00,178.44
+ORD-08-00228,2026-09-24,C08005,Karan Shah,Consumer,P0807,Mixed Dry Fruits 500g,Snacks,2,699.00,0.00,1398.00,170.83
+ORD-08-00229,2026-09-24,C08009,Sanjay Reddy,Home Office,P0806,Jaggery 1kg,Staples,2,119.00,11.90,226.10,25.26
+ORD-08-00230,2026-09-25,C08025,Priya Menon,Corporate,P0808,Turmeric Powder 200g,Spices,5,99.00,0.00,495.00,64.37
+ORD-08-00231,2026-09-25,C08008,Rahul Mehta,Home Office,P0808,Turmeric Powder 200g,Spices,1,99.00,14.85,84.15,8.89
+ORD-08-00232,2026-09-26,C08023,Neha Reddy,Consumer,P0805,Masala Chai 250g,Beverages,6,179.00,53.70,1020.30,111.25
+ORD-08-00233,2026-09-26,C08018,Priya Gupta,Consumer,P0806,Jaggery 1kg,Staples,5,119.00,29.75,565.25,69.19
+ORD-08-00234,2026-09-26,C08021,Sanjay Nair,Corporate,P0801,Basmati Rice 5kg,Staples,2,549.00,54.90,1043.10,117.10
+ORD-08-00235,2026-09-26,C08020,Harsh Verma,Consumer,P0806,Jaggery 1kg,Staples,5,119.00,89.25,505.75,58.87
+ORD-08-00236,2026-09-27,C08016,Aarav Reddy,Corporate,P0807,Mixed Dry Fruits 500g,Snacks,4,699.00,0.00,2796.00,309.47
+ORD-08-00237,2026-09-27,C08012,Isha Reddy,Consumer,P0801,Basmati Rice 5kg,Staples,1,549.00,0.00,549.00,73.16
+ORD-08-00238,2026-09-27,C08019,Kavya Mehta,Consumer,P0802,Groundnut Oil 1L,Oils,1,349.00,34.90,314.10,43.16
+ORD-08-00239,2026-09-28,C08026,Anjali Malhotra,Corporate,P0806,Jaggery 1kg,Staples,1,119.00,5.95,113.05,13.50
+ORD-08-00240,2026-09-28,C08017,Priya Joshi,Consumer,P0804,Whole Wheat Atta 5kg,Staples,1,299.00,29.90,269.10,31.93
+ORD-08-00241,2026-09-28,C08023,Neha Reddy,Consumer,P0807,Mixed Dry Fruits 500g,Snacks,1,699.00,104.85,594.15,74.71
+ORD-08-00242,2026-09-29,C08025,Priya Menon,Corporate,P0802,Groundnut Oil 1L,Oils,1,349.00,34.90,314.10,43.18
+ORD-08-00243,2026-09-30,C08016,Aarav Reddy,Corporate,P0802,Groundnut Oil 1L,Oils,5,349.00,0.00,1745.00,210.29
+ORD-08-00244,2026-09-30,C08026,Anjali Malhotra,Corporate,P0801,Basmati Rice 5kg,Staples,6,549.00,329.40,2964.60,343.06
+ORD-08-00245,2026-09-30,C08010,Kavya Sharma,Consumer,P0808,Turmeric Powder 200g,Spices,3,99.00,0.00,297.00,36.55
+ORD-08-00246,2026-10-01,C08001,Rohan Gupta,Home Office,P0802,Groundnut Oil 1L,Oils,2,349.00,69.80,628.20,79.97
+ORD-08-00247,2026-10-01,C08003,Shreya Shah,Home Office,P0801,Basmati Rice 5kg,Staples,2,549.00,0.00,1098.00,127.68
+ORD-08-00248,2026-10-01,C08013,Neha Joshi,Consumer,P0803,Organic Toor Dal 1kg,Pulses,3,189.00,0.00,567.00,61.69
+ORD-08-00249,2026-10-01,C08018,Priya Gupta,Consumer,P0807,Mixed Dry Fruits 500g,Snacks,2,699.00,0.00,1398.00,179.09
+ORD-08-00250,2026-10-01,C08022,Nikhil Shah,Consumer,P0808,Turmeric Powder 200g,Spices,3,99.00,0.00,297.00,35.29
+ORD-08-00251,2026-10-02,C08024,Riya Kulkarni,Corporate,P0804,Whole Wheat Atta 5kg,Staples,3,299.00,0.00,897.00,91.80
+ORD-08-00252,2026-10-02,C08025,Priya Menon,Corporate,P0801,Basmati Rice 5kg,Staples,1,549.00,54.90,494.10,60.97
+ORD-08-00253,2026-10-03,C08024,Riya Kulkarni,Corporate,P0801,Basmati Rice 5kg,Staples,2,549.00,0.00,1098.00,115.67
+ORD-08-00254,2026-10-03,C08009,Sanjay Reddy,Home Office,P0807,Mixed Dry Fruits 500g,Snacks,1,699.00,0.00,699.00,75.90
+ORD-08-00255,2026-10-04,C08013,Neha Joshi,Consumer,P0801,Basmati Rice 5kg,Staples,2,549.00,109.80,988.20,128.67
+ORD-08-00256,2026-10-04,C08006,Neha Sharma,Home Office,P0801,Basmati Rice 5kg,Staples,2,549.00,109.80,988.20,109.61
+ORD-08-00257,2026-10-04,C08004,Diya Chopra,Consumer,P0802,Groundnut Oil 1L,Oils,5,349.00,0.00,1745.00,211.83
+ORD-08-00258,2026-10-06,C08021,Sanjay Nair,Corporate,P0804,Whole Wheat Atta 5kg,Staples,4,299.00,59.80,1136.20,134.59
+ORD-08-00259,2026-10-06,C08025,Priya Menon,Corporate,P0808,Turmeric Powder 200g,Spices,5,99.00,0.00,495.00,54.09
+ORD-08-00260,2026-10-06,C08017,Priya Joshi,Consumer,P0801,Basmati Rice 5kg,Staples,2,549.00,0.00,1098.00,141.64
+ORD-08-00261,2026-10-06,C08028,Kavya Singh,Consumer,P0803,Organic Toor Dal 1kg,Pulses,6,189.00,56.70,1077.30,120.16
+ORD-08-00262,2026-10-07,C08014,Neha Pillai,Consumer,P0803,Organic Toor Dal 1kg,Pulses,3,189.00,0.00,567.00,66.00
+ORD-08-00263,2026-10-07,C08019,Kavya Mehta,Consumer,P0805,Masala Chai 250g,Beverages,6,179.00,53.70,1020.30,134.27
+ORD-08-00264,2026-10-08,C08003,Shreya Shah,Home Office,P0801,Basmati Rice 5kg,Staples,3,549.00,82.35,1564.65,203.39
+ORD-08-00265,2026-10-08,C08023,Neha Reddy,Consumer,P0808,Turmeric Powder 200g,Spices,2,99.00,19.80,178.20,21.52
+ORD-08-00266,2026-10-08,C08029,Isha Gupta,Corporate,P0808,Turmeric Powder 200g,Spices,3,99.00,0.00,297.00,34.12
+ORD-08-00267,2026-10-09,C08005,Karan Shah,Consumer,P0804,Whole Wheat Atta 5kg,Staples,3,299.00,0.00,897.00,102.00
+ORD-08-00268,2026-10-09,C08001,Rohan Gupta,Home Office,P0802,Groundnut Oil 1L,Oils,1,349.00,34.90,314.10,41.05
+ORD-08-00269,2026-10-09,C08001,Rohan Gupta,Home Office,P0802,Groundnut Oil 1L,Oils,3,349.00,0.00,1047.00,127.85
+ORD-08-00270,2026-10-09,C08007,Rohan Shah,Consumer,P0806,Jaggery 1kg,Staples,5,119.00,59.50,535.50,67.45
+ORD-08-00271,2026-10-10,C08007,Rohan Shah,Consumer,P0803,Organic Toor Dal 1kg,Pulses,5,189.00,47.25,897.75,119.53
+ORD-08-00272,2026-10-10,C08001,Rohan Gupta,Home Office,P0803,Organic Toor Dal 1kg,Pulses,5,189.00,94.50,850.50,111.64
+ORD-08-00273,2026-10-11,C08029,Isha Gupta,Corporate,P0808,Turmeric Powder 200g,Spices,1,99.00,0.00,99.00,12.56
+ORD-08-00274,2026-10-11,C08021,Sanjay Nair,Corporate,P0804,Whole Wheat Atta 5kg,Staples,3,299.00,0.00,897.00,108.10
+ORD-08-00275,2026-10-11,C08002,Neha Pillai,Consumer,P0807,Mixed Dry Fruits 500g,Snacks,2,699.00,69.90,1328.10,138.14
+ORD-08-00276,2026-10-11,C08016,Aarav Reddy,Corporate,P0803,Organic Toor Dal 1kg,Pulses,6,189.00,0.00,1134.00,138.86
+ORD-08-00277,2026-10-12,C08002,Neha Pillai,Consumer,P0808,Turmeric Powder 200g,Spices,3,99.00,0.00,297.00,38.13
+ORD-08-00278,2026-10-13,C08021,Sanjay Nair,Corporate,P0806,Jaggery 1kg,Staples,5,119.00,0.00,595.00,73.72
+ORD-08-00279,2026-10-13,C08020,Harsh Verma,Consumer,P0804,Whole Wheat Atta 5kg,Staples,1,299.00,0.00,299.00,35.48
+ORD-08-00280,2026-10-14,C08018,Priya Gupta,Consumer,P0805,Masala Chai 250g,Beverages,2,179.00,0.00,358.00,47.39
+ORD-08-00281,2026-10-14,C08028,Kavya Singh,Consumer,P0807,Mixed Dry Fruits 500g,Snacks,6,699.00,0.00,4194.00,478.84
+ORD-08-00282,2026-10-14,C08020,Harsh Verma,Consumer,P0801,Basmati Rice 5kg,Staples,2,549.00,109.80,988.20,132.66
+ORD-08-00283,2026-10-14,C08012,Isha Reddy,Consumer,P0805,Masala Chai 250g,Beverages,6,179.00,0.00,1074.00,129.07
+ORD-08-00284,2026-10-14,C08025,Priya Menon,Corporate,P0802,Groundnut Oil 1L,Oils,3,349.00,0.00,1047.00,113.01
+ORD-08-00285,2026-10-15,C08007,Rohan Shah,Consumer,P0803,Organic Toor Dal 1kg,Pulses,5,189.00,94.50,850.50,99.68
+ORD-08-00286,2026-10-15,C08012,Isha Reddy,Consumer,P0802,Groundnut Oil 1L,Oils,2,349.00,0.00,698.00,71.33
+ORD-08-00287,2026-10-15,C08001,Rohan Gupta,Home Office,P0807,Mixed Dry Fruits 500g,Snacks,4,699.00,0.00,2796.00,301.16
+ORD-08-00288,2026-10-16,C08024,Riya Kulkarni,Corporate,P0801,Basmati Rice 5kg,Staples,4,549.00,219.60,1976.40,269.61
+ORD-08-00289,2026-10-17,C08012,Isha Reddy,Consumer,P0801,Basmati Rice 5kg,Staples,4,549.00,329.40,1866.60,244.64
+ORD-08-00290,2026-10-17,C08017,Priya Joshi,Consumer,P0802,Groundnut Oil 1L,Oils,3,349.00,0.00,1047.00,122.15
+ORD-08-00291,2026-10-17,C08028,Kavya Singh,Consumer,P0801,Basmati Rice 5kg,Staples,4,549.00,109.80,2086.20,250.42
+ORD-08-00292,2026-10-17,C08019,Kavya Mehta,Consumer,P0802,Groundnut Oil 1L,Oils,2,349.00,34.90,663.10,90.93
+ORD-08-00293,2026-10-17,C08011,Meera Malhotra,Consumer,P0803,Organic Toor Dal 1kg,Pulses,3,189.00,0.00,567.00,68.76
+ORD-08-00294,2026-10-17,C08003,Shreya Shah,Home Office,P0807,Mixed Dry Fruits 500g,Snacks,1,699.00,0.00,699.00,84.60
+ORD-08-00295,2026-10-17,C08017,Priya Joshi,Consumer,P0808,Turmeric Powder 200g,Spices,2,99.00,0.00,198.00,25.15
+ORD-08-00296,2026-10-18,C08013,Neha Joshi,Consumer,P0804,Whole Wheat Atta 5kg,Staples,4,299.00,0.00,1196.00,163.10
+ORD-08-00297,2026-10-18,C08012,Isha Reddy,Consumer,P0808,Turmeric Powder 200g,Spices,6,99.00,0.00,594.00,78.29
+ORD-08-00298,2026-10-19,C08006,Neha Sharma,Home Office,P0803,Organic Toor Dal 1kg,Pulses,6,189.00,113.40,1020.60,107.87
+ORD-08-00299,2026-10-19,C08006,Neha Sharma,Home Office,P0802,Groundnut Oil 1L,Oils,3,349.00,0.00,1047.00,119.76
+ORD-08-00300,2026-10-19,C08015,Amit Rao,Consumer,P0803,Organic Toor Dal 1kg,Pulses,1,189.00,18.90,170.10,19.87

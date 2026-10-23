@@ -1,0 +1,189 @@
+order_id,order_date,customer_id,customer_name,segment,product_id,product_name,category,quantity,unit_price,discount,total,profit
+ORD-07-00001,2026-07-01,C07003,Siddharth Singh,Consumer,P0704,Large Soft Toy,Soft Toys,3,999.00,0.00,2997.00,730.18
+ORD-07-00002,2026-07-02,C07012,Isha Chopra,Consumer,P0708,Educational Robot Kit,STEM,2,2499.00,499.80,4498.20,1116.62
+ORD-07-00003,2026-07-02,C07016,Diya Pillai,Consumer,P0701,Wooden Building Blocks,Learning,1,899.00,0.00,899.00,241.95
+ORD-07-00004,2026-07-03,C07030,Tanvi Rao,Home Office,P0703,Family Board Game,Games,1,799.00,0.00,799.00,183.88
+ORD-07-00005,2026-07-03,C07026,Shreya Mehta,Consumer,P0707,Art and Craft Kit,Creative,3,649.00,0.00,1947.00,464.65
+ORD-07-00006,2026-07-03,C07006,Divya Rao,Home Office,P0708,Educational Robot Kit,STEM,2,2499.00,249.90,4748.10,1050.85
+ORD-07-00007,2026-07-03,C07014,Anjali Singh,Corporate,P0703,Family Board Game,Games,2,799.00,0.00,1598.00,356.09
+ORD-07-00008,2026-07-03,C07029,Nikhil Reddy,Consumer,P0702,Remote Control Car,Vehicles,2,1499.00,0.00,2998.00,650.05
+ORD-07-00009,2026-07-05,C07022,Swati Rao,Corporate,P0708,Educational Robot Kit,STEM,2,2499.00,499.80,4498.20,1191.03
+ORD-07-00010,2026-07-05,C07015,Anjali Desai,Consumer,P0707,Art and Craft Kit,Creative,1,649.00,0.00,649.00,142.91
+ORD-07-00011,2026-07-06,C07018,Aarav Chopra,Consumer,P0708,Educational Robot Kit,STEM,3,2499.00,0.00,7497.00,2045.18
+ORD-07-00012,2026-07-06,C07026,Shreya Mehta,Consumer,P0703,Family Board Game,Games,3,799.00,119.85,2277.15,648.58
+ORD-07-90002,2026-07-27,C07020,Sanjay Verma,Consumer,P0706,Kite and Manja Set,Outdoor,-2,349.00,104.70,593.30,133.83
+ORD-07-00013,2026-07-07,C07019,Harsh Shah,Corporate,P0705,500-Piece Puzzle,Puzzles,3,499.00,224.55,1272.45,361.67
+ORD-07-00014,2026-07-07,C07028,Aarav Menon,Consumer,P0707,Art and Craft Kit,Creative,3,649.00,0.00,1947.00,435.34
+ORD-07-00015,2026-07-08,C07030,Tanvi Rao,Home Office,P0705,500-Piece Puzzle,Puzzles,1,499.00,0.00,499.00,118.09
+ORD-07-00016,2026-07-08,C07024,Rohan Chopra,Consumer,P0704,Large Soft Toy,Soft Toys,1,999.00,149.85,849.15,214.82
+ORD-07-00017,2026-07-08,C07008,Deepak Kulkarni,Consumer,P0705,500-Piece Puzzle,Puzzles,1,499.00,0.00,499.00,113.22
+ORD-07-00018,2026-07-09,C07029,Nikhil Reddy,Consumer,P0707,Art and Craft Kit,Creative,1,649.00,64.90,584.10,130.22
+ORD-07-00019,2026-07-09,C07019,Harsh Shah,Corporate,P0707,Art and Craft Kit,Creative,3,649.00,0.00,1947.00,547.00
+ORD-07-00020,2026-07-09,C07016,Diya Pillai,Consumer,P0703,Family Board Game,Games,1,799.00,39.95,759.05,197.51
+ORD-07-00021,2026-07-09,C07023,Aarav Joshi,Consumer,P0703,Family Board Game,Games,2,799.00,239.70,1358.30,318.20
+ORD-07-00022,2026-07-09,C07015,Anjali Desai,Consumer,P0702,Remote Control Car,Vehicles,3,1499.00,0.00,4497.00,1058.63
+ORD-07-00023,2026-07-10,C07030,Tanvi Rao,Home Office,P0705,500-Piece Puzzle,Puzzles,1,499.00,0.00,499.00,135.95
+ORD-07-00024,2026-07-10,C07023,Aarav Joshi,Consumer,P0701,Wooden Building Blocks,Learning,2,899.00,0.00,1798.00,438.84
+ORD-07-00025,2026-07-11,C07003,Siddharth Singh,Consumer,P0707,Art and Craft Kit,Creative,2,649.00,194.70,1103.30,241.26
+ORD-07-00026,2026-07-11,C07010,Riya Deshmukh,Consumer,P0704,Large Soft Toy,Soft Toys,3,999.00,0.00,2997.00,830.03
+ORD-07-00027,2026-07-11,C07002,Pooja Bhatt,Consumer,P0702,Remote Control Car,Vehicles,2,1499.00,299.80,2698.20,695.60
+ORD-07-00028,2026-07-12,C07011,Arjun Desai,Consumer,P0703,Family Board Game,Games,2,799.00,0.00,1598.00,417.84
+ORD-07-90004,2026-09-27,C07028,Aarav Menon,Consumer,P0701,Wooden Building Blocks,Learning,,899.00,404.55,2292.45,490.02
+ORD-07-00029,2026-07-12,C07023,Aarav Joshi,Consumer,P0703,Family Board Game,Games,3,799.00,359.55,2037.45,568.67
+ORD-07-00030,2026-07-12,C07005,Harsh Malhotra,Corporate,P0705,500-Piece Puzzle,Puzzles,2,499.00,0.00,998.00,256.42
+ORD-07-00031,2026-07-12,C07029,Nikhil Reddy,Consumer,P0705,500-Piece Puzzle,Puzzles,2,499.00,0.00,998.00,244.70
+ORD-07-00032,2026-07-12,C07014,Anjali Singh,Corporate,P0706,Kite and Manja Set,Outdoor,3,349.00,52.35,994.65,255.23
+ORD-07-00033,2026-07-13,C07001,Siddharth Reddy,Home Office,P0708,Educational Robot Kit,STEM,3,2499.00,0.00,7497.00,2108.14
+ORD-07-00034,2026-07-14,C07022,Swati Rao,Corporate,P0703,Family Board Game,Games,1,799.00,0.00,799.00,172.35
+ORD-07-00035,2026-07-14,C07002,Pooja Bhatt,Consumer,P0703,Family Board Game,Games,3,799.00,119.85,2277.15,498.23
+ORD-07-00036,2026-07-14,C07029,Nikhil Reddy,Consumer,P0701,Wooden Building Blocks,Learning,3,899.00,0.00,2697.00,750.75
+ORD-07-00037,2026-07-14,C07018,Aarav Chopra,Consumer,P0707,Art and Craft Kit,Creative,1,649.00,0.00,649.00,156.76
+ORD-07-00038,2026-07-16,C07018,Aarav Chopra,Consumer,P0708,Educational Robot Kit,STEM,2,2499.00,0.00,4998.00,1212.86
+ORD-07-00039,2026-07-17,C07029,Nikhil Reddy,Consumer,P0701,Wooden Building Blocks,Learning,1,899.00,0.00,899.00,228.38
+ORD-07-00040,2026-07-17,C07019,Harsh Shah,Corporate,P0703,Family Board Game,Games,2,799.00,159.80,1438.20,398.33
+ORD-07-00041,2026-07-18,C07023,Aarav Joshi,Consumer,P0703,Family Board Game,Games,2,799.00,239.70,1358.30,304.58
+ORD-07-00042,2026-07-18,C07010,Riya Deshmukh,Consumer,P0702,Remote Control Car,Vehicles,1,1499.00,74.95,1424.05,390.04
+ORD-07-00043,2026-07-19,C07004,Priya Shah,Consumer,P0706,Kite and Manja Set,Outdoor,1,349.00,34.90,314.10,72.04
+ORD-07-90005,2026-07-03,C07030,Tanvi Rao,Home Office,P0703,Family Board Game,Games,-2,799.00,0.00,799.00,183.88
+ORD-07-00044,2026-07-19,C07027,Divya Rao,Consumer,P0701,Wooden Building Blocks,Learning,2,899.00,0.00,1798.00,390.52
+ORD-07-00045,2026-07-20,C07009,Aditya Mehta,Consumer,P0708,Educational Robot Kit,STEM,3,2499.00,0.00,7497.00,1691.12
+ORD-07-00046,2026-07-20,C07007,Rahul Singh,Consumer,P0702,Remote Control Car,Vehicles,2,1499.00,299.80,2698.20,686.25
+ORD-07-00047,2026-07-20,C07015,Anjali Desai,Consumer,P0707,Art and Craft Kit,Creative,2,649.00,129.80,1168.20,315.16
+ORD-07-00048,2026-07-21,C07002,Pooja Bhatt,Consumer,P0708,Educational Robot Kit,STEM,1,2499.00,0.00,2499.00,631.53
+ORD-07-00049,2026-07-21,C07013,Manish Singh,Consumer,P0708,Educational Robot Kit,STEM,2,2499.00,0.00,4998.00,1110.08
+ORD-07-00050,2026-07-22,C07020,Sanjay Verma,Consumer,P0704,Large Soft Toy,Soft Toys,2,999.00,0.00,1998.00,493.95
+ORD-07-90007,2026-09-08,C07006,Divya Rao,Home Office,P0702,Remote Control Car,Vehicles,,1499.00,224.85,1274.15,295.68
+ORD-07-00051,2026-07-23,C07020,Sanjay Verma,Consumer,P0704,Large Soft Toy,Soft Toys,2,999.00,199.80,1798.20,508.64
+ORD-07-00052,2026-07-23,C07013,Manish Singh,Consumer,P0701,Wooden Building Blocks,Learning,3,899.00,134.85,2562.15,667.91
+ORD-07-00053,2026-07-23,C07012,Isha Chopra,Consumer,P0705,500-Piece Puzzle,Puzzles,3,499.00,74.85,1422.15,306.59
+ORD-07-00054,2026-07-24,C07025,Amit Deshmukh,Home Office,P0707,Art and Craft Kit,Creative,1,649.00,0.00,649.00,170.58
+ORD-07-00055,2026-07-24,C07003,Siddharth Singh,Consumer,P0704,Large Soft Toy,Soft Toys,2,999.00,0.00,1998.00,547.14
+ORD-07-00056,2026-07-25,C07007,Rahul Singh,Consumer,P0701,Wooden Building Blocks,Learning,2,899.00,269.70,1528.30,336.38
+ORD-07-00057,2026-07-25,C07007,Rahul Singh,Consumer,P0702,Remote Control Car,Vehicles,3,1499.00,224.85,4272.15,1014.20
+ORD-07-00058,2026-07-25,C07022,Swati Rao,Corporate,P0705,500-Piece Puzzle,Puzzles,2,499.00,149.70,848.30,208.92
+ORD-07-00059,2026-07-25,C07013,Manish Singh,Consumer,P0704,Large Soft Toy,Soft Toys,2,999.00,199.80,1798.20,469.03
+ORD-07-00060,2026-07-26,C07009,Aditya Mehta,Consumer,P0708,Educational Robot Kit,STEM,1,2499.00,249.90,2249.10,600.51
+ORD-07-00061,2026-07-26,C07012,Isha Chopra,Consumer,P0702,Remote Control Car,Vehicles,1,1499.00,74.95,1424.05,361.55
+ORD-07-00062,2026-07-27,C07020,Sanjay Verma,Consumer,P0706,Kite and Manja Set,Outdoor,2,349.00,104.70,593.30,133.83
+ORD-07-00063,2026-07-27,C07003,Siddharth Singh,Consumer,P0701,Wooden Building Blocks,Learning,2,899.00,269.70,1528.30,334.32
+ORD-07-00064,2026-07-28,C07009,Aditya Mehta,Consumer,P0703,Family Board Game,Games,1,799.00,79.90,719.10,196.45
+ORD-07-00065,2026-07-28,C07025,Amit Deshmukh,Home Office,P0706,Kite and Manja Set,Outdoor,3,349.00,104.70,942.30,253.99
+ORD-07-00066,2026-07-29,C07023,Aarav Joshi,Consumer,P0701,Wooden Building Blocks,Learning,1,899.00,89.90,809.10,222.59
+ORD-07-00067,2026-07-29,C07017,Arjun Nair,Corporate,P0702,Remote Control Car,Vehicles,2,1499.00,0.00,2998.00,643.89
+ORD-07-00068,2026-07-30,C07017,Arjun Nair,Corporate,P0703,Family Board Game,Games,2,799.00,0.00,1598.00,430.77
+ORD-07-00069,2026-07-31,C07025,Amit Deshmukh,Home Office,P0703,Family Board Game,Games,3,799.00,359.55,2037.45,584.67
+ORD-07-00070,2026-07-31,C07021,Aditya Patel,Consumer,P0706,Kite and Manja Set,Outdoor,2,349.00,0.00,698.00,177.15
+ORD-07-00071,2026-08-01,C07020,Sanjay Verma,Consumer,P0701,Wooden Building Blocks,Learning,3,899.00,269.70,2427.30,621.67
+ORD-07-00072,2026-08-02,C07018,Aarav Chopra,Consumer,P0707,Art and Craft Kit,Creative,1,649.00,32.45,616.55,138.47
+ORD-07-00073,2026-08-02,C07014,Anjali Singh,Corporate,P0701,Wooden Building Blocks,Learning,2,899.00,269.70,1528.30,337.19
+ORD-07-00074,2026-08-02,C07018,Aarav Chopra,Consumer,P0705,500-Piece Puzzle,Puzzles,3,499.00,224.55,1272.45,364.55
+ORD-07-00075,2026-08-04,C07022,Swati Rao,Corporate,P0702,Remote Control Car,Vehicles,3,1499.00,0.00,4497.00,1046.28
+ORD-07-00076,2026-08-04,C07003,Siddharth Singh,Consumer,P0707,Art and Craft Kit,Creative,2,649.00,129.80,1168.20,283.24
+ORD-07-00077,2026-08-05,C07014,Anjali Singh,Corporate,P0707,Art and Craft Kit,Creative,2,649.00,0.00,1298.00,360.73
+ORD-07-00078,2026-08-06,C07029,Nikhil Reddy,Consumer,P0708,Educational Robot Kit,STEM,3,2499.00,749.70,6747.30,1482.69
+ORD-07-00079,2026-08-06,C07014,Anjali Singh,Corporate,P0703,Family Board Game,Games,3,799.00,239.70,2157.30,462.86
+ORD-07-00080,2026-08-06,C07004,Priya Shah,Consumer,P0706,Kite and Manja Set,Outdoor,2,349.00,0.00,698.00,149.93
+ORD-07-00081,2026-08-06,C07013,Manish Singh,Consumer,P0703,Family Board Game,Games,2,799.00,0.00,1598.00,360.89
+ORD-07-90006,not-a-date,C07023,Aarav Joshi,Consumer,P0703,Family Board Game,Games,2,799.00,239.70,1358.30,318.20
+ORD-07-90001,2026-08-08,C07015,Anjali Desai,Consumer,P0703,Family Board Game,Games,,799.00,359.55,2037.45,523.71
+ORD-07-00082,2026-08-07,C07008,Deepak Kulkarni,Consumer,P0702,Remote Control Car,Vehicles,2,1499.00,0.00,2998.00,820.63
+ORD-07-00083,2026-08-07,C07026,Shreya Mehta,Consumer,P0706,Kite and Manja Set,Outdoor,1,349.00,52.35,296.65,79.34
+ORD-07-00084,2026-08-07,C07002,Pooja Bhatt,Consumer,P0705,500-Piece Puzzle,Puzzles,3,499.00,149.70,1347.30,356.35
+ORD-07-00085,2026-08-08,C07015,Anjali Desai,Consumer,P0703,Family Board Game,Games,3,799.00,359.55,2037.45,523.71
+ORD-07-00086,2026-08-09,C07021,Aditya Patel,Consumer,P0703,Family Board Game,Games,1,799.00,0.00,799.00,186.83
+ORD-07-00087,2026-08-09,C07016,Diya Pillai,Consumer,P0705,500-Piece Puzzle,Puzzles,3,499.00,0.00,1497.00,397.82
+ORD-07-00088,2026-08-09,C07015,Anjali Desai,Consumer,P0701,Wooden Building Blocks,Learning,1,899.00,0.00,899.00,215.24
+ORD-07-00089,2026-08-09,C07016,Diya Pillai,Consumer,P0706,Kite and Manja Set,Outdoor,3,349.00,157.05,889.95,243.02
+ORD-07-00090,2026-08-09,C07011,Arjun Desai,Consumer,P0702,Remote Control Car,Vehicles,1,1499.00,224.85,1274.15,355.21
+ORD-07-00091,2026-08-10,C07021,Aditya Patel,Consumer,P0701,Wooden Building Blocks,Learning,3,899.00,269.70,2427.30,527.36
+ORD-07-00092,2026-08-10,C07003,Siddharth Singh,Consumer,P0705,500-Piece Puzzle,Puzzles,1,499.00,74.85,424.15,100.32
+ORD-07-00093,2026-08-10,C07030,Tanvi Rao,Home Office,P0708,Educational Robot Kit,STEM,1,2499.00,249.90,2249.10,634.95
+ORD-07-00094,2026-08-10,C07014,Anjali Singh,Corporate,P0701,Wooden Building Blocks,Learning,3,899.00,0.00,2697.00,699.88
+ORD-07-00095,2026-08-11,C07019,Harsh Shah,Corporate,P0701,Wooden Building Blocks,Learning,1,899.00,134.85,764.15,214.32
+ORD-07-00096,2026-08-11,C07003,Siddharth Singh,Consumer,P0705,500-Piece Puzzle,Puzzles,1,499.00,24.95,474.05,118.92
+ORD-07-00097,2026-08-12,C07029,Nikhil Reddy,Consumer,P0701,Wooden Building Blocks,Learning,2,899.00,0.00,1798.00,402.78
+ORD-07-00098,2026-08-12,C07012,Isha Chopra,Consumer,P0701,Wooden Building Blocks,Learning,1,899.00,0.00,899.00,227.62
+ORD-07-00099,2026-08-12,C07018,Aarav Chopra,Consumer,P0704,Large Soft Toy,Soft Toys,2,999.00,99.90,1898.10,439.06
+ORD-07-00100,2026-08-13,C07023,Aarav Joshi,Consumer,P0702,Remote Control Car,Vehicles,2,1499.00,449.70,2548.30,659.59
+ORD-07-00101,2026-08-14,C07008,Deepak Kulkarni,Consumer,P0705,500-Piece Puzzle,Puzzles,3,499.00,149.70,1347.30,353.82
+ORD-07-00102,2026-08-16,C07014,Anjali Singh,Corporate,P0703,Family Board Game,Games,3,799.00,0.00,2397.00,542.31
+ORD-07-00103,2026-08-16,C07030,Tanvi Rao,Home Office,P0703,Family Board Game,Games,1,799.00,0.00,799.00,219.18
+ORD-07-00104,2026-08-16,C07009,Aditya Mehta,Consumer,P0701,Wooden Building Blocks,Learning,3,899.00,404.55,2292.45,633.23
+ORD-07-90003,not-a-date,C07019,Harsh Shah,Corporate,P0707,Art and Craft Kit,Creative,3,649.00,0.00,1947.00,547.00
+ORD-07-00105,2026-08-17,C07008,Deepak Kulkarni,Consumer,P0702,Remote Control Car,Vehicles,3,1499.00,0.00,4497.00,1105.13
+ORD-07-00106,2026-08-17,C07005,Harsh Malhotra,Corporate,P0707,Art and Craft Kit,Creative,1,649.00,0.00,649.00,160.83
+ORD-07-00107,2026-08-18,C07014,Anjali Singh,Corporate,P0703,Family Board Game,Games,1,799.00,79.90,719.10,157.22
+ORD-07-00108,2026-08-18,C07016,Diya Pillai,Consumer,P0705,500-Piece Puzzle,Puzzles,3,499.00,0.00,1497.00,361.93
+ORD-07-00109,2026-08-19,C07005,Harsh Malhotra,Corporate,P0707,Art and Craft Kit,Creative,2,649.00,129.80,1168.20,289.59
+ORD-07-00110,2026-08-19,C07024,Rohan Chopra,Consumer,P0701,Wooden Building Blocks,Learning,1,899.00,0.00,899.00,237.19
+ORD-07-00111,2026-08-19,C07023,Aarav Joshi,Consumer,P0701,Wooden Building Blocks,Learning,2,899.00,89.90,1708.10,482.50
+ORD-07-00112,2026-08-19,C07005,Harsh Malhotra,Corporate,P0707,Art and Craft Kit,Creative,3,649.00,0.00,1947.00,431.30
+ORD-07-00113,2026-08-20,C07005,Harsh Malhotra,Corporate,P0707,Art and Craft Kit,Creative,1,649.00,97.35,551.65,138.54
+ORD-07-00114,2026-08-20,C07002,Pooja Bhatt,Consumer,P0705,500-Piece Puzzle,Puzzles,2,499.00,99.80,898.20,228.49
+ORD-07-00115,2026-08-20,C07013,Manish Singh,Consumer,P0704,Large Soft Toy,Soft Toys,3,999.00,0.00,2997.00,725.40
+ORD-07-00116,2026-08-20,C07018,Aarav Chopra,Consumer,P0706,Kite and Manja Set,Outdoor,2,349.00,34.90,663.10,177.05
+ORD-07-00117,2026-08-20,C07019,Harsh Shah,Corporate,P0705,500-Piece Puzzle,Puzzles,2,499.00,49.90,948.10,246.14
+ORD-07-00118,2026-08-21,C07005,Harsh Malhotra,Corporate,P0704,Large Soft Toy,Soft Toys,2,999.00,0.00,1998.00,485.64
+ORD-07-00119,2026-08-22,C07002,Pooja Bhatt,Consumer,P0705,500-Piece Puzzle,Puzzles,1,499.00,0.00,499.00,115.56
+ORD-07-00120,2026-08-22,C07007,Rahul Singh,Consumer,P0705,500-Piece Puzzle,Puzzles,3,499.00,0.00,1497.00,402.48
+ORD-07-00121,2026-08-22,C07024,Rohan Chopra,Consumer,P0706,Kite and Manja Set,Outdoor,3,349.00,104.70,942.30,224.80
+ORD-07-00122,2026-08-23,C07013,Manish Singh,Consumer,P0701,Wooden Building Blocks,Learning,1,899.00,0.00,899.00,226.51
+ORD-07-00123,2026-08-24,C07018,Aarav Chopra,Consumer,P0705,500-Piece Puzzle,Puzzles,3,499.00,149.70,1347.30,304.63
+ORD-07-00124,2026-08-24,C07029,Nikhil Reddy,Consumer,P0701,Wooden Building Blocks,Learning,1,899.00,134.85,764.15,177.66
+ORD-07-00125,2026-08-25,C07016,Diya Pillai,Consumer,P0708,Educational Robot Kit,STEM,3,2499.00,0.00,7497.00,1744.31
+ORD-07-00126,2026-08-25,C07022,Swati Rao,Corporate,P0704,Large Soft Toy,Soft Toys,1,999.00,0.00,999.00,286.14
+ORD-07-00127,2026-08-25,C07012,Isha Chopra,Consumer,P0704,Large Soft Toy,Soft Toys,2,999.00,0.00,1998.00,507.10
+ORD-07-00128,2026-08-28,C07008,Deepak Kulkarni,Consumer,P0705,500-Piece Puzzle,Puzzles,3,499.00,0.00,1497.00,359.82
+ORD-07-00129,2026-08-29,C07012,Isha Chopra,Consumer,P0704,Large Soft Toy,Soft Toys,1,999.00,0.00,999.00,214.16
+ORD-07-00130,2026-08-29,C07015,Anjali Desai,Consumer,P0707,Art and Craft Kit,Creative,1,649.00,97.35,551.65,119.08
+ORD-07-00131,2026-08-29,C07008,Deepak Kulkarni,Consumer,P0704,Large Soft Toy,Soft Toys,1,999.00,149.85,849.15,199.10
+ORD-07-00132,2026-08-29,C07008,Deepak Kulkarni,Consumer,P0708,Educational Robot Kit,STEM,1,2499.00,0.00,2499.00,567.70
+ORD-07-00133,2026-08-29,C07008,Deepak Kulkarni,Consumer,P0705,500-Piece Puzzle,Puzzles,3,499.00,224.55,1272.45,328.11
+ORD-07-00134,2026-08-31,C07006,Divya Rao,Home Office,P0702,Remote Control Car,Vehicles,3,1499.00,0.00,4497.00,1156.28
+ORD-07-00135,2026-09-01,C07007,Rahul Singh,Consumer,P0704,Large Soft Toy,Soft Toys,3,999.00,449.55,2547.45,671.44
+ORD-07-00136,2026-09-01,C07001,Siddharth Reddy,Home Office,P0703,Family Board Game,Games,2,799.00,0.00,1598.00,413.00
+ORD-07-00137,2026-09-01,C07010,Riya Deshmukh,Consumer,P0702,Remote Control Car,Vehicles,3,1499.00,0.00,4497.00,1010.61
+ORD-07-00138,2026-09-02,C07011,Arjun Desai,Consumer,P0704,Large Soft Toy,Soft Toys,2,999.00,299.70,1698.30,443.03
+ORD-07-00139,2026-09-02,C07012,Isha Chopra,Consumer,P0701,Wooden Building Blocks,Learning,2,899.00,0.00,1798.00,395.15
+ORD-07-00140,2026-09-02,C07011,Arjun Desai,Consumer,P0701,Wooden Building Blocks,Learning,3,899.00,0.00,2697.00,745.71
+ORD-07-00141,2026-09-03,C07017,Arjun Nair,Corporate,P0705,500-Piece Puzzle,Puzzles,3,499.00,0.00,1497.00,381.81
+ORD-07-00142,2026-09-03,C07024,Rohan Chopra,Consumer,P0708,Educational Robot Kit,STEM,1,2499.00,124.95,2374.05,528.12
+ORD-07-00143,2026-09-04,C07026,Shreya Mehta,Consumer,P0701,Wooden Building Blocks,Learning,3,899.00,0.00,2697.00,693.93
+ORD-07-00144,2026-09-05,C07014,Anjali Singh,Corporate,P0704,Large Soft Toy,Soft Toys,3,999.00,449.55,2547.45,723.75
+ORD-07-00145,2026-09-06,C07019,Harsh Shah,Corporate,P0708,Educational Robot Kit,STEM,1,2499.00,0.00,2499.00,613.72
+ORD-07-00146,2026-09-07,C07003,Siddharth Singh,Consumer,P0702,Remote Control Car,Vehicles,3,1499.00,0.00,4497.00,983.83
+ORD-07-00147,2026-09-08,C07027,Divya Rao,Consumer,P0705,500-Piece Puzzle,Puzzles,1,499.00,49.90,449.10,127.45
+ORD-07-00148,2026-09-08,C07006,Divya Rao,Home Office,P0702,Remote Control Car,Vehicles,1,1499.00,224.85,1274.15,295.68
+ORD-07-00149,2026-09-09,C07004,Priya Shah,Consumer,P0708,Educational Robot Kit,STEM,1,2499.00,249.90,2249.10,577.67
+ORD-07-00150,2026-09-09,C07011,Arjun Desai,Consumer,P0702,Remote Control Car,Vehicles,1,1499.00,0.00,1499.00,402.57
+ORD-07-00151,2026-09-09,C07015,Anjali Desai,Consumer,P0706,Kite and Manja Set,Outdoor,1,349.00,34.90,314.10,73.65
+ORD-07-00152,2026-09-10,C07015,Anjali Desai,Consumer,P0702,Remote Control Car,Vehicles,3,1499.00,224.85,4272.15,930.12
+ORD-07-00153,2026-09-13,C07019,Harsh Shah,Corporate,P0707,Art and Craft Kit,Creative,1,649.00,97.35,551.65,126.87
+ORD-07-00154,2026-09-14,C07022,Swati Rao,Corporate,P0706,Kite and Manja Set,Outdoor,1,349.00,17.45,331.55,79.02
+ORD-07-00155,2026-09-14,C07030,Tanvi Rao,Home Office,P0706,Kite and Manja Set,Outdoor,2,349.00,104.70,593.30,166.39
+ORD-07-00156,2026-09-14,C07014,Anjali Singh,Corporate,P0701,Wooden Building Blocks,Learning,1,899.00,134.85,764.15,164.53
+ORD-07-00157,2026-09-14,C07024,Rohan Chopra,Consumer,P0701,Wooden Building Blocks,Learning,2,899.00,0.00,1798.00,400.36
+ORD-07-00158,2026-09-18,C07005,Harsh Malhotra,Corporate,P0708,Educational Robot Kit,STEM,1,2499.00,374.85,2124.15,451.43
+ORD-07-00159,2026-09-18,C07008,Deepak Kulkarni,Consumer,P0702,Remote Control Car,Vehicles,2,1499.00,149.90,2848.10,744.85
+ORD-07-00160,2026-09-20,C07030,Tanvi Rao,Home Office,P0702,Remote Control Car,Vehicles,3,1499.00,224.85,4272.15,1141.92
+ORD-07-00161,2026-09-23,C07027,Divya Rao,Consumer,P0707,Art and Craft Kit,Creative,1,649.00,0.00,649.00,173.35
+ORD-07-00162,2026-09-24,C07016,Diya Pillai,Consumer,P0704,Large Soft Toy,Soft Toys,3,999.00,449.55,2547.45,650.98
+ORD-07-90008,2026-09-03,C07017,Arjun Nair,Corporate,P0705,500-Piece Puzzle,Puzzles,-2,499.00,0.00,1497.00,381.81
+ORD-07-00163,2026-09-26,C07004,Priya Shah,Consumer,P0708,Educational Robot Kit,STEM,1,2499.00,0.00,2499.00,537.82
+ORD-07-00164,2026-09-27,C07030,Tanvi Rao,Home Office,P0701,Wooden Building Blocks,Learning,1,899.00,134.85,764.15,180.71
+ORD-07-00165,2026-09-27,C07028,Aarav Menon,Consumer,P0701,Wooden Building Blocks,Learning,3,899.00,404.55,2292.45,490.02
+ORD-07-00166,2026-09-28,C07017,Arjun Nair,Corporate,P0704,Large Soft Toy,Soft Toys,3,999.00,449.55,2547.45,560.95
+ORD-07-00167,2026-09-28,C07015,Anjali Desai,Consumer,P0705,500-Piece Puzzle,Puzzles,1,499.00,0.00,499.00,123.01
+ORD-07-00168,2026-09-29,C07012,Isha Chopra,Consumer,P0704,Large Soft Toy,Soft Toys,3,999.00,449.55,2547.45,716.73
+ORD-07-00169,2026-10-03,C07010,Riya Deshmukh,Consumer,P0702,Remote Control Car,Vehicles,2,1499.00,0.00,2998.00,827.41
+ORD-07-00170,2026-10-03,C07009,Aditya Mehta,Consumer,P0706,Kite and Manja Set,Outdoor,2,349.00,0.00,698.00,156.98
+ORD-07-00171,2026-10-04,C07028,Aarav Menon,Consumer,P0703,Family Board Game,Games,1,799.00,39.95,759.05,163.17
+ORD-07-00172,2026-10-05,C07011,Arjun Desai,Consumer,P0705,500-Piece Puzzle,Puzzles,1,499.00,0.00,499.00,133.05
+ORD-07-00173,2026-10-06,C07012,Isha Chopra,Consumer,P0708,Educational Robot Kit,STEM,2,2499.00,499.80,4498.20,1123.31
+ORD-07-00174,2026-10-09,C07019,Harsh Shah,Corporate,P0706,Kite and Manja Set,Outdoor,1,349.00,0.00,349.00,83.91
+ORD-07-00175,2026-10-14,C07020,Sanjay Verma,Consumer,P0701,Wooden Building Blocks,Learning,1,899.00,0.00,899.00,221.63
+ORD-07-00176,2026-10-16,C07024,Rohan Chopra,Consumer,P0701,Wooden Building Blocks,Learning,3,899.00,0.00,2697.00,748.24
+ORD-07-00177,2026-10-18,C07027,Divya Rao,Consumer,P0707,Art and Craft Kit,Creative,1,649.00,0.00,649.00,176.49
+ORD-07-00178,2026-10-19,C07030,Tanvi Rao,Home Office,P0701,Wooden Building Blocks,Learning,3,899.00,0.00,2697.00,752.72
+ORD-07-00179,2026-10-19,C07023,Aarav Joshi,Consumer,P0706,Kite and Manja Set,Outdoor,1,349.00,0.00,349.00,79.22
+ORD-07-00180,2026-10-19,C07027,Divya Rao,Consumer,P0707,Art and Craft Kit,Creative,2,649.00,194.70,1103.30,280.49

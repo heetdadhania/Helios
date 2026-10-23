@@ -1,0 +1,496 @@
+{
+  "1": {
+    "organization": "Kaveri Textiles & Crafts",
+    "industry": "Apparel",
+    "valid_orders": 260,
+    "revenue_total": "701363.25",
+    "avg_order_value": "2697.55",
+    "total_profit": "210690.55",
+    "total_discount": "37810.75",
+    "data_as_of": "2026-10-19",
+    "revenue_last_7_days": "68941.10",
+    "revenue_last_30_days": "253911.75",
+    "top5_products_by_revenue": [
+      [
+        "Silk Saree",
+        "256948.60"
+      ],
+      [
+        "Linen Trousers",
+        "83707.65"
+      ],
+      [
+        "Handloom Dupatta",
+        "82226.70"
+      ],
+      [
+        "Cotton Kurta",
+        "74386.90"
+      ],
+      [
+        "Block Print Shirt",
+        "68043.25"
+      ]
+    ],
+    "revenue_by_category": {
+      "Accessories": "37606.50",
+      "Ethnic Wear": "413562.20",
+      "Kidswear": "41450.70",
+      "Menswear": "151750.90",
+      "Womenswear": "56992.95"
+    },
+    "shipments_by_mode": {
+      "Standard Class": 118,
+      "Second Class": 59,
+      "Same Day": 16,
+      "First Class": 67
+    },
+    "late_delivery_percent": 21.15,
+    "bad_rows_included": 6
+  },
+  "2": {
+    "organization": "Sahyadri Infotech Solutions",
+    "industry": "Electronics",
+    "valid_orders": 230,
+    "revenue_total": "959783.15",
+    "avg_order_value": "4172.97",
+    "total_profit": "171632.12",
+    "total_discount": "58779.85",
+    "data_as_of": "2026-10-19",
+    "revenue_last_7_days": "55259.25",
+    "revenue_last_30_days": "263744.30",
+    "top5_products_by_revenue": [
+      [
+        "Wi-Fi 6 Router",
+        "196350.90"
+      ],
+      [
+        "Smart Watch",
+        "193232.05"
+      ],
+      [
+        "Wireless Earbuds",
+        "175112.40"
+      ],
+      [
+        "HD Webcam",
+        "141273.55"
+      ],
+      [
+        "Bluetooth Speaker",
+        "109081.35"
+      ]
+    ],
+    "revenue_by_category": {
+      "Audio": "284193.75",
+      "Computer Accessories": "171915.20",
+      "Mobile Accessories": "114091.25",
+      "Networking": "196350.90",
+      "Wearables": "193232.05"
+    },
+    "shipments_by_mode": {
+      "Same Day": 19,
+      "Standard Class": 105,
+      "First Class": 59,
+      "Second Class": 47
+    },
+    "late_delivery_percent": 15.22,
+    "bad_rows_included": 0
+  },
+  "3": {
+    "organization": "Vanguard Home Office",
+    "industry": "Home & Office",
+    "valid_orders": 200,
+    "revenue_total": "1053665.50",
+    "avg_order_value": "5268.33",
+    "total_profit": "294648.50",
+    "total_discount": "45474.50",
+    "data_as_of": "2026-10-19",
+    "revenue_last_7_days": "78613.25",
+    "revenue_last_30_days": "395634.50",
+    "top5_products_by_revenue": [
+      [
+        "Ergonomic Office Chair",
+        "495844.90"
+      ],
+      [
+        "Filing Cabinet",
+        "199613.70"
+      ],
+      [
+        "Study Desk",
+        "187821.10"
+      ],
+      [
+        "Whiteboard",
+        "58869.00"
+      ],
+      [
+        "Monitor Stand",
+        "50516.30"
+      ]
+    ],
+    "revenue_by_category": {
+      "Accessories": "62072.65",
+      "Furniture": "683666.00",
+      "Lighting": "32604.90",
+      "Stationery": "75708.25",
+      "Storage": "199613.70"
+    },
+    "shipments_by_mode": {
+      "Standard Class": 109,
+      "Second Class": 48,
+      "First Class": 26,
+      "Same Day": 17
+    },
+    "late_delivery_percent": 19.0,
+    "bad_rows_included": 0
+  },
+  "4": {
+    "organization": "Velvet Botanicals",
+    "industry": "Beauty",
+    "valid_orders": 250,
+    "revenue_total": "213153.35",
+    "avg_order_value": "852.61",
+    "total_profit": "95419.00",
+    "total_discount": "11075.65",
+    "data_as_of": "2026-10-19",
+    "revenue_last_7_days": "32029.35",
+    "revenue_last_30_days": "83156.85",
+    "top5_products_by_revenue": [
+      [
+        "Vitamin C Serum",
+        "60763.95"
+      ],
+      [
+        "Body Lotion",
+        "29117.65"
+      ],
+      [
+        "Amla Hair Oil",
+        "28722.70"
+      ],
+      [
+        "Sandalwood Soap Pack",
+        "28508.55"
+      ],
+      [
+        "Herbal Face Wash",
+        "25559.85"
+      ]
+    ],
+    "revenue_by_category": {
+      "Bath & Body": "57626.20",
+      "Haircare": "28722.70",
+      "Makeup": "24035.65",
+      "Skincare": "102768.80"
+    },
+    "shipments_by_mode": {
+      "Second Class": 65,
+      "Standard Class": 107,
+      "First Class": 50,
+      "Same Day": 28
+    },
+    "late_delivery_percent": 12.8,
+    "bad_rows_included": 6
+  },
+  "5": {
+    "organization": "Summit Peak Athletics",
+    "industry": "Sports",
+    "valid_orders": 190,
+    "revenue_total": "555744.70",
+    "avg_order_value": "2924.97",
+    "total_profit": "150811.94",
+    "total_discount": "34868.30",
+    "data_as_of": "2026-10-19",
+    "revenue_last_7_days": "68291.30",
+    "revenue_last_30_days": "197764.70",
+    "top5_products_by_revenue": [
+      [
+        "Running Shoes",
+        "167777.05"
+      ],
+      [
+        "Badminton Racket",
+        "90849.50"
+      ],
+      [
+        "Cricket Bat",
+        "83822.05"
+      ],
+      [
+        "Dumbbell Set",
+        "83216.70"
+      ],
+      [
+        "Yoga Mat",
+        "74886.70"
+      ]
+    ],
+    "revenue_by_category": {
+      "Accessories": "20811.15",
+      "Cricket": "110297.85",
+      "Fitness": "166009.15",
+      "Footwear": "167777.05",
+      "Racket Sports": "90849.50"
+    },
+    "shipments_by_mode": {
+      "Standard Class": 83,
+      "Second Class": 48,
+      "Same Day": 22,
+      "First Class": 37
+    },
+    "late_delivery_percent": 18.95,
+    "bad_rows_included": 0
+  },
+  "6": {
+    "organization": "Page & Quill Publishing",
+    "industry": "Books",
+    "valid_orders": 210,
+    "revenue_total": "292575.05",
+    "avg_order_value": "1393.21",
+    "total_profit": "102664.06",
+    "total_discount": "15198.95",
+    "data_as_of": "2026-10-19",
+    "revenue_last_7_days": "13229.65",
+    "revenue_last_30_days": "89692.65",
+    "top5_products_by_revenue": [
+      [
+        "Competitive Exam Guide",
+        "65222.45"
+      ],
+      [
+        "Children's Story Set",
+        "44980.65"
+      ],
+      [
+        "Comic Collection",
+        "43265.85"
+      ],
+      [
+        "Hardcover Novel",
+        "37350.15"
+      ],
+      [
+        "Dictionary",
+        "30083.00"
+      ]
+    ],
+    "revenue_by_category": {
+      "Comics": "43265.85",
+      "Education": "65222.45",
+      "Fiction": "37350.15",
+      "Kids": "44980.65",
+      "Lifestyle": "28811.90",
+      "Non-Fiction": "29107.05",
+      "Reference": "30083.00",
+      "Stationery": "13754.00"
+    },
+    "shipments_by_mode": {
+      "Standard Class": 87,
+      "First Class": 45,
+      "Second Class": 59,
+      "Same Day": 19
+    },
+    "late_delivery_percent": 11.43,
+    "bad_rows_included": 0
+  },
+  "7": {
+    "organization": "WonderKite Toyworks",
+    "industry": "Toys",
+    "valid_orders": 180,
+    "revenue_total": "340459.30",
+    "avg_order_value": "1891.44",
+    "total_profit": "84368.57",
+    "total_discount": "18634.70",
+    "data_as_of": "2026-10-19",
+    "revenue_last_7_days": "8394.30",
+    "revenue_last_30_days": "36813.65",
+    "top5_products_by_revenue": [
+      [
+        "Educational Robot Kit",
+        "86215.50"
+      ],
+      [
+        "Remote Control Car",
+        "69478.65"
+      ],
+      [
+        "Wooden Building Blocks",
+        "53625.35"
+      ],
+      [
+        "Large Soft Toy",
+        "40609.35"
+      ],
+      [
+        "Family Board Game",
+        "33518.05"
+      ]
+    ],
+    "revenue_by_category": {
+      "Creative": "21546.80",
+      "Games": "33518.05",
+      "Learning": "53625.35",
+      "Outdoor": "9667.30",
+      "Puzzles": "25798.30",
+      "STEM": "86215.50",
+      "Soft Toys": "40609.35",
+      "Vehicles": "69478.65"
+    },
+    "shipments_by_mode": {
+      "First Class": 36,
+      "Second Class": 45,
+      "Same Day": 17,
+      "Standard Class": 82
+    },
+    "late_delivery_percent": 45.56,
+    "bad_rows_included": 8
+  },
+  "8": {
+    "organization": "Terra Verde Organics",
+    "industry": "Grocery",
+    "valid_orders": 300,
+    "revenue_total": "310049.30",
+    "avg_order_value": "1033.50",
+    "total_profit": "36985.65",
+    "total_discount": "14662.70",
+    "data_as_of": "2026-10-19",
+    "revenue_last_7_days": "26030.70",
+    "revenue_last_30_days": "84003.85",
+    "top5_products_by_revenue": [
+      [
+        "Basmati Rice 5kg",
+        "110650.95"
+      ],
+      [
+        "Mixed Dry Fruits 500g",
+        "64657.50"
+      ],
+      [
+        "Groundnut Oil 1L",
+        "35545.65"
+      ],
+      [
+        "Whole Wheat Atta 5kg",
+        "29092.70"
+      ],
+      [
+        "Masala Chai 250g",
+        "25480.65"
+      ]
+    ],
+    "revenue_by_category": {
+      "Beverages": "25480.65",
+      "Oils": "35545.65",
+      "Pulses": "22198.05",
+      "Snacks": "64657.50",
+      "Spices": "11642.40",
+      "Staples": "150525.05"
+    },
+    "shipments_by_mode": {
+      "Second Class": 65,
+      "Standard Class": 145,
+      "First Class": 60,
+      "Same Day": 30
+    },
+    "late_delivery_percent": 18.33,
+    "bad_rows_included": 0
+  },
+  "9": {
+    "organization": "Luminary Fine Gems",
+    "industry": "Jewellery",
+    "valid_orders": 120,
+    "revenue_total": "627717.30",
+    "avg_order_value": "5230.98",
+    "total_profit": "186859.50",
+    "total_discount": "35601.70",
+    "data_as_of": "2026-10-19",
+    "revenue_last_7_days": "64369.60",
+    "revenue_last_30_days": "253295.25",
+    "top5_products_by_revenue": [
+      [
+        "Temple Jewellery Haram",
+        "181336.05"
+      ],
+      [
+        "Mangalsutra",
+        "128759.85"
+      ],
+      [
+        "Kundan Necklace Set",
+        "120382.80"
+      ],
+      [
+        "Gold-Plated Earrings",
+        "66066.95"
+      ],
+      [
+        "Pearl Studs",
+        "51790.45"
+      ]
+    ],
+    "revenue_by_category": {
+      "Bridal": "430478.70",
+      "Fashion": "144962.25",
+      "Silver": "52276.35"
+    },
+    "shipments_by_mode": {
+      "First Class": 27,
+      "Second Class": 25,
+      "Standard Class": 58,
+      "Same Day": 10
+    },
+    "late_delivery_percent": 19.17,
+    "bad_rows_included": 0
+  },
+  "10": {
+    "organization": "Paws & Trails Outfitters",
+    "industry": "Pet Supplies",
+    "valid_orders": 170,
+    "revenue_total": "228936.20",
+    "avg_order_value": "1346.68",
+    "total_profit": "73318.19",
+    "total_discount": "13189.80",
+    "data_as_of": "2026-10-19",
+    "revenue_last_7_days": "25731.30",
+    "revenue_last_30_days": "88416.10",
+    "top5_products_by_revenue": [
+      [
+        "Pet Bed Medium",
+        "80955.00"
+      ],
+      [
+        "Dog Food 3kg",
+        "49445.00"
+      ],
+      [
+        "Cat Scratcher",
+        "27733.65"
+      ],
+      [
+        "Cat Litter 5kg",
+        "19411.10"
+      ],
+      [
+        "Pet Leash",
+        "17456.25"
+      ]
+    ],
+    "revenue_by_category": {
+      "Accessories": "10569.65",
+      "Cat Care": "47144.75",
+      "Comfort": "80955.00",
+      "Dog Care": "80686.75",
+      "Grooming": "9580.05"
+    },
+    "shipments_by_mode": {
+      "Standard Class": 72,
+      "Second Class": 48,
+      "First Class": 40,
+      "Same Day": 10
+    },
+    "late_delivery_percent": 8.82,
+    "bad_rows_included": 0
+  }
+}

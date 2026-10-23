@@ -1,0 +1,11 @@
+org_id,organization,industry,orders_file,shipping_file,rows_in_orders_file,valid_orders,bad_rows,expected_revenue_inr,data_as_of,expected_late_percent
+1,Kaveri Textiles & Crafts,Apparel,org01_orders.csv,org01_shipping.csv,266,260,6,701363.25,2026-10-19,21.15
+2,Sahyadri Infotech Solutions,Electronics,org02_orders.csv,org02_shipping.csv,230,230,0,959783.15,2026-10-19,15.22
+3,Vanguard Home Office,Home & Office,org03_orders.xlsx,org03_shipping.csv,200,200,0,1053665.50,2026-10-19,19.0
+4,Velvet Botanicals,Beauty,org04_orders.csv,org04_shipping.csv,256,250,6,213153.35,2026-10-19,12.8
+5,Summit Peak Athletics,Sports,org05_orders.csv,org05_shipping.csv,190,190,0,555744.70,2026-10-19,18.95
+6,Page & Quill Publishing,Books,org06_orders.xlsx,org06_shipping.csv,210,210,0,292575.05,2026-10-19,11.43
+7,WonderKite Toyworks,Toys,org07_orders.csv,org07_shipping.csv,188,180,8,340459.30,2026-10-19,45.56
+8,Terra Verde Organics,Grocery,org08_orders.csv,org08_shipping.csv,300,300,0,310049.30,2026-10-19,18.33
+9,Luminary Fine Gems,Jewellery,org09_orders.csv,org09_shipping.csv,120,120,0,627717.30,2026-10-19,19.17
+10,Paws & Trails Outfitters,Pet Supplies,org10_orders.csv,org10_shipping.csv,170,170,0,228936.20,2026-10-19,8.82

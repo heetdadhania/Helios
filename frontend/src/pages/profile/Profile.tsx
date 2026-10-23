@@ -19,8 +19,16 @@ import {
   Building,
   Activity,
   UserCheck,
+  Edit3,
+  Save,
+  X,
+  AlertCircle,
+  CheckCircle2,
+  Lock,
 } from 'lucide-react';
 import { profileService } from '@/services/profileService';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/components/ui/Toast';
 import {
   ProfileData,
   OwnerProfileData,
@@ -30,11 +38,80 @@ import {
 import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton';
 import { formatDateIN, formatDateTimeIN, formatCountIN } from '@/utils/currency';
 
+export const INDIAN_STATES_AND_UTS = [
+  'Andhra Pradesh',
+  'Arunachal Pradesh',
+  'Assam',
+  'Bihar',
+  'Chhattisgarh',
+  'Goa',
+  'Gujarat',
+  'Haryana',
+  'Himachal Pradesh',
+  'Jharkhand',
+  'Karnataka',
+  'Kerala',
+  'Madhya Pradesh',
+  'Maharashtra',
+  'Manipur',
+  'Meghalaya',
+  'Mizoram',
+  'Nagaland',
+  'Odisha',
+  'Punjab',
+  'Rajasthan',
+  'Sikkim',
+  'Tamil Nadu',
+  'Telangana',
+  'Tripura',
+  'Uttar Pradesh',
+  'Uttarakhand',
+  'West Bengal',
+  'Andaman and Nicobar Islands',
+  'Chandigarh',
+  'Dadra and Nagar Haveli and Daman and Diu',
+  'Delhi',
+  'Jammu and Kashmir',
+  'Ladakh',
+  'Lakshadweep',
+  'Puducherry',
+] as const;
+
 export const Profile: React.FC = () => {
   const navigate = useNavigate();
+  const { updateUser } = useAuth();
+  const toast = useToast();
+
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Edit states
+  const [isEditingDetails, setIsEditingDetails] = useState<boolean>(false);
+  const [detailsForm, setDetailsForm] = useState({ name: '', phone: '' });
+  const [detailsErrors, setDetailsErrors] = useState<{ name?: string; phone?: string }>({});
+  const [savingDetails, setSavingDetails] = useState<boolean>(false);
+
+  const [isEditingOrg, setIsEditingOrg] = useState<boolean>(false);
+  const [orgForm, setOrgForm] = useState({
+    contact_person_name: '',
+    phone_number: '',
+    address_line1: '',
+    address_line2: '',
+    city: '',
+    state: '',
+    postal_code: '',
+    website_url: '',
+    tax_id: '',
+  });
+  const [orgErrors, setOrgErrors] = useState<Record<string, string>>({});
+  const [savingOrg, setSavingOrg] = useState<boolean>(false);
+
+  // Email Change Modal state
+  const [showEmailModal, setShowEmailModal] = useState<boolean>(false);
+  const [emailForm, setEmailForm] = useState({ new_email: '', current_password: '' });
+  const [emailErrors, setEmailErrors] = useState<{ new_email?: string; current_password?: string; general?: string }>({});
+  const [savingEmail, setSavingEmail] = useState<boolean>(false);
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -42,6 +119,25 @@ export const Profile: React.FC = () => {
     try {
       const data = await profileService.getProfile();
       setProfile(data);
+      // Initialize edit forms with fetched data
+      setDetailsForm({
+        name: data.me.name || '',
+        phone: data.me.phone || '',
+      });
+      if (data.role === 'smb_owner' && (data as OwnerProfileData).organization) {
+        const org = (data as OwnerProfileData).organization!;
+        setOrgForm({
+          contact_person_name: org.contact_person || '',
+          phone_number: org.phone || '',
+          address_line1: org.address_line1 || '',
+          address_line2: org.address_line2 || '',
+          city: org.city || '',
+          state: org.state || '',
+          postal_code: org.pin_code || '',
+          website_url: org.website || '',
+          tax_id: org.gstin || '',
+        });
+      }
     } catch (err: any) {
       const detail = err?.response?.data?.detail;
       setError(detail || 'Failed to load profile details. Please try again.');
@@ -53,6 +149,245 @@ export const Profile: React.FC = () => {
   useEffect(() => {
     fetchProfile();
   }, []);
+
+  // Warn if leaving page with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isEditingDetails || isEditingOrg) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isEditingDetails, isEditingOrg]);
+
+  // Validation functions
+  const validateDetails = (): boolean => {
+    const errs: { name?: string; phone?: string } = {};
+    const trimmedName = detailsForm.name.trim();
+    if (!trimmedName || trimmedName.length < 2) {
+      errs.name = 'Full name must be at least 2 characters';
+    } else if (trimmedName.length > 100) {
+      errs.name = 'Full name cannot exceed 100 characters';
+    }
+
+    if (detailsForm.phone && detailsForm.phone.trim()) {
+      const trimmedPhone = detailsForm.phone.trim();
+      const phoneRegex = /^(\+91[\-\s]?)?[6-9]\d{9}$/;
+      if (!phoneRegex.test(trimmedPhone)) {
+        errs.phone = 'Phone number must be a valid 10-digit Indian number starting with 6-9 (optional +91)';
+      }
+    }
+
+    setDetailsErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const validateOrg = (): boolean => {
+    const errs: Record<string, string> = {};
+
+    if (orgForm.contact_person_name && orgForm.contact_person_name.trim()) {
+      const cp = orgForm.contact_person_name.trim();
+      if (cp.length < 2) errs.contact_person_name = 'Contact person name must be at least 2 characters';
+      if (cp.length > 100) errs.contact_person_name = 'Contact person name cannot exceed 100 characters';
+    }
+
+    if (orgForm.phone_number && orgForm.phone_number.trim()) {
+      const p = orgForm.phone_number.trim();
+      const phoneRegex = /^(\+91[\-\s]?)?[6-9]\d{9}$/;
+      if (!phoneRegex.test(p)) {
+        errs.phone_number = 'Phone number must be a valid 10-digit Indian number starting with 6-9 (optional +91)';
+      }
+    }
+
+    if (orgForm.address_line1 && orgForm.address_line1.trim()) {
+      const a1 = orgForm.address_line1.trim();
+      if (a1.length < 2) errs.address_line1 = 'Address line 1 must be at least 2 characters';
+      if (a1.length > 200) errs.address_line1 = 'Address line 1 cannot exceed 200 characters';
+    }
+
+    if (orgForm.address_line2 && orgForm.address_line2.trim().length > 200) {
+      errs.address_line2 = 'Address line 2 cannot exceed 200 characters';
+    }
+
+    if (orgForm.city && orgForm.city.trim()) {
+      const c = orgForm.city.trim();
+      if (c.length < 2) errs.city = 'City must be at least 2 characters';
+      if (c.length > 100) errs.city = 'City cannot exceed 100 characters';
+    }
+
+    if (orgForm.state && orgForm.state.trim()) {
+      const s = orgForm.state.trim();
+      if (!INDIAN_STATES_AND_UTS.includes(s as any)) {
+        errs.state = 'Please select a valid Indian State or Union Territory';
+      }
+    }
+
+    if (orgForm.postal_code && orgForm.postal_code.trim()) {
+      const pin = orgForm.postal_code.trim();
+      const pinRegex = /^[1-9][0-9]{5}$/;
+      if (!pinRegex.test(pin)) {
+        errs.postal_code = 'PIN code must be exactly 6 digits and cannot start with 0';
+      }
+    }
+
+    if (orgForm.website_url && orgForm.website_url.trim()) {
+      const w = orgForm.website_url.trim();
+      if (!/^https?:\/\/.+/i.test(w)) {
+        errs.website_url = 'Website must start with http:// or https://';
+      }
+    }
+
+    if (orgForm.tax_id && orgForm.tax_id.trim()) {
+      const g = orgForm.tax_id.trim().toUpperCase();
+      const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+      if (!gstinRegex.test(g)) {
+        errs.tax_id = 'GSTIN must match standard Indian format (e.g. 29ABCDE1234F1Z5)';
+      }
+    }
+
+    setOrgErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleSaveDetails = async () => {
+    if (!validateDetails()) return;
+    setSavingDetails(true);
+    try {
+      const updated = await profileService.updateProfile({
+        name: detailsForm.name.trim(),
+        phone: detailsForm.phone.trim() || null,
+      });
+      setProfile(updated);
+      updateUser({ name: updated.me.name });
+      toast.success('Profile details updated successfully.');
+      setIsEditingDetails(false);
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail;
+      toast.error(typeof detail === 'string' ? detail : 'Failed to update profile.');
+    } finally {
+      setSavingDetails(false);
+    }
+  };
+
+  const handleCancelDetails = () => {
+    if (isEditingDetails && (detailsForm.name !== (profile?.me.name || '') || detailsForm.phone !== (profile?.me.phone || ''))) {
+      if (!window.confirm('You have unsaved changes. Discard them?')) return;
+    }
+    setDetailsForm({
+      name: profile?.me.name || '',
+      phone: profile?.me.phone || '',
+    });
+    setDetailsErrors({});
+    setIsEditingDetails(false);
+  };
+
+  const handleSaveOrg = async () => {
+    if (!validateOrg()) return;
+    setSavingOrg(true);
+    try {
+      const payload = {
+        contact_person_name: orgForm.contact_person_name.trim() || null,
+        phone_number: orgForm.phone_number.trim() || null,
+        address_line1: orgForm.address_line1.trim() || null,
+        address_line2: orgForm.address_line2.trim() || null,
+        city: orgForm.city.trim() || null,
+        state: orgForm.state.trim() || null,
+        postal_code: orgForm.postal_code.trim() || null,
+        website_url: orgForm.website_url.trim() || null,
+        tax_id: orgForm.tax_id.trim().toUpperCase() || null,
+      };
+      const updated = await profileService.updateOrganization(payload);
+      setProfile(updated);
+      toast.success('Organization details updated successfully.');
+      setIsEditingOrg(false);
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail;
+      toast.error(typeof detail === 'string' ? detail : 'Failed to update organization details.');
+    } finally {
+      setSavingOrg(false);
+    }
+  };
+
+  const handleCancelOrg = () => {
+    if (profile?.role === 'smb_owner' && (profile as OwnerProfileData).organization) {
+      const org = (profile as OwnerProfileData).organization!;
+      setOrgForm({
+        contact_person_name: org.contact_person || '',
+        phone_number: org.phone || '',
+        address_line1: org.address_line1 || '',
+        address_line2: org.address_line2 || '',
+        city: org.city || '',
+        state: org.state || '',
+        postal_code: org.pin_code || '',
+        website_url: org.website || '',
+        tax_id: org.gstin || '',
+      });
+    }
+    setOrgErrors({});
+    setIsEditingOrg(false);
+  };
+
+  const handleOpenEmailModal = () => {
+    setEmailForm({ new_email: '', current_password: '' });
+    setEmailErrors({});
+    setShowEmailModal(true);
+  };
+
+  const handleCloseEmailModal = () => {
+    setShowEmailModal(false);
+    setEmailForm({ new_email: '', current_password: '' });
+    setEmailErrors({});
+  };
+
+  const handleSaveEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const errs: { new_email?: string; current_password?: string; general?: string } = {};
+
+    const trimmedEmail = emailForm.new_email.trim();
+    if (!trimmedEmail) {
+      errs.new_email = 'New email address is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      errs.new_email = 'Please enter a valid email address';
+    }
+
+    if (!emailForm.current_password) {
+      errs.current_password = 'Current password is required to verify identity';
+    }
+
+    if (Object.keys(errs).length > 0) {
+      setEmailErrors(errs);
+      return;
+    }
+
+    setSavingEmail(true);
+    setEmailErrors({});
+
+    try {
+      const updated = await profileService.updateEmail({
+        new_email: trimmedEmail,
+        current_password: emailForm.current_password,
+      });
+      setProfile(updated);
+      updateUser({ email: trimmedEmail });
+      toast.success('Email address updated successfully.');
+      handleCloseEmailModal();
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const detail = err?.response?.data?.detail;
+
+      if (status === 403) {
+        setEmailErrors({ current_password: detail || 'Incorrect password.' });
+      } else if (status === 409) {
+        setEmailErrors({ new_email: detail || 'This email is already in use.' });
+      } else {
+        setEmailErrors({ general: typeof detail === 'string' ? detail : 'Failed to update email address.' });
+      }
+    } finally {
+      setSavingEmail(false);
+    }
+  };
 
   const getRoleBadge = (role: string) => {
     switch (role) {
@@ -175,36 +510,116 @@ export const Profile: React.FC = () => {
                   My Details
                 </h2>
               </div>
+
+              {!isEditingDetails ? (
+                <button
+                  type="button"
+                  id="edit-my-details-btn"
+                  onClick={() => setIsEditingDetails(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-helios-accent-blue/10 text-helios-accent-blue hover:bg-helios-accent-blue/20 transition"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Edit Details</span>
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCancelDetails}
+                    disabled={savingDetails}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border border-helios-border-light dark:border-helios-border-dark hover:bg-black/5 dark:hover:bg-white/5 transition"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    <span>Cancel</span>
+                  </button>
+                  <button
+                    type="button"
+                    id="save-my-details-btn"
+                    onClick={handleSaveDetails}
+                    disabled={savingDetails}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl bg-helios-accent-blue text-white hover:bg-blue-600 transition shadow-xs disabled:opacity-50"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>{savingDetails ? 'Saving...' : 'Save'}</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              {/* Full Name */}
               <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
-                <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
+                <label className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
                   Full Name
-                </span>
-                <span className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                  {profile.me.name || 'Not provided'}
-                </span>
+                </label>
+                {!isEditingDetails ? (
+                  <span className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
+                    {profile.me.name || 'Not provided'}
+                  </span>
+                ) : (
+                  <div>
+                    <input
+                      type="text"
+                      id="profile-name-input"
+                      value={detailsForm.name}
+                      onChange={(e) => setDetailsForm({ ...detailsForm, name: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-medium rounded-lg bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+                      placeholder="Your full name"
+                    />
+                    {detailsErrors.name && (
+                      <p className="text-[11px] text-rose-500 mt-1 font-medium">{detailsErrors.name}</p>
+                    )}
+                  </div>
+                )}
               </div>
 
+              {/* Email Address with Change Email Button */}
               <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
-                <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
-                  Email Address
-                </span>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
+                    Email Address
+                  </span>
+                  <button
+                    type="button"
+                    id="open-change-email-btn"
+                    onClick={handleOpenEmailModal}
+                    className="text-[11px] font-semibold text-helios-accent-blue hover:underline"
+                  >
+                    Change email
+                  </button>
+                </div>
                 <span className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark break-all">
                   {profile.me.email || 'Not provided'}
                 </span>
               </div>
 
+              {/* Phone Number */}
               <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
-                <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
+                <label className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
                   Phone Number
-                </span>
-                <span className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                  {profile.me.phone || 'Not provided'}
-                </span>
+                </label>
+                {!isEditingDetails ? (
+                  <span className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
+                    {profile.me.phone || 'Not provided'}
+                  </span>
+                ) : (
+                  <div>
+                    <input
+                      type="text"
+                      id="profile-phone-input"
+                      value={detailsForm.phone}
+                      onChange={(e) => setDetailsForm({ ...detailsForm, phone: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-medium rounded-lg bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+                      placeholder="+91 9876543210"
+                    />
+                    {detailsErrors.phone && (
+                      <p className="text-[11px] text-rose-500 mt-1 font-medium">{detailsErrors.phone}</p>
+                    )}
+                  </div>
+                )}
               </div>
 
+              {/* Last Login */}
               <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
                 <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
                   Last Login
@@ -214,21 +629,28 @@ export const Profile: React.FC = () => {
                 </span>
               </div>
 
+              {/* Staff ID & Designation (Read-only, Managed by your admin) */}
               {profile.role === 'team_member' && (
                 <>
                   <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
-                    <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
-                      Staff ID
-                    </span>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
+                        Staff ID
+                      </span>
+                      <span className="text-[10px] text-gray-400 italic">Managed by your admin</span>
+                    </div>
                     <span className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
                       {(profile as TeamMemberProfileData).me.staff_id || 'Not provided'}
                     </span>
                   </div>
 
                   <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
-                    <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
-                      Designation
-                    </span>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
+                        Designation
+                      </span>
+                      <span className="text-[10px] text-gray-400 italic">Managed by your admin</span>
+                    </div>
                     <span className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
                       {(profile as TeamMemberProfileData).me.designation || 'Not provided'}
                     </span>
@@ -243,109 +665,335 @@ export const Profile: React.FC = () => {
             <>
               {/* My Organization */}
               <div className="p-6 rounded-2xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-xs space-y-4 transition-colors">
-                <div className="flex items-center gap-2 border-b border-helios-border-light dark:border-helios-border-dark pb-3">
-                  <Building2 className="w-4 h-4 text-helios-accent-blue" />
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                    My Organization
-                  </h2>
+                <div className="flex items-center justify-between border-b border-helios-border-light dark:border-helios-border-dark pb-3">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-helios-accent-blue" />
+                    <h2 className="text-sm font-bold uppercase tracking-wider text-helios-text-primary-light dark:text-helios-text-primary-dark">
+                      My Organization
+                    </h2>
+                  </div>
+
+                  {(profile as OwnerProfileData).organization && (
+                    !isEditingOrg ? (
+                      <button
+                        type="button"
+                        id="edit-my-org-btn"
+                        onClick={() => setIsEditingOrg(true)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-helios-accent-blue/10 text-helios-accent-blue hover:bg-helios-accent-blue/20 transition"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        <span>Edit Organization</span>
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleCancelOrg}
+                          disabled={savingOrg}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border border-helios-border-light dark:border-helios-border-dark hover:bg-black/5 dark:hover:bg-white/5 transition"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                          <span>Cancel</span>
+                        </button>
+                        <button
+                          type="button"
+                          id="save-my-org-btn"
+                          onClick={handleSaveOrg}
+                          disabled={savingOrg}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl bg-helios-accent-blue text-white hover:bg-blue-600 transition shadow-xs disabled:opacity-50"
+                        >
+                          <Save className="w-3.5 h-3.5" />
+                          <span>{savingOrg ? 'Saving...' : 'Save'}</span>
+                        </button>
+                      </div>
+                    )
+                  )}
                 </div>
 
                 {(profile as OwnerProfileData).organization ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {/* Business Name (Read-only, Managed by admin) */}
                     <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
-                      <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
-                        Business Name
-                      </span>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
+                          Organization Name
+                        </span>
+                        <span className="text-[10px] text-gray-400 italic">Managed by your admin</span>
+                      </div>
                       <span className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
                         {(profile as OwnerProfileData).organization?.business_name || 'Not provided'}
                       </span>
                     </div>
 
+                    {/* Industry (Read-only, Managed by admin) */}
                     <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
-                      <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
-                        Industry
-                      </span>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
+                          Industry
+                        </span>
+                        <span className="text-[10px] text-gray-400 italic">Managed by your admin</span>
+                      </div>
                       <span className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
                         {(profile as OwnerProfileData).organization?.industry || 'Not provided'}
                       </span>
                     </div>
 
+                    {/* Contact Email (Read-only, Managed by admin) */}
                     <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
-                      <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
-                        Contact Person
-                      </span>
-                      <span className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                        {(profile as OwnerProfileData).organization?.contact_person || 'Not provided'}
-                      </span>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
-                      <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
-                        Contact Email
-                      </span>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
+                          Contact Email
+                        </span>
+                        <span className="text-[10px] text-gray-400 italic">Managed by your admin</span>
+                      </div>
                       <span className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark break-all">
                         {(profile as OwnerProfileData).organization?.contact_email || 'Not provided'}
                       </span>
                     </div>
 
+                    {/* Contact Person Name (Editable) */}
                     <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
-                      <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
-                        Phone Number
-                      </span>
-                      <span className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                        {(profile as OwnerProfileData).organization?.phone || 'Not provided'}
-                      </span>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
-                      <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
-                        PIN Code
-                      </span>
-                      <span className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                        {(profile as OwnerProfileData).organization?.pin_code || 'Not provided'}
-                      </span>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark sm:col-span-2">
-                      <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
-                        Full Address
-                      </span>
-                      <span className="text-sm font-medium text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-start gap-1.5">
-                        <MapPin className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
-                        <span>{(profile as OwnerProfileData).organization?.full_address || 'Not provided'}</span>
-                      </span>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
-                      <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
-                        GSTIN / Tax ID
-                      </span>
-                      <span className="text-sm font-bold font-mono text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                        {(profile as OwnerProfileData).organization?.gstin || 'Not provided'}
-                      </span>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
-                      <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
-                        Website
-                      </span>
-                      {(profile as OwnerProfileData).organization?.website ? (
-                        <a
-                          href={(profile as OwnerProfileData).organization!.website!}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm font-bold text-helios-accent-blue hover:underline flex items-center gap-1.5"
-                        >
-                          <Globe className="w-3.5 h-3.5" />
-                          <span>{(profile as OwnerProfileData).organization!.website}</span>
-                        </a>
-                      ) : (
+                      <label className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
+                        Contact Person
+                      </label>
+                      {!isEditingOrg ? (
                         <span className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                          Not provided
+                          {(profile as OwnerProfileData).organization?.contact_person || 'Not provided'}
                         </span>
+                      ) : (
+                        <div>
+                          <input
+                            type="text"
+                            id="org-contact-person-input"
+                            value={orgForm.contact_person_name}
+                            onChange={(e) => setOrgForm({ ...orgForm, contact_person_name: e.target.value })}
+                            className="w-full px-3 py-1.5 text-xs font-medium rounded-lg bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+                            placeholder="Primary contact name"
+                          />
+                          {orgErrors.contact_person_name && (
+                            <p className="text-[11px] text-rose-500 mt-1 font-medium">{orgErrors.contact_person_name}</p>
+                          )}
+                        </div>
                       )}
                     </div>
 
+                    {/* Contact Phone (Editable) */}
+                    <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
+                      <label className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
+                        Organization Phone
+                      </label>
+                      {!isEditingOrg ? (
+                        <span className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
+                          {(profile as OwnerProfileData).organization?.phone || 'Not provided'}
+                        </span>
+                      ) : (
+                        <div>
+                          <input
+                            type="text"
+                            id="org-phone-input"
+                            value={orgForm.phone_number}
+                            onChange={(e) => setOrgForm({ ...orgForm, phone_number: e.target.value })}
+                            className="w-full px-3 py-1.5 text-xs font-medium rounded-lg bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+                            placeholder="+91 9876543210"
+                          />
+                          {orgErrors.phone_number && (
+                            <p className="text-[11px] text-rose-500 mt-1 font-medium">{orgErrors.phone_number}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* PIN Code (Editable) */}
+                    <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
+                      <label className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
+                        PIN Code
+                      </label>
+                      {!isEditingOrg ? (
+                        <span className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
+                          {(profile as OwnerProfileData).organization?.pin_code || 'Not provided'}
+                        </span>
+                      ) : (
+                        <div>
+                          <input
+                            type="text"
+                            id="org-pincode-input"
+                            value={orgForm.postal_code}
+                            maxLength={6}
+                            onChange={(e) => setOrgForm({ ...orgForm, postal_code: e.target.value })}
+                            className="w-full px-3 py-1.5 text-xs font-medium rounded-lg bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+                            placeholder="6-digit PIN code"
+                          />
+                          {orgErrors.postal_code && (
+                            <p className="text-[11px] text-rose-500 mt-1 font-medium">{orgErrors.postal_code}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Address Line 1 (Editable) */}
+                    {isEditingOrg && (
+                      <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark sm:col-span-2">
+                        <label className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
+                          Address Line 1
+                        </label>
+                        <input
+                          type="text"
+                          id="org-address1-input"
+                          value={orgForm.address_line1}
+                          onChange={(e) => setOrgForm({ ...orgForm, address_line1: e.target.value })}
+                          className="w-full px-3 py-1.5 text-xs font-medium rounded-lg bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+                          placeholder="Street address line 1"
+                        />
+                        {orgErrors.address_line1 && (
+                          <p className="text-[11px] text-rose-500 mt-1 font-medium">{orgErrors.address_line1}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Address Line 2 (Editable) */}
+                    {isEditingOrg && (
+                      <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
+                        <label className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
+                          Address Line 2 (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          id="org-address2-input"
+                          value={orgForm.address_line2}
+                          onChange={(e) => setOrgForm({ ...orgForm, address_line2: e.target.value })}
+                          className="w-full px-3 py-1.5 text-xs font-medium rounded-lg bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+                          placeholder="Suite, unit, floor"
+                        />
+                        {orgErrors.address_line2 && (
+                          <p className="text-[11px] text-rose-500 mt-1 font-medium">{orgErrors.address_line2}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* City (Editable) */}
+                    {isEditingOrg && (
+                      <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
+                        <label className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
+                          City
+                        </label>
+                        <input
+                          type="text"
+                          id="org-city-input"
+                          value={orgForm.city}
+                          onChange={(e) => setOrgForm({ ...orgForm, city: e.target.value })}
+                          className="w-full px-3 py-1.5 text-xs font-medium rounded-lg bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+                          placeholder="City"
+                        />
+                        {orgErrors.city && (
+                          <p className="text-[11px] text-rose-500 mt-1 font-medium">{orgErrors.city}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* State (Editable) */}
+                    {isEditingOrg && (
+                      <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
+                        <label className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
+                          State / Union Territory
+                        </label>
+                        <select
+                          id="org-state-select"
+                          value={orgForm.state}
+                          onChange={(e) => setOrgForm({ ...orgForm, state: e.target.value })}
+                          className="w-full px-3 py-1.5 text-xs font-medium rounded-lg bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+                        >
+                          <option value="">Select State or UT</option>
+                          {INDIAN_STATES_AND_UTS.map((st) => (
+                            <option key={st} value={st}>
+                              {st}
+                            </option>
+                          ))}
+                        </select>
+                        {orgErrors.state && (
+                          <p className="text-[11px] text-rose-500 mt-1 font-medium">{orgErrors.state}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Read-only Full Address (when not editing) */}
+                    {!isEditingOrg && (
+                      <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark sm:col-span-2">
+                        <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
+                          Full Address
+                        </span>
+                        <span className="text-sm font-medium text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-start gap-1.5">
+                          <MapPin className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
+                          <span>{(profile as OwnerProfileData).organization?.full_address || 'Not provided'}</span>
+                        </span>
+                      </div>
+                    )}
+
+                    {/* GSTIN / Tax ID (Editable) */}
+                    <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
+                      <label className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
+                        GSTIN / Tax ID
+                      </label>
+                      {!isEditingOrg ? (
+                        <span className="text-sm font-bold font-mono text-helios-text-primary-light dark:text-helios-text-primary-dark">
+                          {(profile as OwnerProfileData).organization?.gstin || 'Not provided'}
+                        </span>
+                      ) : (
+                        <div>
+                          <input
+                            type="text"
+                            id="org-gstin-input"
+                            value={orgForm.tax_id}
+                            maxLength={15}
+                            onChange={(e) => setOrgForm({ ...orgForm, tax_id: e.target.value.toUpperCase() })}
+                            className="w-full px-3 py-1.5 text-xs font-mono font-medium rounded-lg bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue uppercase"
+                            placeholder="29ABCDE1234F1Z5"
+                          />
+                          {orgErrors.tax_id && (
+                            <p className="text-[11px] text-rose-500 mt-1 font-medium">{orgErrors.tax_id}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Website (Editable) */}
+                    <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
+                      <label className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
+                        Website
+                      </label>
+                      {!isEditingOrg ? (
+                        (profile as OwnerProfileData).organization?.website ? (
+                          <a
+                            href={(profile as OwnerProfileData).organization!.website!}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm font-bold text-helios-accent-blue hover:underline flex items-center gap-1.5"
+                          >
+                            <Globe className="w-3.5 h-3.5" />
+                            <span>{(profile as OwnerProfileData).organization!.website}</span>
+                          </a>
+                        ) : (
+                          <span className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
+                            Not provided
+                          </span>
+                        )
+                      ) : (
+                        <div>
+                          <input
+                            type="text"
+                            id="org-website-input"
+                            value={orgForm.website_url}
+                            onChange={(e) => setOrgForm({ ...orgForm, website_url: e.target.value })}
+                            className="w-full px-3 py-1.5 text-xs font-medium rounded-lg bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+                            placeholder="https://example.com"
+                          />
+                          {orgErrors.website_url && (
+                            <p className="text-[11px] text-rose-500 mt-1 font-medium">{orgErrors.website_url}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Registration Date (Read-only) */}
                     <div className="p-4 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark">
                       <span className="text-[11px] font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark block mb-1">
                         Registration Date
@@ -499,7 +1147,7 @@ export const Profile: React.FC = () => {
             <>
               {/* My Organizations */}
               <div className="p-6 rounded-2xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-xs space-y-4 transition-colors">
-                <div className="flex items-center justify-between border-b border-helios-border-light dark:border-helios-border-dark pb-3">
+                <div className="flex items-center justify-between border-b border-helios-border-light dark:border-helios-border-light pb-3">
                   <div className="flex items-center gap-2">
                     <Building2 className="w-4 h-4 text-helios-accent-blue" />
                     <h2 className="text-sm font-bold uppercase tracking-wider text-helios-text-primary-light dark:text-helios-text-primary-dark">
@@ -778,6 +1426,116 @@ export const Profile: React.FC = () => {
             </>
           )}
         </>
+      )}
+
+      {/* Change Email Dialog Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md p-6 rounded-2xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-helios-border-light dark:border-helios-border-dark">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-helios-accent-blue/15 flex items-center justify-center text-helios-accent-blue">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
+                  Change Email Address
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={handleCloseEmailModal}
+                disabled={savingEmail}
+                className="text-helios-text-secondary-light dark:text-helios-text-secondary-dark hover:text-helios-text-primary-light dark:hover:text-helios-text-primary-dark p-1 rounded-lg transition-colors"
+                aria-label="Close dialog"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {emailErrors.general && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{emailErrors.general}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveEmail} className="space-y-4 text-xs" noValidate>
+              <div>
+                <label className="block font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark mb-1">
+                  New Email Address
+                </label>
+                <input
+                  type="email"
+                  id="new-email-input"
+                  value={emailForm.new_email}
+                  onChange={(e) => setEmailForm({ ...emailForm, new_email: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl text-xs bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+                  placeholder="name@company.com"
+                  autoComplete="email"
+                />
+                {emailErrors.new_email && (
+                  <p className="text-[11px] text-rose-500 mt-1 font-medium flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    <span>{emailErrors.new_email}</span>
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark mb-1">
+                  Current Password
+                </label>
+                <div className="relative">
+                  <input
+                    type="password"
+                    id="current-password-input"
+                    value={emailForm.current_password}
+                    onChange={(e) => setEmailForm({ ...emailForm, current_password: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl text-xs bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+                    placeholder="Enter your current password"
+                    autoComplete="current-password"
+                  />
+                  <Lock className="w-3.5 h-3.5 text-gray-400 absolute right-3 top-2.5 pointer-events-none" />
+                </div>
+                {emailErrors.current_password && (
+                  <p className="text-[11px] text-rose-500 mt-1 font-medium flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    <span>{emailErrors.current_password}</span>
+                  </p>
+                )}
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-helios-border-light dark:border-helios-border-dark">
+                <button
+                  type="button"
+                  onClick={handleCloseEmailModal}
+                  disabled={savingEmail}
+                  className="px-3.5 py-1.5 rounded-xl border border-helios-border-light dark:border-helios-border-dark text-helios-text-secondary-light dark:text-helios-text-secondary-dark hover:bg-black/5 dark:hover:bg-white/5 transition font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  id="confirm-change-email-btn"
+                  disabled={savingEmail}
+                  className="px-4 py-1.5 rounded-xl bg-helios-accent-blue text-white font-bold hover:bg-blue-600 transition shadow-xs disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {savingEmail ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Updating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Update Email</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

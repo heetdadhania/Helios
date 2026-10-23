@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -6,6 +7,7 @@ from databricks.sql.client import Cursor
 from app.core.config import settings
 from app.core.dependencies import get_current_user, get_db_cursor
 from app.repositories.base import BaseRepository
+from app.repositories.notification_repository import NotificationRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.auth import UserOut, UserRole
 from app.schemas.profile import (
@@ -16,11 +18,15 @@ from app.schemas.profile import (
     OwnerProfileResponse,
     PlatformSummary,
     ProfileResponse,
+    ProfileUpdateEmail,
+    ProfileUpdateMe,
+    ProfileUpdateOrganization,
     TeamMemberContact,
     TeamMemberProfileResponse,
     TeamMemberSummary,
     UserMe,
 )
+from app.services.auth_service import AuthService
 
 logger = logging.getLogger(__name__)
 
@@ -136,6 +142,10 @@ def get_profile_me(
                     contact_email=t_row.get("contact_email"),
                     phone=t_row.get("phone_number"),
                     full_address=full_address,
+                    address_line1=t_row.get("address_line1"),
+                    address_line2=t_row.get("address_line2"),
+                    city=t_row.get("city"),
+                    state=t_row.get("state"),
                     pin_code=t_row.get("postal_code"),
                     website=t_row.get("website_url"),
                     gstin=t_row.get("tax_id"),
@@ -302,3 +312,246 @@ def get_profile_me(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Role not permitted to access profile service.",
         )
+
+
+@router.patch(
+    "/me",
+    response_model=ProfileResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Update Current User Profile",
+    description="Update profile fields (name, phone) for the authenticated user. Forbidden fields are rejected with 422.",
+)
+def update_profile_me(
+    payload: ProfileUpdateMe,
+    current_user: UserOut = Depends(get_current_user),
+    cursor: Cursor = Depends(get_db_cursor),
+) -> ProfileResponse:
+    catalog = settings.DATABRICKS_CATALOG
+    base_repo = BaseRepository(cursor)
+    user_repo = UserRepository(cursor, catalog=catalog)
+
+    user_record = user_repo.get_by_id(current_user.id)
+    if not user_record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User account record not found.",
+        )
+
+    old_name = user_record.get("name")
+    old_phone = user_record.get("phone_number")
+
+    updates: Dict[str, Any] = {}
+    changes: Dict[str, Any] = {}
+
+    if payload.name is not None and payload.name != old_name:
+        updates["name"] = payload.name
+        changes["name"] = {"old": old_name, "new": payload.name}
+
+    if payload.phone is not None and payload.phone != old_phone:
+        updates["phone_number"] = payload.phone
+        changes["phone"] = {"old": old_phone, "new": payload.phone}
+
+    if updates:
+        set_clauses = [f"{col} = :{col}" for col in updates.keys()]
+        set_clauses.append("updated_at = current_timestamp()")
+        sql = f"""
+            UPDATE `{catalog}`.`platform`.`users`
+            SET {', '.join(set_clauses)}
+            WHERE user_id = :user_id
+        """
+        params = {**updates, "user_id": current_user.id}
+        base_repo.execute_non_query(sql, params)
+
+        user_repo.write_audit_log(
+            actor_user_id=current_user.id,
+            actor_role=current_user.role.value,
+            action="profile_updated",
+            tenant_id=current_user.tenant_id,
+            reason="User updated personal profile details",
+            details_json=json.dumps(changes),
+        )
+
+    return get_profile_me(current_user=current_user, cursor=cursor)
+
+
+@router.patch(
+    "/me/email",
+    response_model=ProfileResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Update Current User Email",
+    description="Update user email with current password verification and global uniqueness check.",
+)
+def update_profile_email(
+    payload: ProfileUpdateEmail,
+    current_user: UserOut = Depends(get_current_user),
+    cursor: Cursor = Depends(get_db_cursor),
+) -> ProfileResponse:
+    catalog = settings.DATABRICKS_CATALOG
+    base_repo = BaseRepository(cursor)
+    user_repo = UserRepository(cursor, catalog=catalog)
+
+    user_record = user_repo.get_by_id(current_user.id)
+    if not user_record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User account record not found.",
+        )
+
+    current_hash = user_record.get("password_hash")
+    if not current_hash or not AuthService.verify_password(payload.current_password, current_hash):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Incorrect password.",
+        )
+
+    old_email = user_record.get("email")
+    new_email = payload.new_email.strip().lower()
+
+    if old_email != new_email:
+        # Check global uniqueness
+        existing_user = user_repo.get_by_email(new_email)
+        if existing_user and int(existing_user.get("user_id") or 0) != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="This email is already in use.",
+            )
+
+        sql = f"""
+            UPDATE `{catalog}`.`platform`.`users`
+            SET email = :email, updated_at = current_timestamp()
+            WHERE user_id = :user_id
+        """
+        base_repo.execute_non_query(sql, {"email": new_email, "user_id": current_user.id})
+
+        user_repo.write_audit_log(
+            actor_user_id=current_user.id,
+            actor_role=current_user.role.value,
+            action="email_changed",
+            tenant_id=current_user.tenant_id,
+            reason="User updated account email",
+            details_json=json.dumps({"email": {"old": old_email, "new": new_email}}),
+        )
+
+    return get_profile_me(current_user=current_user, cursor=cursor)
+
+
+@router.patch(
+    "/me/organization",
+    response_model=ProfileResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Update Organization Profile Details",
+    description="Update organization contact details for SMB Owner. Organization is identified strictly by user token tenant_id.",
+)
+def update_profile_organization(
+    payload: ProfileUpdateOrganization,
+    current_user: UserOut = Depends(get_current_user),
+    cursor: Cursor = Depends(get_db_cursor),
+) -> ProfileResponse:
+    if current_user.role != UserRole.SMB_OWNER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only Organization Owners can update organization details.",
+        )
+
+    if current_user.tenant_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No organization associated with this account.",
+        )
+
+    catalog = settings.DATABRICKS_CATALOG
+    base_repo = BaseRepository(cursor)
+    user_repo = UserRepository(cursor, catalog=catalog)
+
+    tenant_q = f"""
+        SELECT 
+            tenant_id,
+            business_name,
+            contact_person_name,
+            phone_number,
+            address_line1,
+            address_line2,
+            city,
+            state,
+            postal_code,
+            website_url,
+            tax_id
+        FROM `{catalog}`.`platform`.`tenants`
+        WHERE tenant_id = :tenant_id
+        LIMIT 1
+    """
+    curr_tenant = base_repo.execute_single(tenant_q, {"tenant_id": current_user.tenant_id})
+    if not curr_tenant:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Organization record not found.",
+        )
+
+    field_mappings = {
+        "contact_person_name": "contact_person_name",
+        "phone_number": "phone_number",
+        "address_line1": "address_line1",
+        "address_line2": "address_line2",
+        "city": "city",
+        "state": "state",
+        "postal_code": "postal_code",
+        "website_url": "website_url",
+        "tax_id": "tax_id",
+    }
+
+    updates: Dict[str, Any] = {}
+    changes: Dict[str, Any] = {}
+
+    for field, col in field_mappings.items():
+        val = getattr(payload, field, None)
+        if val is not None:
+            old_val = curr_tenant.get(col)
+            if val != old_val:
+                updates[col] = val
+                changes[field] = {"old": old_val, "new": val}
+
+    if updates:
+        set_clauses = [f"{col} = :{col}" for col in updates.keys()]
+        set_clauses.append("updated_at = current_timestamp()")
+        update_q = f"""
+            UPDATE `{catalog}`.`platform`.`tenants`
+            SET {', '.join(set_clauses)}
+            WHERE tenant_id = :tenant_id
+        """
+        params = {**updates, "tenant_id": current_user.tenant_id}
+        base_repo.execute_non_query(update_q, params)
+
+        user_repo.write_audit_log(
+            actor_user_id=current_user.id,
+            actor_role=current_user.role.value,
+            action="organization_details_updated",
+            tenant_id=current_user.tenant_id,
+            reason="Organization Owner updated organization contact details",
+            details_json=json.dumps(changes),
+        )
+
+        # Notify assigned team member
+        try:
+            tm_q = f"""
+                SELECT u.user_id
+                FROM `{catalog}`.`platform`.`team_assignments` ta
+                INNER JOIN `{catalog}`.`platform`.`users` u ON ta.user_id = u.user_id
+                WHERE ta.tenant_id = :tenant_id AND coalesce(u.is_active, true) = true
+                ORDER BY ta.assigned_at DESC
+                LIMIT 1
+            """
+            tm_row = base_repo.execute_single(tm_q, {"tenant_id": current_user.tenant_id})
+            assigned_tm_id = int(tm_row["user_id"]) if tm_row else None
+
+            notif_repo = NotificationRepository(cursor, catalog=catalog)
+            biz_name = curr_tenant.get("business_name") or f"Organization #{current_user.tenant_id}"
+            notif_repo.create(
+                message=f"{biz_name} updated its contact details",
+                type="info",
+                tenant_id=current_user.tenant_id,
+                user_id=assigned_tm_id,
+            )
+        except Exception as exc:
+            logger.warning("Failed to create notification for assigned team member: %s", exc)
+
+    return get_profile_me(current_user=current_user, cursor=cursor)

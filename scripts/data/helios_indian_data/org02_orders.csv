@@ -1,0 +1,231 @@
+order_id,order_date,customer_id,customer_name,segment,product_id,product_name,category,quantity,unit_price,discount,total,profit
+ORD-02-00001,2026-07-01,C02024,Isha Nair,Consumer,P0205,Smart Watch,Wearables,1,4499.00,449.90,4049.10,815.69
+ORD-02-00002,2026-07-02,C02025,Rohan Gupta,Home Office,P0206,HD Webcam,Computer Accessories,3,2299.00,344.85,6552.15,1034.75
+ORD-02-00003,2026-07-02,C02007,Rahul Iyer,Corporate,P0201,Wireless Earbuds,Audio,1,1999.00,99.95,1899.05,327.92
+ORD-02-00004,2026-07-03,C02001,Diya Bhatt,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,3,1799.00,269.85,5127.15,798.95
+ORD-02-00005,2026-07-04,C02026,Priya Joshi,Corporate,P0205,Smart Watch,Wearables,1,4499.00,674.85,3824.15,762.89
+ORD-02-00006,2026-07-04,C02008,Swati Iyer,Consumer,P0205,Smart Watch,Wearables,3,4499.00,2024.55,11472.45,1869.68
+ORD-02-00007,2026-07-05,C02008,Swati Iyer,Consumer,P0204,USB-C Cable,Mobile Accessories,3,399.00,179.55,1017.45,181.53
+ORD-02-00008,2026-07-06,C02018,Ananya Menon,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,1,1799.00,89.95,1709.05,304.59
+ORD-02-00009,2026-07-07,C02009,Rahul Sharma,Home Office,P0203,Power Bank 20000mAh,Mobile Accessories,2,1799.00,0.00,3598.00,739.53
+ORD-02-00010,2026-07-07,C02001,Diya Bhatt,Consumer,P0202,Bluetooth Speaker,Audio,1,2499.00,0.00,2499.00,421.48
+ORD-02-00011,2026-07-07,C02013,Aarav Joshi,Consumer,P0201,Wireless Earbuds,Audio,3,1999.00,899.55,5097.45,817.40
+ORD-02-00012,2026-07-08,C02011,Vikram Pillai,Consumer,P0201,Wireless Earbuds,Audio,1,1999.00,99.95,1899.05,392.23
+ORD-02-00013,2026-07-08,C02024,Isha Nair,Consumer,P0207,Wireless Mouse,Computer Accessories,3,799.00,0.00,2397.00,490.77
+ORD-02-00014,2026-07-08,C02030,Rohan Kulkarni,Consumer,P0206,HD Webcam,Computer Accessories,3,2299.00,689.70,6207.30,1197.96
+ORD-02-00015,2026-07-09,C02007,Rahul Iyer,Corporate,P0204,USB-C Cable,Mobile Accessories,1,399.00,39.90,359.10,66.50
+ORD-02-00016,2026-07-09,C02016,Rahul Gupta,Home Office,P0201,Wireless Earbuds,Audio,1,1999.00,0.00,1999.00,408.43
+ORD-02-00017,2026-07-09,C02029,Shreya Gupta,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,1,1799.00,89.95,1709.05,316.45
+ORD-02-00018,2026-07-09,C02010,Kavya Chopra,Consumer,P0208,Wi-Fi 6 Router,Networking,2,3999.00,799.80,7198.20,1277.43
+ORD-02-00019,2026-07-09,C02017,Swati Menon,Consumer,P0205,Smart Watch,Wearables,1,4499.00,224.95,4274.05,823.84
+ORD-02-00020,2026-07-09,C02007,Rahul Iyer,Corporate,P0208,Wi-Fi 6 Router,Networking,1,3999.00,0.00,3999.00,695.85
+ORD-02-00021,2026-07-10,C02023,Kavya Deshmukh,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,1,1799.00,89.95,1709.05,323.55
+ORD-02-00022,2026-07-10,C02009,Rahul Sharma,Home Office,P0206,HD Webcam,Computer Accessories,2,2299.00,0.00,4598.00,785.27
+ORD-02-00023,2026-07-11,C02007,Rahul Iyer,Corporate,P0202,Bluetooth Speaker,Audio,1,2499.00,124.95,2374.05,399.53
+ORD-02-00024,2026-07-12,C02022,Arjun Desai,Home Office,P0203,Power Bank 20000mAh,Mobile Accessories,1,1799.00,0.00,1799.00,368.66
+ORD-02-00025,2026-07-13,C02004,Sanjay Mehta,Consumer,P0205,Smart Watch,Wearables,1,4499.00,0.00,4499.00,889.85
+ORD-02-00026,2026-07-13,C02004,Sanjay Mehta,Consumer,P0204,USB-C Cable,Mobile Accessories,1,399.00,0.00,399.00,67.92
+ORD-02-00027,2026-07-14,C02021,Manish Bhatt,Home Office,P0203,Power Bank 20000mAh,Mobile Accessories,1,1799.00,0.00,1799.00,296.32
+ORD-02-00028,2026-07-14,C02016,Rahul Gupta,Home Office,P0201,Wireless Earbuds,Audio,3,1999.00,899.55,5097.45,988.02
+ORD-02-00029,2026-07-15,C02007,Rahul Iyer,Corporate,P0208,Wi-Fi 6 Router,Networking,3,3999.00,1799.55,10197.45,1606.55
+ORD-02-00030,2026-07-16,C02012,Priya Rao,Consumer,P0201,Wireless Earbuds,Audio,1,1999.00,99.95,1899.05,360.83
+ORD-02-00031,2026-07-16,C02024,Isha Nair,Consumer,P0208,Wi-Fi 6 Router,Networking,2,3999.00,0.00,7998.00,1271.79
+ORD-02-00032,2026-07-16,C02024,Isha Nair,Consumer,P0204,USB-C Cable,Mobile Accessories,1,399.00,0.00,399.00,81.41
+ORD-02-00033,2026-07-17,C02006,Arjun Joshi,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,1,1799.00,89.95,1709.05,316.57
+ORD-02-00034,2026-07-18,C02014,Tanvi Gupta,Corporate,P0203,Power Bank 20000mAh,Mobile Accessories,2,1799.00,359.80,3238.20,579.61
+ORD-02-00035,2026-07-19,C02016,Rahul Gupta,Home Office,P0206,HD Webcam,Computer Accessories,1,2299.00,114.95,2184.05,366.27
+ORD-02-00036,2026-07-19,C02022,Arjun Desai,Home Office,P0202,Bluetooth Speaker,Audio,1,2499.00,249.90,2249.10,446.31
+ORD-02-00037,2026-07-19,C02025,Rohan Gupta,Home Office,P0204,USB-C Cable,Mobile Accessories,3,399.00,59.85,1137.15,191.76
+ORD-02-00038,2026-07-19,C02010,Kavya Chopra,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,3,1799.00,539.70,4857.30,745.92
+ORD-02-00039,2026-07-19,C02010,Kavya Chopra,Consumer,P0205,Smart Watch,Wearables,3,4499.00,1349.70,12147.30,1878.29
+ORD-02-00040,2026-07-19,C02026,Priya Joshi,Corporate,P0208,Wi-Fi 6 Router,Networking,2,3999.00,0.00,7998.00,1642.51
+ORD-02-00041,2026-07-20,C02029,Shreya Gupta,Consumer,P0204,USB-C Cable,Mobile Accessories,2,399.00,0.00,798.00,122.72
+ORD-02-00042,2026-07-20,C02019,Arjun Gupta,Home Office,P0204,USB-C Cable,Mobile Accessories,2,399.00,39.90,758.10,154.39
+ORD-02-00043,2026-07-20,C02007,Rahul Iyer,Corporate,P0203,Power Bank 20000mAh,Mobile Accessories,3,1799.00,539.70,4857.30,972.99
+ORD-02-00044,2026-07-20,C02014,Tanvi Gupta,Corporate,P0207,Wireless Mouse,Computer Accessories,3,799.00,0.00,2397.00,428.97
+ORD-02-00045,2026-07-22,C02020,Meera Deshmukh,Consumer,P0206,HD Webcam,Computer Accessories,2,2299.00,689.70,3908.30,773.96
+ORD-02-00046,2026-07-22,C02022,Arjun Desai,Home Office,P0201,Wireless Earbuds,Audio,2,1999.00,599.70,3398.30,553.03
+ORD-02-00047,2026-07-22,C02026,Priya Joshi,Corporate,P0205,Smart Watch,Wearables,2,4499.00,899.80,8098.20,1628.35
+ORD-02-00048,2026-07-24,C02024,Isha Nair,Consumer,P0202,Bluetooth Speaker,Audio,3,2499.00,0.00,7497.00,1368.44
+ORD-02-00049,2026-07-24,C02030,Rohan Kulkarni,Consumer,P0207,Wireless Mouse,Computer Accessories,3,799.00,0.00,2397.00,383.26
+ORD-02-00050,2026-07-25,C02030,Rohan Kulkarni,Consumer,P0201,Wireless Earbuds,Audio,2,1999.00,0.00,3998.00,773.84
+ORD-02-00051,2026-07-25,C02015,Sneha Iyer,Consumer,P0204,USB-C Cable,Mobile Accessories,1,399.00,0.00,399.00,65.28
+ORD-02-00052,2026-07-26,C02005,Priya Malhotra,Consumer,P0207,Wireless Mouse,Computer Accessories,2,799.00,159.80,1438.20,234.99
+ORD-02-00053,2026-07-26,C02017,Swati Menon,Consumer,P0208,Wi-Fi 6 Router,Networking,1,3999.00,599.85,3399.15,702.33
+ORD-02-00054,2026-07-27,C02009,Rahul Sharma,Home Office,P0204,USB-C Cable,Mobile Accessories,1,399.00,0.00,399.00,80.77
+ORD-02-00055,2026-07-27,C02017,Swati Menon,Consumer,P0204,USB-C Cable,Mobile Accessories,1,399.00,0.00,399.00,61.76
+ORD-02-00056,2026-07-28,C02020,Meera Deshmukh,Consumer,P0204,USB-C Cable,Mobile Accessories,3,399.00,179.55,1017.45,180.60
+ORD-02-00057,2026-07-29,C02017,Swati Menon,Consumer,P0205,Smart Watch,Wearables,3,4499.00,0.00,13497.00,2091.42
+ORD-02-00058,2026-07-30,C02002,Diya Verma,Consumer,P0201,Wireless Earbuds,Audio,1,1999.00,0.00,1999.00,309.26
+ORD-02-00059,2026-07-30,C02014,Tanvi Gupta,Corporate,P0203,Power Bank 20000mAh,Mobile Accessories,2,1799.00,179.90,3418.10,684.45
+ORD-02-00060,2026-07-31,C02016,Rahul Gupta,Home Office,P0207,Wireless Mouse,Computer Accessories,1,799.00,79.90,719.10,137.58
+ORD-02-00061,2026-08-01,C02006,Arjun Joshi,Consumer,P0201,Wireless Earbuds,Audio,2,1999.00,0.00,3998.00,796.56
+ORD-02-00062,2026-08-01,C02003,Aarav Menon,Corporate,P0203,Power Bank 20000mAh,Mobile Accessories,3,1799.00,539.70,4857.30,768.24
+ORD-02-00063,2026-08-01,C02007,Rahul Iyer,Corporate,P0202,Bluetooth Speaker,Audio,2,2499.00,0.00,4998.00,773.31
+ORD-02-00064,2026-08-02,C02006,Arjun Joshi,Consumer,P0208,Wi-Fi 6 Router,Networking,1,3999.00,599.85,3399.15,589.68
+ORD-02-00065,2026-08-02,C02021,Manish Bhatt,Home Office,P0203,Power Bank 20000mAh,Mobile Accessories,2,1799.00,359.80,3238.20,606.11
+ORD-02-00066,2026-08-03,C02018,Ananya Menon,Consumer,P0201,Wireless Earbuds,Audio,1,1999.00,99.95,1899.05,359.50
+ORD-02-00067,2026-08-03,C02012,Priya Rao,Consumer,P0204,USB-C Cable,Mobile Accessories,1,399.00,0.00,399.00,81.72
+ORD-02-00068,2026-08-03,C02009,Rahul Sharma,Home Office,P0205,Smart Watch,Wearables,1,4499.00,674.85,3824.15,719.67
+ORD-02-00069,2026-08-04,C02023,Kavya Deshmukh,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,1,1799.00,0.00,1799.00,295.37
+ORD-02-00070,2026-08-04,C02021,Manish Bhatt,Home Office,P0208,Wi-Fi 6 Router,Networking,3,3999.00,0.00,11997.00,2253.34
+ORD-02-00071,2026-08-04,C02026,Priya Joshi,Corporate,P0206,HD Webcam,Computer Accessories,1,2299.00,0.00,2299.00,457.91
+ORD-02-00072,2026-08-05,C02002,Diya Verma,Consumer,P0208,Wi-Fi 6 Router,Networking,1,3999.00,399.90,3599.10,607.84
+ORD-02-00073,2026-08-05,C02010,Kavya Chopra,Consumer,P0201,Wireless Earbuds,Audio,1,1999.00,0.00,1999.00,332.50
+ORD-02-00074,2026-08-05,C02016,Rahul Gupta,Home Office,P0206,HD Webcam,Computer Accessories,1,2299.00,0.00,2299.00,353.50
+ORD-02-00075,2026-08-06,C02008,Swati Iyer,Consumer,P0208,Wi-Fi 6 Router,Networking,2,3999.00,399.90,7598.10,1466.64
+ORD-02-00076,2026-08-06,C02030,Rohan Kulkarni,Consumer,P0207,Wireless Mouse,Computer Accessories,1,799.00,79.90,719.10,142.95
+ORD-02-00077,2026-08-07,C02012,Priya Rao,Consumer,P0201,Wireless Earbuds,Audio,1,1999.00,299.85,1699.15,269.31
+ORD-02-00078,2026-08-07,C02016,Rahul Gupta,Home Office,P0206,HD Webcam,Computer Accessories,3,2299.00,1034.55,5862.45,1000.51
+ORD-02-00079,2026-08-07,C02029,Shreya Gupta,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,1,1799.00,0.00,1799.00,360.11
+ORD-02-00080,2026-08-08,C02022,Arjun Desai,Home Office,P0201,Wireless Earbuds,Audio,3,1999.00,0.00,5997.00,1206.15
+ORD-02-00081,2026-08-08,C02010,Kavya Chopra,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,3,1799.00,809.55,4587.45,934.22
+ORD-02-00082,2026-08-08,C02020,Meera Deshmukh,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,1,1799.00,179.90,1619.10,315.62
+ORD-02-00083,2026-08-08,C02008,Swati Iyer,Consumer,P0206,HD Webcam,Computer Accessories,3,2299.00,0.00,6897.00,1137.32
+ORD-02-00084,2026-08-09,C02020,Meera Deshmukh,Consumer,P0201,Wireless Earbuds,Audio,3,1999.00,0.00,5997.00,1109.11
+ORD-02-00085,2026-08-09,C02016,Rahul Gupta,Home Office,P0205,Smart Watch,Wearables,3,4499.00,1349.70,12147.30,2288.41
+ORD-02-00086,2026-08-09,C02028,Divya Sharma,Home Office,P0201,Wireless Earbuds,Audio,2,1999.00,599.70,3398.30,651.74
+ORD-02-00087,2026-08-09,C02012,Priya Rao,Consumer,P0206,HD Webcam,Computer Accessories,1,2299.00,0.00,2299.00,461.63
+ORD-02-00088,2026-08-10,C02027,Tanvi Reddy,Consumer,P0205,Smart Watch,Wearables,2,4499.00,0.00,8998.00,1446.51
+ORD-02-00089,2026-08-10,C02013,Aarav Joshi,Consumer,P0204,USB-C Cable,Mobile Accessories,1,399.00,0.00,399.00,80.76
+ORD-02-00090,2026-08-11,C02013,Aarav Joshi,Consumer,P0202,Bluetooth Speaker,Audio,2,2499.00,0.00,4998.00,845.44
+ORD-02-00091,2026-08-11,C02011,Vikram Pillai,Consumer,P0202,Bluetooth Speaker,Audio,2,2499.00,0.00,4998.00,866.72
+ORD-02-00092,2026-08-12,C02002,Diya Verma,Consumer,P0201,Wireless Earbuds,Audio,1,1999.00,0.00,1999.00,365.57
+ORD-02-00093,2026-08-12,C02002,Diya Verma,Consumer,P0204,USB-C Cable,Mobile Accessories,1,399.00,59.85,339.15,66.30
+ORD-02-00094,2026-08-12,C02012,Priya Rao,Consumer,P0206,HD Webcam,Computer Accessories,2,2299.00,459.80,4138.20,826.41
+ORD-02-00095,2026-08-14,C02005,Priya Malhotra,Consumer,P0208,Wi-Fi 6 Router,Networking,1,3999.00,199.95,3799.05,615.85
+ORD-02-00096,2026-08-14,C02019,Arjun Gupta,Home Office,P0207,Wireless Mouse,Computer Accessories,2,799.00,159.80,1438.20,287.87
+ORD-02-00097,2026-08-15,C02019,Arjun Gupta,Home Office,P0206,HD Webcam,Computer Accessories,3,2299.00,0.00,6897.00,1347.88
+ORD-02-00098,2026-08-15,C02001,Diya Bhatt,Consumer,P0201,Wireless Earbuds,Audio,3,1999.00,899.55,5097.45,822.60
+ORD-02-00099,2026-08-15,C02021,Manish Bhatt,Home Office,P0205,Smart Watch,Wearables,3,4499.00,674.85,12822.15,2378.57
+ORD-02-00100,2026-08-15,C02030,Rohan Kulkarni,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,2,1799.00,0.00,3598.00,592.05
+ORD-02-00101,2026-08-17,C02026,Priya Joshi,Corporate,P0203,Power Bank 20000mAh,Mobile Accessories,2,1799.00,539.70,3058.30,602.76
+ORD-02-00102,2026-08-17,C02019,Arjun Gupta,Home Office,P0205,Smart Watch,Wearables,3,4499.00,0.00,13497.00,2399.68
+ORD-02-00103,2026-08-19,C02030,Rohan Kulkarni,Consumer,P0201,Wireless Earbuds,Audio,3,1999.00,0.00,5997.00,1079.08
+ORD-02-00104,2026-08-19,C02023,Kavya Deshmukh,Consumer,P0207,Wireless Mouse,Computer Accessories,2,799.00,0.00,1598.00,313.18
+ORD-02-00105,2026-08-19,C02002,Diya Verma,Consumer,P0207,Wireless Mouse,Computer Accessories,3,799.00,0.00,2397.00,371.55
+ORD-02-00106,2026-08-19,C02019,Arjun Gupta,Home Office,P0202,Bluetooth Speaker,Audio,1,2499.00,249.90,2249.10,452.95
+ORD-02-00107,2026-08-20,C02016,Rahul Gupta,Home Office,P0204,USB-C Cable,Mobile Accessories,1,399.00,39.90,359.10,60.20
+ORD-02-00108,2026-08-20,C02010,Kavya Chopra,Consumer,P0206,HD Webcam,Computer Accessories,3,2299.00,0.00,6897.00,1181.82
+ORD-02-00109,2026-08-20,C02024,Isha Nair,Consumer,P0201,Wireless Earbuds,Audio,1,1999.00,299.85,1699.15,284.97
+ORD-02-00110,2026-08-20,C02004,Sanjay Mehta,Consumer,P0201,Wireless Earbuds,Audio,3,1999.00,899.55,5097.45,787.37
+ORD-02-00111,2026-08-22,C02014,Tanvi Gupta,Corporate,P0205,Smart Watch,Wearables,3,4499.00,0.00,13497.00,2237.50
+ORD-02-00112,2026-08-22,C02027,Tanvi Reddy,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,2,1799.00,0.00,3598.00,680.92
+ORD-02-00113,2026-08-22,C02024,Isha Nair,Consumer,P0208,Wi-Fi 6 Router,Networking,3,3999.00,599.85,11397.15,1822.48
+ORD-02-00114,2026-08-22,C02014,Tanvi Gupta,Corporate,P0207,Wireless Mouse,Computer Accessories,3,799.00,0.00,2397.00,419.43
+ORD-02-00115,2026-08-23,C02011,Vikram Pillai,Consumer,P0206,HD Webcam,Computer Accessories,2,2299.00,0.00,4598.00,932.04
+ORD-02-00116,2026-08-23,C02021,Manish Bhatt,Home Office,P0205,Smart Watch,Wearables,3,4499.00,2024.55,11472.45,2127.14
+ORD-02-00117,2026-08-24,C02013,Aarav Joshi,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,1,1799.00,0.00,1799.00,321.36
+ORD-02-00118,2026-08-24,C02018,Ananya Menon,Consumer,P0206,HD Webcam,Computer Accessories,1,2299.00,0.00,2299.00,456.94
+ORD-02-00119,2026-08-24,C02027,Tanvi Reddy,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,1,1799.00,269.85,1529.15,251.10
+ORD-02-00120,2026-08-24,C02028,Divya Sharma,Home Office,P0207,Wireless Mouse,Computer Accessories,1,799.00,0.00,799.00,131.38
+ORD-02-00121,2026-08-24,C02023,Kavya Deshmukh,Consumer,P0205,Smart Watch,Wearables,3,4499.00,0.00,13497.00,2236.79
+ORD-02-00122,2026-08-25,C02016,Rahul Gupta,Home Office,P0201,Wireless Earbuds,Audio,1,1999.00,0.00,1999.00,324.00
+ORD-02-00123,2026-08-26,C02009,Rahul Sharma,Home Office,P0204,USB-C Cable,Mobile Accessories,2,399.00,0.00,798.00,149.90
+ORD-02-00124,2026-08-26,C02024,Isha Nair,Consumer,P0206,HD Webcam,Computer Accessories,1,2299.00,229.90,2069.10,353.75
+ORD-02-00125,2026-08-26,C02017,Swati Menon,Consumer,P0208,Wi-Fi 6 Router,Networking,1,3999.00,599.85,3399.15,553.12
+ORD-02-00126,2026-08-27,C02007,Rahul Iyer,Corporate,P0201,Wireless Earbuds,Audio,3,1999.00,0.00,5997.00,950.10
+ORD-02-00127,2026-08-27,C02001,Diya Bhatt,Consumer,P0206,HD Webcam,Computer Accessories,2,2299.00,229.90,4368.10,870.45
+ORD-02-00128,2026-08-27,C02030,Rohan Kulkarni,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,1,1799.00,0.00,1799.00,301.49
+ORD-02-00129,2026-08-27,C02008,Swati Iyer,Consumer,P0202,Bluetooth Speaker,Audio,1,2499.00,374.85,2124.15,417.07
+ORD-02-00130,2026-08-28,C02020,Meera Deshmukh,Consumer,P0206,HD Webcam,Computer Accessories,3,2299.00,1034.55,5862.45,1164.10
+ORD-02-00131,2026-08-28,C02011,Vikram Pillai,Consumer,P0208,Wi-Fi 6 Router,Networking,3,3999.00,599.85,11397.15,1837.22
+ORD-02-00132,2026-08-28,C02029,Shreya Gupta,Consumer,P0202,Bluetooth Speaker,Audio,3,2499.00,0.00,7497.00,1493.81
+ORD-02-00133,2026-08-29,C02005,Priya Malhotra,Consumer,P0201,Wireless Earbuds,Audio,3,1999.00,899.55,5097.45,933.30
+ORD-02-00134,2026-08-29,C02006,Arjun Joshi,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,3,1799.00,269.85,5127.15,985.03
+ORD-02-00135,2026-08-30,C02023,Kavya Deshmukh,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,1,1799.00,89.95,1709.05,345.49
+ORD-02-00136,2026-08-30,C02008,Swati Iyer,Consumer,P0206,HD Webcam,Computer Accessories,2,2299.00,459.80,4138.20,808.40
+ORD-02-00137,2026-08-30,C02008,Swati Iyer,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,3,1799.00,269.85,5127.15,980.27
+ORD-02-00138,2026-09-01,C02010,Kavya Chopra,Consumer,P0201,Wireless Earbuds,Audio,1,1999.00,299.85,1699.15,346.33
+ORD-02-00139,2026-09-02,C02012,Priya Rao,Consumer,P0201,Wireless Earbuds,Audio,3,1999.00,599.70,5397.30,861.25
+ORD-02-00140,2026-09-03,C02005,Priya Malhotra,Consumer,P0201,Wireless Earbuds,Audio,2,1999.00,599.70,3398.30,569.11
+ORD-02-00141,2026-09-03,C02001,Diya Bhatt,Consumer,P0201,Wireless Earbuds,Audio,3,1999.00,0.00,5997.00,1209.78
+ORD-02-00142,2026-09-04,C02011,Vikram Pillai,Consumer,P0207,Wireless Mouse,Computer Accessories,2,799.00,239.70,1358.30,273.93
+ORD-02-00143,2026-09-05,C02006,Arjun Joshi,Consumer,P0208,Wi-Fi 6 Router,Networking,1,3999.00,0.00,3999.00,733.25
+ORD-02-00144,2026-09-05,C02025,Rohan Gupta,Home Office,P0202,Bluetooth Speaker,Audio,2,2499.00,749.70,4248.30,874.15
+ORD-02-00145,2026-09-06,C02029,Shreya Gupta,Consumer,P0201,Wireless Earbuds,Audio,3,1999.00,299.85,5697.15,954.62
+ORD-02-00146,2026-09-06,C02025,Rohan Gupta,Home Office,P0202,Bluetooth Speaker,Audio,3,2499.00,0.00,7497.00,1292.77
+ORD-02-00147,2026-09-06,C02004,Sanjay Mehta,Consumer,P0202,Bluetooth Speaker,Audio,1,2499.00,0.00,2499.00,402.95
+ORD-02-00148,2026-09-07,C02003,Aarav Menon,Corporate,P0207,Wireless Mouse,Computer Accessories,2,799.00,239.70,1358.30,263.22
+ORD-02-00149,2026-09-08,C02011,Vikram Pillai,Consumer,P0205,Smart Watch,Wearables,1,4499.00,0.00,4499.00,756.79
+ORD-02-00150,2026-09-08,C02018,Ananya Menon,Consumer,P0204,USB-C Cable,Mobile Accessories,3,399.00,179.55,1017.45,156.47
+ORD-02-00151,2026-09-08,C02022,Arjun Desai,Home Office,P0207,Wireless Mouse,Computer Accessories,2,799.00,159.80,1438.20,268.34
+ORD-02-00152,2026-09-09,C02022,Arjun Desai,Home Office,P0202,Bluetooth Speaker,Audio,2,2499.00,0.00,4998.00,778.23
+ORD-02-00153,2026-09-09,C02018,Ananya Menon,Consumer,P0206,HD Webcam,Computer Accessories,2,2299.00,459.80,4138.20,691.05
+ORD-02-00154,2026-09-09,C02017,Swati Menon,Consumer,P0208,Wi-Fi 6 Router,Networking,2,3999.00,799.80,7198.20,1268.23
+ORD-02-00155,2026-09-11,C02015,Sneha Iyer,Consumer,P0202,Bluetooth Speaker,Audio,3,2499.00,749.70,6747.30,1063.44
+ORD-02-00156,2026-09-12,C02002,Diya Verma,Consumer,P0201,Wireless Earbuds,Audio,2,1999.00,0.00,3998.00,700.57
+ORD-02-00157,2026-09-14,C02013,Aarav Joshi,Consumer,P0208,Wi-Fi 6 Router,Networking,3,3999.00,0.00,11997.00,2434.80
+ORD-02-00158,2026-09-14,C02016,Rahul Gupta,Home Office,P0202,Bluetooth Speaker,Audio,2,2499.00,499.80,4498.20,713.90
+ORD-02-00159,2026-09-15,C02011,Vikram Pillai,Consumer,P0202,Bluetooth Speaker,Audio,1,2499.00,0.00,2499.00,465.24
+ORD-02-00160,2026-09-16,C02013,Aarav Joshi,Consumer,P0206,HD Webcam,Computer Accessories,3,2299.00,344.85,6552.15,1009.65
+ORD-02-00161,2026-09-16,C02027,Tanvi Reddy,Consumer,P0201,Wireless Earbuds,Audio,2,1999.00,399.80,3598.20,630.38
+ORD-02-00162,2026-09-17,C02009,Rahul Sharma,Home Office,P0206,HD Webcam,Computer Accessories,1,2299.00,0.00,2299.00,445.94
+ORD-02-00163,2026-09-17,C02017,Swati Menon,Consumer,P0208,Wi-Fi 6 Router,Networking,3,3999.00,1799.55,10197.45,1886.28
+ORD-02-00164,2026-09-18,C02016,Rahul Gupta,Home Office,P0201,Wireless Earbuds,Audio,3,1999.00,599.70,5397.30,892.20
+ORD-02-00165,2026-09-18,C02008,Swati Iyer,Consumer,P0206,HD Webcam,Computer Accessories,1,2299.00,114.95,2184.05,441.65
+ORD-02-00166,2026-09-19,C02030,Rohan Kulkarni,Consumer,P0207,Wireless Mouse,Computer Accessories,1,799.00,119.85,679.15,110.16
+ORD-02-00167,2026-09-20,C02017,Swati Menon,Consumer,P0206,HD Webcam,Computer Accessories,2,2299.00,689.70,3908.30,730.46
+ORD-02-00168,2026-09-21,C02026,Priya Joshi,Corporate,P0203,Power Bank 20000mAh,Mobile Accessories,1,1799.00,269.85,1529.15,273.51
+ORD-02-00169,2026-09-22,C02011,Vikram Pillai,Consumer,P0202,Bluetooth Speaker,Audio,3,2499.00,0.00,7497.00,1542.20
+ORD-02-00170,2026-09-23,C02030,Rohan Kulkarni,Consumer,P0201,Wireless Earbuds,Audio,1,1999.00,199.90,1799.10,349.36
+ORD-02-00171,2026-09-23,C02008,Swati Iyer,Consumer,P0205,Smart Watch,Wearables,1,4499.00,0.00,4499.00,906.67
+ORD-02-00172,2026-09-24,C02002,Diya Verma,Consumer,P0207,Wireless Mouse,Computer Accessories,2,799.00,79.90,1518.10,301.85
+ORD-02-00173,2026-09-24,C02028,Divya Sharma,Home Office,P0201,Wireless Earbuds,Audio,2,1999.00,599.70,3398.30,596.50
+ORD-02-00174,2026-09-25,C02021,Manish Bhatt,Home Office,P0206,HD Webcam,Computer Accessories,2,2299.00,0.00,4598.00,855.14
+ORD-02-00175,2026-09-25,C02006,Arjun Joshi,Consumer,P0207,Wireless Mouse,Computer Accessories,1,799.00,0.00,799.00,123.06
+ORD-02-00176,2026-09-25,C02022,Arjun Desai,Home Office,P0206,HD Webcam,Computer Accessories,2,2299.00,459.80,4138.20,670.88
+ORD-02-00177,2026-09-26,C02007,Rahul Iyer,Corporate,P0201,Wireless Earbuds,Audio,1,1999.00,0.00,1999.00,354.49
+ORD-02-00178,2026-09-26,C02014,Tanvi Gupta,Corporate,P0201,Wireless Earbuds,Audio,1,1999.00,0.00,1999.00,315.04
+ORD-02-00179,2026-09-27,C02025,Rohan Gupta,Home Office,P0202,Bluetooth Speaker,Audio,2,2499.00,0.00,4998.00,792.11
+ORD-02-00180,2026-09-27,C02012,Priya Rao,Consumer,P0206,HD Webcam,Computer Accessories,3,2299.00,0.00,6897.00,1251.09
+ORD-02-00181,2026-09-28,C02006,Arjun Joshi,Consumer,P0201,Wireless Earbuds,Audio,2,1999.00,0.00,3998.00,807.15
+ORD-02-00182,2026-09-28,C02026,Priya Joshi,Corporate,P0208,Wi-Fi 6 Router,Networking,2,3999.00,799.80,7198.20,1370.23
+ORD-02-00183,2026-09-28,C02001,Diya Bhatt,Consumer,P0206,HD Webcam,Computer Accessories,3,2299.00,0.00,6897.00,1330.07
+ORD-02-00184,2026-09-28,C02021,Manish Bhatt,Home Office,P0201,Wireless Earbuds,Audio,1,1999.00,299.85,1699.15,284.78
+ORD-02-00185,2026-09-28,C02001,Diya Bhatt,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,1,1799.00,269.85,1529.15,255.65
+ORD-02-00186,2026-09-29,C02025,Rohan Gupta,Home Office,P0208,Wi-Fi 6 Router,Networking,1,3999.00,0.00,3999.00,821.73
+ORD-02-00187,2026-09-30,C02004,Sanjay Mehta,Consumer,P0201,Wireless Earbuds,Audio,2,1999.00,0.00,3998.00,646.31
+ORD-02-00188,2026-09-30,C02011,Vikram Pillai,Consumer,P0207,Wireless Mouse,Computer Accessories,2,799.00,0.00,1598.00,316.13
+ORD-02-00189,2026-09-30,C02030,Rohan Kulkarni,Consumer,P0201,Wireless Earbuds,Audio,3,1999.00,899.55,5097.45,983.56
+ORD-02-00190,2026-10-01,C02008,Swati Iyer,Consumer,P0204,USB-C Cable,Mobile Accessories,2,399.00,79.80,718.20,124.43
+ORD-02-00191,2026-10-01,C02017,Swati Menon,Consumer,P0201,Wireless Earbuds,Audio,1,1999.00,199.90,1799.10,303.08
+ORD-02-00192,2026-10-03,C02022,Arjun Desai,Home Office,P0202,Bluetooth Speaker,Audio,2,2499.00,249.90,4748.10,922.24
+ORD-02-00193,2026-10-04,C02002,Diya Verma,Consumer,P0206,HD Webcam,Computer Accessories,2,2299.00,459.80,4138.20,635.96
+ORD-02-00194,2026-10-05,C02009,Rahul Sharma,Home Office,P0204,USB-C Cable,Mobile Accessories,1,399.00,39.90,359.10,60.87
+ORD-02-00195,2026-10-05,C02021,Manish Bhatt,Home Office,P0202,Bluetooth Speaker,Audio,3,2499.00,0.00,7497.00,1352.66
+ORD-02-00196,2026-10-05,C02010,Kavya Chopra,Consumer,P0208,Wi-Fi 6 Router,Networking,2,3999.00,0.00,7998.00,1532.25
+ORD-02-00197,2026-10-06,C02012,Priya Rao,Consumer,P0205,Smart Watch,Wearables,2,4499.00,0.00,8998.00,1567.87
+ORD-02-00198,2026-10-07,C02023,Kavya Deshmukh,Consumer,P0204,USB-C Cable,Mobile Accessories,1,399.00,19.95,379.05,75.18
+ORD-02-00199,2026-10-07,C02009,Rahul Sharma,Home Office,P0208,Wi-Fi 6 Router,Networking,3,3999.00,0.00,11997.00,2081.63
+ORD-02-00200,2026-10-08,C02005,Priya Malhotra,Consumer,P0204,USB-C Cable,Mobile Accessories,1,399.00,59.85,339.15,60.97
+ORD-02-00201,2026-10-08,C02025,Rohan Gupta,Home Office,P0201,Wireless Earbuds,Audio,2,1999.00,0.00,3998.00,736.14
+ORD-02-00202,2026-10-08,C02011,Vikram Pillai,Consumer,P0201,Wireless Earbuds,Audio,2,1999.00,0.00,3998.00,648.10
+ORD-02-00203,2026-10-09,C02003,Aarav Menon,Corporate,P0201,Wireless Earbuds,Audio,2,1999.00,0.00,3998.00,667.47
+ORD-02-00204,2026-10-09,C02024,Isha Nair,Consumer,P0205,Smart Watch,Wearables,3,4499.00,2024.55,11472.45,2055.53
+ORD-02-00205,2026-10-09,C02015,Sneha Iyer,Consumer,P0208,Wi-Fi 6 Router,Networking,1,3999.00,0.00,3999.00,785.38
+ORD-02-00206,2026-10-10,C02007,Rahul Iyer,Corporate,P0201,Wireless Earbuds,Audio,3,1999.00,599.70,5397.30,911.27
+ORD-02-00207,2026-10-10,C02008,Swati Iyer,Consumer,P0204,USB-C Cable,Mobile Accessories,2,399.00,0.00,798.00,122.45
+ORD-02-00208,2026-10-10,C02001,Diya Bhatt,Consumer,P0208,Wi-Fi 6 Router,Networking,1,3999.00,399.90,3599.10,695.51
+ORD-02-00209,2026-10-11,C02005,Priya Malhotra,Consumer,P0205,Smart Watch,Wearables,1,4499.00,0.00,4499.00,868.48
+ORD-02-00210,2026-10-12,C02017,Swati Menon,Consumer,P0202,Bluetooth Speaker,Audio,1,2499.00,124.95,2374.05,445.82
+ORD-02-00211,2026-10-12,C02023,Kavya Deshmukh,Consumer,P0208,Wi-Fi 6 Router,Networking,3,3999.00,599.85,11397.15,2086.73
+ORD-02-00212,2026-10-12,C02024,Isha Nair,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,3,1799.00,0.00,5397.00,963.00
+ORD-02-00213,2026-10-12,C02003,Aarav Menon,Corporate,P0202,Bluetooth Speaker,Audio,2,2499.00,0.00,4998.00,770.93
+ORD-02-00214,2026-10-12,C02026,Priya Joshi,Corporate,P0208,Wi-Fi 6 Router,Networking,2,3999.00,0.00,7998.00,1511.34
+ORD-02-00215,2026-10-13,C02017,Swati Menon,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,2,1799.00,179.90,3418.10,595.59
+ORD-02-00216,2026-10-13,C02015,Sneha Iyer,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,1,1799.00,0.00,1799.00,367.01
+ORD-02-00217,2026-10-13,C02001,Diya Bhatt,Consumer,P0201,Wireless Earbuds,Audio,1,1999.00,199.90,1799.10,351.82
+ORD-02-00218,2026-10-15,C02003,Aarav Menon,Corporate,P0206,HD Webcam,Computer Accessories,3,2299.00,344.85,6552.15,1084.58
+ORD-02-00219,2026-10-15,C02014,Tanvi Gupta,Corporate,P0202,Bluetooth Speaker,Audio,1,2499.00,0.00,2499.00,515.77
+ORD-02-00220,2026-10-15,C02024,Isha Nair,Consumer,P0201,Wireless Earbuds,Audio,1,1999.00,0.00,1999.00,369.31
+ORD-02-00221,2026-10-16,C02027,Tanvi Reddy,Consumer,P0207,Wireless Mouse,Computer Accessories,1,799.00,0.00,799.00,162.24
+ORD-02-00222,2026-10-16,C02001,Diya Bhatt,Consumer,P0208,Wi-Fi 6 Router,Networking,1,3999.00,0.00,3999.00,625.58
+ORD-02-00223,2026-10-17,C02030,Rohan Kulkarni,Consumer,P0201,Wireless Earbuds,Audio,1,1999.00,0.00,1999.00,389.62
+ORD-02-00224,2026-10-17,C02025,Rohan Gupta,Home Office,P0208,Wi-Fi 6 Router,Networking,1,3999.00,599.85,3399.15,659.06
+ORD-02-00225,2026-10-18,C02020,Meera Deshmukh,Consumer,P0203,Power Bank 20000mAh,Mobile Accessories,2,1799.00,0.00,3598.00,702.33
+ORD-02-00226,2026-10-18,C02024,Isha Nair,Consumer,P0205,Smart Watch,Wearables,2,4499.00,1349.70,7648.30,1252.81
+ORD-02-00227,2026-10-19,C02010,Kavya Chopra,Consumer,P0201,Wireless Earbuds,Audio,3,1999.00,299.85,5697.15,924.21
+ORD-02-00228,2026-10-19,C02026,Priya Joshi,Corporate,P0203,Power Bank 20000mAh,Mobile Accessories,2,1799.00,539.70,3058.30,484.18
+ORD-02-00229,2026-10-19,C02022,Arjun Desai,Home Office,P0206,HD Webcam,Computer Accessories,2,2299.00,0.00,4598.00,739.06
+ORD-02-00230,2026-10-19,C02005,Priya Malhotra,Consumer,P0207,Wireless Mouse,Computer Accessories,3,799.00,0.00,2397.00,492.17

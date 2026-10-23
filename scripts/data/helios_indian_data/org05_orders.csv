@@ -1,0 +1,191 @@
+order_id,order_date,customer_id,customer_name,segment,product_id,product_name,category,quantity,unit_price,discount,total,profit
+ORD-05-00001,2026-07-02,C05028,Nikhil Reddy,Consumer,P0506,Badminton Racket,Racket Sports,2,1799.00,179.90,3418.10,916.22
+ORD-05-00002,2026-07-04,C05025,Sneha Menon,Consumer,P0504,Cricket Ball Pack,Cricket,1,599.00,29.95,569.05,133.57
+ORD-05-00003,2026-07-05,C05023,Pooja Menon,Consumer,P0508,Sports Water Bottle,Accessories,3,449.00,0.00,1347.00,320.55
+ORD-05-00004,2026-07-05,C05006,Rahul Nair,Corporate,P0503,Cricket Bat,Cricket,1,2999.00,149.95,2849.05,797.35
+ORD-05-00005,2026-07-06,C05004,Karan Singh,Consumer,P0506,Badminton Racket,Racket Sports,1,1799.00,179.90,1619.10,444.37
+ORD-05-00006,2026-07-07,C05021,Tanvi Sharma,Consumer,P0505,Running Shoes,Footwear,1,3499.00,0.00,3499.00,951.45
+ORD-05-00007,2026-07-07,C05001,Amit Kulkarni,Home Office,P0507,Skipping Rope,Fitness,3,249.00,74.70,672.30,179.33
+ORD-05-00008,2026-07-07,C05021,Tanvi Sharma,Consumer,P0503,Cricket Bat,Cricket,1,2999.00,449.85,2549.15,654.90
+ORD-05-00009,2026-07-08,C05009,Shreya Malhotra,Consumer,P0502,Dumbbell Set,Fitness,1,2499.00,0.00,2499.00,610.60
+ORD-05-00010,2026-07-08,C05029,Swati Chopra,Consumer,P0503,Cricket Bat,Cricket,3,2999.00,1349.55,7647.45,2102.42
+ORD-05-00011,2026-07-08,C05009,Shreya Malhotra,Consumer,P0501,Yoga Mat,Fitness,2,899.00,89.90,1708.10,486.20
+ORD-05-00012,2026-07-08,C05006,Rahul Nair,Corporate,P0505,Running Shoes,Footwear,2,3499.00,0.00,6998.00,1609.75
+ORD-05-00013,2026-07-09,C05027,Rahul Deshmukh,Consumer,P0504,Cricket Ball Pack,Cricket,3,599.00,179.70,1617.30,454.13
+ORD-05-00014,2026-07-10,C05013,Vikram Shah,Consumer,P0501,Yoga Mat,Fitness,2,899.00,89.90,1708.10,529.57
+ORD-05-00015,2026-07-10,C05018,Ananya Mehta,Consumer,P0501,Yoga Mat,Fitness,3,899.00,0.00,2697.00,757.16
+ORD-05-00016,2026-07-11,C05011,Sneha Desai,Consumer,P0507,Skipping Rope,Fitness,3,249.00,112.05,634.95,160.23
+ORD-05-00017,2026-07-12,C05004,Karan Singh,Consumer,P0508,Sports Water Bottle,Accessories,1,449.00,44.90,404.10,116.72
+ORD-05-00018,2026-07-12,C05030,Shreya Gupta,Consumer,P0503,Cricket Bat,Cricket,3,2999.00,899.70,8097.30,2201.61
+ORD-05-00019,2026-07-12,C05024,Meera Pillai,Consumer,P0508,Sports Water Bottle,Accessories,2,449.00,0.00,898.00,236.26
+ORD-05-00020,2026-07-14,C05021,Tanvi Sharma,Consumer,P0507,Skipping Rope,Fitness,3,249.00,112.05,634.95,188.31
+ORD-05-00021,2026-07-15,C05022,Harsh Kulkarni,Consumer,P0506,Badminton Racket,Racket Sports,3,1799.00,0.00,5397.00,1542.26
+ORD-05-00022,2026-07-15,C05008,Anjali Shah,Corporate,P0507,Skipping Rope,Fitness,1,249.00,12.45,236.55,61.87
+ORD-05-00023,2026-07-16,C05007,Anjali Iyer,Home Office,P0501,Yoga Mat,Fitness,3,899.00,134.85,2562.15,671.17
+ORD-05-00024,2026-07-16,C05024,Meera Pillai,Consumer,P0504,Cricket Ball Pack,Cricket,3,599.00,0.00,1797.00,545.51
+ORD-05-00025,2026-07-17,C05001,Amit Kulkarni,Home Office,P0505,Running Shoes,Footwear,2,3499.00,699.80,6298.20,1800.25
+ORD-05-00026,2026-07-18,C05019,Harsh Shah,Home Office,P0505,Running Shoes,Footwear,3,3499.00,1049.70,9447.30,2617.10
+ORD-05-00027,2026-07-18,C05015,Swati Joshi,Consumer,P0508,Sports Water Bottle,Accessories,2,449.00,0.00,898.00,217.04
+ORD-05-00028,2026-07-19,C05012,Deepak Pillai,Consumer,P0505,Running Shoes,Footwear,2,3499.00,349.90,6648.10,1657.41
+ORD-05-00029,2026-07-20,C05005,Vikram Mehta,Corporate,P0501,Yoga Mat,Fitness,3,899.00,269.70,2427.30,752.10
+ORD-05-00030,2026-07-21,C05025,Sneha Menon,Consumer,P0506,Badminton Racket,Racket Sports,1,1799.00,89.95,1709.05,465.55
+ORD-05-00031,2026-07-22,C05018,Ananya Mehta,Consumer,P0507,Skipping Rope,Fitness,3,249.00,74.70,672.30,160.06
+ORD-05-00032,2026-07-23,C05022,Harsh Kulkarni,Consumer,P0504,Cricket Ball Pack,Cricket,3,599.00,89.85,1707.15,519.65
+ORD-05-00033,2026-07-24,C05014,Manish Reddy,Consumer,P0501,Yoga Mat,Fitness,3,899.00,0.00,2697.00,813.77
+ORD-05-00034,2026-07-25,C05008,Anjali Shah,Corporate,P0503,Cricket Bat,Cricket,3,2999.00,0.00,8997.00,2096.16
+ORD-05-00035,2026-07-25,C05026,Isha Gupta,Consumer,P0503,Cricket Bat,Cricket,1,2999.00,0.00,2999.00,724.41
+ORD-05-00036,2026-07-26,C05006,Rahul Nair,Corporate,P0501,Yoga Mat,Fitness,2,899.00,0.00,1798.00,491.33
+ORD-05-00037,2026-07-27,C05008,Anjali Shah,Corporate,P0501,Yoga Mat,Fitness,1,899.00,0.00,899.00,272.89
+ORD-05-00038,2026-07-27,C05002,Vivaan Menon,Corporate,P0506,Badminton Racket,Racket Sports,3,1799.00,0.00,5397.00,1406.48
+ORD-05-00039,2026-07-27,C05027,Rahul Deshmukh,Consumer,P0501,Yoga Mat,Fitness,3,899.00,134.85,2562.15,731.45
+ORD-05-00040,2026-07-29,C05027,Rahul Deshmukh,Consumer,P0501,Yoga Mat,Fitness,2,899.00,0.00,1798.00,441.04
+ORD-05-00041,2026-07-29,C05005,Vikram Mehta,Corporate,P0506,Badminton Racket,Racket Sports,3,1799.00,0.00,5397.00,1361.17
+ORD-05-00042,2026-07-30,C05006,Rahul Nair,Corporate,P0501,Yoga Mat,Fitness,3,899.00,0.00,2697.00,774.65
+ORD-05-00043,2026-08-01,C05030,Shreya Gupta,Consumer,P0505,Running Shoes,Footwear,3,3499.00,0.00,10497.00,3084.36
+ORD-05-00044,2026-08-02,C05021,Tanvi Sharma,Consumer,P0508,Sports Water Bottle,Accessories,3,449.00,0.00,1347.00,405.72
+ORD-05-00045,2026-08-02,C05020,Rahul Singh,Home Office,P0507,Skipping Rope,Fitness,2,249.00,49.80,448.20,112.62
+ORD-05-00046,2026-08-03,C05009,Shreya Malhotra,Consumer,P0502,Dumbbell Set,Fitness,2,2499.00,0.00,4998.00,1210.72
+ORD-05-00047,2026-08-03,C05001,Amit Kulkarni,Home Office,P0504,Cricket Ball Pack,Cricket,3,599.00,0.00,1797.00,549.27
+ORD-05-00048,2026-08-05,C05021,Tanvi Sharma,Consumer,P0502,Dumbbell Set,Fitness,1,2499.00,0.00,2499.00,717.79
+ORD-05-00049,2026-08-05,C05018,Ananya Mehta,Consumer,P0502,Dumbbell Set,Fitness,1,2499.00,249.90,2249.10,563.93
+ORD-05-00050,2026-08-06,C05025,Sneha Menon,Consumer,P0507,Skipping Rope,Fitness,3,249.00,0.00,747.00,209.97
+ORD-05-00051,2026-08-07,C05025,Sneha Menon,Consumer,P0506,Badminton Racket,Racket Sports,3,1799.00,0.00,5397.00,1595.66
+ORD-05-00052,2026-08-08,C05030,Shreya Gupta,Consumer,P0505,Running Shoes,Footwear,2,3499.00,699.80,6298.20,1673.27
+ORD-05-00053,2026-08-08,C05030,Shreya Gupta,Consumer,P0501,Yoga Mat,Fitness,3,899.00,404.55,2292.45,622.87
+ORD-05-00054,2026-08-09,C05021,Tanvi Sharma,Consumer,P0507,Skipping Rope,Fitness,1,249.00,0.00,249.00,68.01
+ORD-05-00055,2026-08-09,C05026,Isha Gupta,Consumer,P0508,Sports Water Bottle,Accessories,2,449.00,0.00,898.00,236.93
+ORD-05-00056,2026-08-09,C05022,Harsh Kulkarni,Consumer,P0501,Yoga Mat,Fitness,2,899.00,179.80,1618.20,424.20
+ORD-05-00057,2026-08-10,C05026,Isha Gupta,Consumer,P0507,Skipping Rope,Fitness,2,249.00,0.00,498.00,146.04
+ORD-05-00058,2026-08-10,C05010,Aditya Shah,Consumer,P0503,Cricket Bat,Cricket,3,2999.00,449.85,8547.15,2646.51
+ORD-05-00059,2026-08-10,C05018,Ananya Mehta,Consumer,P0505,Running Shoes,Footwear,3,3499.00,1574.55,8922.45,2104.31
+ORD-05-00060,2026-08-11,C05014,Manish Reddy,Consumer,P0506,Badminton Racket,Racket Sports,1,1799.00,0.00,1799.00,528.59
+ORD-05-00061,2026-08-11,C05007,Anjali Iyer,Home Office,P0505,Running Shoes,Footwear,1,3499.00,0.00,3499.00,1084.27
+ORD-05-00062,2026-08-12,C05020,Rahul Singh,Home Office,P0502,Dumbbell Set,Fitness,2,2499.00,0.00,4998.00,1248.40
+ORD-05-00063,2026-08-13,C05020,Rahul Singh,Home Office,P0504,Cricket Ball Pack,Cricket,3,599.00,0.00,1797.00,535.12
+ORD-05-00064,2026-08-14,C05009,Shreya Malhotra,Consumer,P0501,Yoga Mat,Fitness,3,899.00,0.00,2697.00,754.18
+ORD-05-00065,2026-08-14,C05014,Manish Reddy,Consumer,P0503,Cricket Bat,Cricket,1,2999.00,0.00,2999.00,700.29
+ORD-05-00066,2026-08-14,C05015,Swati Joshi,Consumer,P0508,Sports Water Bottle,Accessories,3,449.00,0.00,1347.00,409.64
+ORD-05-00067,2026-08-14,C05009,Shreya Malhotra,Consumer,P0508,Sports Water Bottle,Accessories,3,449.00,67.35,1279.65,339.17
+ORD-05-00068,2026-08-15,C05008,Anjali Shah,Corporate,P0502,Dumbbell Set,Fitness,2,2499.00,499.80,4498.20,1059.83
+ORD-05-00069,2026-08-15,C05001,Amit Kulkarni,Home Office,P0501,Yoga Mat,Fitness,3,899.00,404.55,2292.45,572.32
+ORD-05-00070,2026-08-15,C05007,Anjali Iyer,Home Office,P0502,Dumbbell Set,Fitness,1,2499.00,0.00,2499.00,575.20
+ORD-05-00071,2026-08-16,C05017,Aarav Reddy,Home Office,P0501,Yoga Mat,Fitness,3,899.00,0.00,2697.00,738.96
+ORD-05-00072,2026-08-17,C05001,Amit Kulkarni,Home Office,P0502,Dumbbell Set,Fitness,1,2499.00,0.00,2499.00,700.28
+ORD-05-00073,2026-08-19,C05027,Rahul Deshmukh,Consumer,P0501,Yoga Mat,Fitness,1,899.00,0.00,899.00,237.28
+ORD-05-00074,2026-08-20,C05007,Anjali Iyer,Home Office,P0506,Badminton Racket,Racket Sports,3,1799.00,269.85,5127.15,1553.31
+ORD-05-00075,2026-08-20,C05030,Shreya Gupta,Consumer,P0504,Cricket Ball Pack,Cricket,2,599.00,119.80,1078.20,280.30
+ORD-05-00076,2026-08-20,C05016,Divya Nair,Consumer,P0506,Badminton Racket,Racket Sports,3,1799.00,809.55,4587.45,1409.21
+ORD-05-00077,2026-08-21,C05014,Manish Reddy,Consumer,P0507,Skipping Rope,Fitness,2,249.00,24.90,473.10,111.12
+ORD-05-00078,2026-08-23,C05012,Deepak Pillai,Consumer,P0506,Badminton Racket,Racket Sports,3,1799.00,539.70,4857.30,1118.31
+ORD-05-00079,2026-08-24,C05013,Vikram Shah,Consumer,P0502,Dumbbell Set,Fitness,1,2499.00,249.90,2249.10,525.91
+ORD-05-00080,2026-08-24,C05005,Vikram Mehta,Corporate,P0502,Dumbbell Set,Fitness,3,2499.00,1124.55,6372.45,1498.62
+ORD-05-00081,2026-08-24,C05026,Isha Gupta,Consumer,P0501,Yoga Mat,Fitness,1,899.00,0.00,899.00,214.30
+ORD-05-00082,2026-08-27,C05009,Shreya Malhotra,Consumer,P0508,Sports Water Bottle,Accessories,3,449.00,134.70,1212.30,348.46
+ORD-05-00083,2026-08-27,C05014,Manish Reddy,Consumer,P0504,Cricket Ball Pack,Cricket,3,599.00,0.00,1797.00,556.88
+ORD-05-00084,2026-08-27,C05003,Harsh Bhatt,Consumer,P0505,Running Shoes,Footwear,2,3499.00,349.90,6648.10,1688.10
+ORD-05-00085,2026-08-27,C05029,Swati Chopra,Consumer,P0505,Running Shoes,Footwear,3,3499.00,1049.70,9447.30,2841.39
+ORD-05-00086,2026-08-28,C05011,Sneha Desai,Consumer,P0506,Badminton Racket,Racket Sports,3,1799.00,809.55,4587.45,1232.36
+ORD-05-00087,2026-08-29,C05016,Divya Nair,Consumer,P0502,Dumbbell Set,Fitness,3,2499.00,0.00,7497.00,2239.96
+ORD-05-00088,2026-08-29,C05016,Divya Nair,Consumer,P0508,Sports Water Bottle,Accessories,1,449.00,0.00,449.00,106.19
+ORD-05-00089,2026-08-30,C05002,Vivaan Menon,Corporate,P0508,Sports Water Bottle,Accessories,1,449.00,22.45,426.55,111.94
+ORD-05-00090,2026-08-30,C05022,Harsh Kulkarni,Consumer,P0504,Cricket Ball Pack,Cricket,1,599.00,0.00,599.00,143.01
+ORD-05-00091,2026-08-31,C05010,Aditya Shah,Consumer,P0505,Running Shoes,Footwear,3,3499.00,0.00,10497.00,3181.78
+ORD-05-00092,2026-09-02,C05024,Meera Pillai,Consumer,P0501,Yoga Mat,Fitness,3,899.00,404.55,2292.45,642.25
+ORD-05-00093,2026-09-02,C05005,Vikram Mehta,Corporate,P0504,Cricket Ball Pack,Cricket,1,599.00,29.95,569.05,144.58
+ORD-05-00094,2026-09-03,C05030,Shreya Gupta,Consumer,P0507,Skipping Rope,Fitness,3,249.00,0.00,747.00,181.85
+ORD-05-00095,2026-09-03,C05006,Rahul Nair,Corporate,P0508,Sports Water Bottle,Accessories,3,449.00,0.00,1347.00,353.71
+ORD-05-00096,2026-09-06,C05009,Shreya Malhotra,Consumer,P0503,Cricket Bat,Cricket,2,2999.00,599.80,5398.20,1457.49
+ORD-05-00097,2026-09-07,C05019,Harsh Shah,Home Office,P0506,Badminton Racket,Racket Sports,2,1799.00,539.70,3058.30,717.63
+ORD-05-00098,2026-09-07,C05005,Vikram Mehta,Corporate,P0502,Dumbbell Set,Fitness,1,2499.00,0.00,2499.00,702.14
+ORD-05-00099,2026-09-08,C05003,Harsh Bhatt,Consumer,P0508,Sports Water Bottle,Accessories,2,449.00,0.00,898.00,243.24
+ORD-05-00100,2026-09-09,C05021,Tanvi Sharma,Consumer,P0501,Yoga Mat,Fitness,3,899.00,404.55,2292.45,564.91
+ORD-05-00101,2026-09-09,C05023,Pooja Menon,Consumer,P0506,Badminton Racket,Racket Sports,1,1799.00,269.85,1529.15,440.96
+ORD-05-00102,2026-09-10,C05027,Rahul Deshmukh,Consumer,P0503,Cricket Bat,Cricket,1,2999.00,0.00,2999.00,747.20
+ORD-05-00103,2026-09-10,C05008,Anjali Shah,Corporate,P0506,Badminton Racket,Racket Sports,2,1799.00,0.00,3598.00,893.51
+ORD-05-00104,2026-09-10,C05004,Karan Singh,Consumer,P0505,Running Shoes,Footwear,3,3499.00,0.00,10497.00,3256.66
+ORD-05-00105,2026-09-11,C05026,Isha Gupta,Consumer,P0504,Cricket Ball Pack,Cricket,2,599.00,0.00,1198.00,336.11
+ORD-05-00106,2026-09-12,C05012,Deepak Pillai,Consumer,P0504,Cricket Ball Pack,Cricket,1,599.00,89.85,509.15,129.83
+ORD-05-00107,2026-09-13,C05009,Shreya Malhotra,Consumer,P0501,Yoga Mat,Fitness,1,899.00,0.00,899.00,244.88
+ORD-05-00108,2026-09-14,C05018,Ananya Mehta,Consumer,P0503,Cricket Bat,Cricket,1,2999.00,449.85,2549.15,656.53
+ORD-05-00109,2026-09-15,C05013,Vikram Shah,Consumer,P0502,Dumbbell Set,Fitness,2,2499.00,249.90,4748.10,1426.16
+ORD-05-00110,2026-09-17,C05011,Sneha Desai,Consumer,P0505,Running Shoes,Footwear,1,3499.00,524.85,2974.15,763.53
+ORD-05-00111,2026-09-18,C05022,Harsh Kulkarni,Consumer,P0505,Running Shoes,Footwear,1,3499.00,0.00,3499.00,809.83
+ORD-05-00112,2026-09-18,C05003,Harsh Bhatt,Consumer,P0501,Yoga Mat,Fitness,2,899.00,0.00,1798.00,462.04
+ORD-05-00113,2026-09-18,C05022,Harsh Kulkarni,Consumer,P0505,Running Shoes,Footwear,2,3499.00,699.80,6298.20,1809.01
+ORD-05-00114,2026-09-19,C05011,Sneha Desai,Consumer,P0508,Sports Water Bottle,Accessories,3,449.00,134.70,1212.30,281.72
+ORD-05-00115,2026-09-19,C05003,Harsh Bhatt,Consumer,P0501,Yoga Mat,Fitness,2,899.00,269.70,1528.30,453.43
+ORD-05-00116,2026-09-19,C05028,Nikhil Reddy,Consumer,P0501,Yoga Mat,Fitness,2,899.00,269.70,1528.30,375.12
+ORD-05-00117,2026-09-19,C05021,Tanvi Sharma,Consumer,P0507,Skipping Rope,Fitness,2,249.00,0.00,498.00,120.50
+ORD-05-00118,2026-09-20,C05017,Aarav Reddy,Home Office,P0506,Badminton Racket,Racket Sports,1,1799.00,179.90,1619.10,384.97
+ORD-05-00119,2026-09-20,C05026,Isha Gupta,Consumer,P0506,Badminton Racket,Racket Sports,2,1799.00,0.00,3598.00,874.86
+ORD-05-00120,2026-09-21,C05009,Shreya Malhotra,Consumer,P0501,Yoga Mat,Fitness,2,899.00,89.90,1708.10,398.54
+ORD-05-00121,2026-09-21,C05011,Sneha Desai,Consumer,P0501,Yoga Mat,Fitness,2,899.00,0.00,1798.00,520.16
+ORD-05-00122,2026-09-22,C05026,Isha Gupta,Consumer,P0501,Yoga Mat,Fitness,3,899.00,269.70,2427.30,597.22
+ORD-05-00123,2026-09-22,C05008,Anjali Shah,Corporate,P0502,Dumbbell Set,Fitness,1,2499.00,374.85,2124.15,608.38
+ORD-05-00124,2026-09-23,C05026,Isha Gupta,Consumer,P0504,Cricket Ball Pack,Cricket,1,599.00,0.00,599.00,138.02
+ORD-05-00125,2026-09-23,C05014,Manish Reddy,Consumer,P0506,Badminton Racket,Racket Sports,2,1799.00,179.90,3418.10,900.06
+ORD-05-00126,2026-09-24,C05007,Anjali Iyer,Home Office,P0504,Cricket Ball Pack,Cricket,3,599.00,89.85,1707.15,522.73
+ORD-05-00127,2026-09-24,C05027,Rahul Deshmukh,Consumer,P0506,Badminton Racket,Racket Sports,3,1799.00,539.70,4857.30,1415.60
+ORD-05-00128,2026-09-26,C05007,Anjali Iyer,Home Office,P0505,Running Shoes,Footwear,1,3499.00,0.00,3499.00,868.14
+ORD-05-00129,2026-09-26,C05028,Nikhil Reddy,Consumer,P0501,Yoga Mat,Fitness,2,899.00,89.90,1708.10,417.45
+ORD-05-00130,2026-09-26,C05001,Amit Kulkarni,Home Office,P0501,Yoga Mat,Fitness,2,899.00,269.70,1528.30,465.04
+ORD-05-00131,2026-09-27,C05028,Nikhil Reddy,Consumer,P0501,Yoga Mat,Fitness,2,899.00,0.00,1798.00,539.13
+ORD-05-00132,2026-09-27,C05006,Rahul Nair,Corporate,P0501,Yoga Mat,Fitness,2,899.00,179.80,1618.20,463.98
+ORD-05-00133,2026-09-27,C05018,Ananya Mehta,Consumer,P0505,Running Shoes,Footwear,3,3499.00,1574.55,8922.45,2578.36
+ORD-05-00134,2026-09-27,C05007,Anjali Iyer,Home Office,P0506,Badminton Racket,Racket Sports,1,1799.00,269.85,1529.15,375.58
+ORD-05-00135,2026-09-28,C05024,Meera Pillai,Consumer,P0507,Skipping Rope,Fitness,1,249.00,0.00,249.00,72.63
+ORD-05-00136,2026-10-01,C05001,Amit Kulkarni,Home Office,P0502,Dumbbell Set,Fitness,2,2499.00,749.70,4248.30,1058.57
+ORD-05-00137,2026-10-02,C05025,Sneha Menon,Consumer,P0507,Skipping Rope,Fitness,1,249.00,0.00,249.00,61.98
+ORD-05-00138,2026-10-03,C05014,Manish Reddy,Consumer,P0508,Sports Water Bottle,Accessories,1,449.00,0.00,449.00,115.32
+ORD-05-00139,2026-10-05,C05026,Isha Gupta,Consumer,P0508,Sports Water Bottle,Accessories,2,449.00,0.00,898.00,250.09
+ORD-05-00140,2026-10-05,C05021,Tanvi Sharma,Consumer,P0506,Badminton Racket,Racket Sports,2,1799.00,0.00,3598.00,901.94
+ORD-05-00141,2026-10-05,C05029,Swati Chopra,Consumer,P0503,Cricket Bat,Cricket,2,2999.00,0.00,5998.00,1484.85
+ORD-05-00142,2026-10-05,C05026,Isha Gupta,Consumer,P0501,Yoga Mat,Fitness,2,899.00,269.70,1528.30,354.44
+ORD-05-00143,2026-10-05,C05030,Shreya Gupta,Consumer,P0501,Yoga Mat,Fitness,3,899.00,404.55,2292.45,537.00
+ORD-05-00144,2026-10-06,C05002,Vivaan Menon,Corporate,P0501,Yoga Mat,Fitness,1,899.00,0.00,899.00,248.60
+ORD-05-00145,2026-10-06,C05026,Isha Gupta,Consumer,P0501,Yoga Mat,Fitness,1,899.00,0.00,899.00,250.88
+ORD-05-00146,2026-10-07,C05024,Meera Pillai,Consumer,P0502,Dumbbell Set,Fitness,1,2499.00,0.00,2499.00,718.31
+ORD-05-00147,2026-10-07,C05020,Rahul Singh,Home Office,P0502,Dumbbell Set,Fitness,1,2499.00,0.00,2499.00,691.74
+ORD-05-00148,2026-10-07,C05029,Swati Chopra,Consumer,P0505,Running Shoes,Footwear,3,3499.00,0.00,10497.00,2877.84
+ORD-05-00149,2026-10-07,C05005,Vikram Mehta,Corporate,P0505,Running Shoes,Footwear,1,3499.00,0.00,3499.00,1034.56
+ORD-05-00150,2026-10-07,C05030,Shreya Gupta,Consumer,P0501,Yoga Mat,Fitness,1,899.00,0.00,899.00,217.91
+ORD-05-00151,2026-10-08,C05020,Rahul Singh,Home Office,P0503,Cricket Bat,Cricket,2,2999.00,899.70,5098.30,1275.06
+ORD-05-00152,2026-10-08,C05021,Tanvi Sharma,Consumer,P0506,Badminton Racket,Racket Sports,1,1799.00,0.00,1799.00,451.17
+ORD-05-00153,2026-10-08,C05030,Shreya Gupta,Consumer,P0503,Cricket Bat,Cricket,3,2999.00,899.70,8097.30,2361.44
+ORD-05-00154,2026-10-09,C05019,Harsh Shah,Home Office,P0504,Cricket Ball Pack,Cricket,2,599.00,59.90,1138.10,327.64
+ORD-05-00155,2026-10-09,C05018,Ananya Mehta,Consumer,P0504,Cricket Ball Pack,Cricket,3,599.00,0.00,1797.00,507.71
+ORD-05-00156,2026-10-09,C05014,Manish Reddy,Consumer,P0507,Skipping Rope,Fitness,2,249.00,24.90,473.10,111.69
+ORD-05-00157,2026-10-10,C05015,Swati Joshi,Consumer,P0501,Yoga Mat,Fitness,2,899.00,89.90,1708.10,477.90
+ORD-05-00158,2026-10-10,C05012,Deepak Pillai,Consumer,P0501,Yoga Mat,Fitness,2,899.00,0.00,1798.00,435.73
+ORD-05-00159,2026-10-10,C05014,Manish Reddy,Consumer,P0508,Sports Water Bottle,Accessories,3,449.00,202.05,1144.95,273.01
+ORD-05-00160,2026-10-10,C05009,Shreya Malhotra,Consumer,P0505,Running Shoes,Footwear,1,3499.00,0.00,3499.00,828.73
+ORD-05-00161,2026-10-10,C05018,Ananya Mehta,Consumer,P0508,Sports Water Bottle,Accessories,1,449.00,0.00,449.00,132.35
+ORD-05-00162,2026-10-10,C05015,Swati Joshi,Consumer,P0506,Badminton Racket,Racket Sports,2,1799.00,359.80,3238.20,826.28
+ORD-05-00163,2026-10-10,C05013,Vikram Shah,Consumer,P0501,Yoga Mat,Fitness,3,899.00,404.55,2292.45,611.29
+ORD-05-00164,2026-10-11,C05008,Anjali Shah,Corporate,P0505,Running Shoes,Footwear,1,3499.00,174.95,3324.05,877.57
+ORD-05-00165,2026-10-11,C05027,Rahul Deshmukh,Consumer,P0508,Sports Water Bottle,Accessories,3,449.00,0.00,1347.00,314.73
+ORD-05-00166,2026-10-11,C05015,Swati Joshi,Consumer,P0501,Yoga Mat,Fitness,1,899.00,0.00,899.00,274.74
+ORD-05-00167,2026-10-12,C05006,Rahul Nair,Corporate,P0505,Running Shoes,Footwear,1,3499.00,349.90,3149.10,964.01
+ORD-05-00168,2026-10-12,C05026,Isha Gupta,Consumer,P0508,Sports Water Bottle,Accessories,2,449.00,134.70,763.30,205.75
+ORD-05-00169,2026-10-12,C05008,Anjali Shah,Corporate,P0501,Yoga Mat,Fitness,2,899.00,0.00,1798.00,438.72
+ORD-05-00170,2026-10-13,C05002,Vivaan Menon,Corporate,P0502,Dumbbell Set,Fitness,3,2499.00,0.00,7497.00,1958.84
+ORD-05-00171,2026-10-14,C05009,Shreya Malhotra,Consumer,P0506,Badminton Racket,Racket Sports,2,1799.00,539.70,3058.30,919.50
+ORD-05-00172,2026-10-14,C05017,Aarav Reddy,Home Office,P0508,Sports Water Bottle,Accessories,1,449.00,0.00,449.00,131.36
+ORD-05-00173,2026-10-15,C05026,Isha Gupta,Consumer,P0506,Badminton Racket,Racket Sports,1,1799.00,0.00,1799.00,558.58
+ORD-05-00174,2026-10-15,C05007,Anjali Iyer,Home Office,P0507,Skipping Rope,Fitness,2,249.00,74.70,423.30,109.68
+ORD-05-00175,2026-10-16,C05013,Vikram Shah,Consumer,P0504,Cricket Ball Pack,Cricket,3,599.00,179.70,1617.30,437.37
+ORD-05-00176,2026-10-17,C05030,Shreya Gupta,Consumer,P0504,Cricket Ball Pack,Cricket,3,599.00,0.00,1797.00,528.68
+ORD-05-00177,2026-10-17,C05011,Sneha Desai,Consumer,P0505,Running Shoes,Footwear,3,3499.00,524.85,9972.15,3081.77
+ORD-05-00178,2026-10-17,C05028,Nikhil Reddy,Consumer,P0504,Cricket Ball Pack,Cricket,1,599.00,29.95,569.05,163.66
+ORD-05-00179,2026-10-17,C05021,Tanvi Sharma,Consumer,P0508,Sports Water Bottle,Accessories,2,449.00,0.00,898.00,261.71
+ORD-05-00180,2026-10-17,C05002,Vivaan Menon,Corporate,P0502,Dumbbell Set,Fitness,1,2499.00,0.00,2499.00,678.09
+ORD-05-00181,2026-10-17,C05005,Vikram Mehta,Corporate,P0506,Badminton Racket,Racket Sports,2,1799.00,539.70,3058.30,909.26
+ORD-05-00182,2026-10-17,C05003,Harsh Bhatt,Consumer,P0504,Cricket Ball Pack,Cricket,1,599.00,59.90,539.10,139.38
+ORD-05-00183,2026-10-17,C05023,Pooja Menon,Consumer,P0502,Dumbbell Set,Fitness,2,2499.00,749.70,4248.30,1272.87
+ORD-05-00184,2026-10-18,C05021,Tanvi Sharma,Consumer,P0508,Sports Water Bottle,Accessories,1,449.00,0.00,449.00,122.97
+ORD-05-00185,2026-10-18,C05005,Vikram Mehta,Corporate,P0502,Dumbbell Set,Fitness,3,2499.00,0.00,7497.00,2063.96
+ORD-05-00186,2026-10-18,C05001,Amit Kulkarni,Home Office,P0504,Cricket Ball Pack,Cricket,1,599.00,0.00,599.00,169.44
+ORD-05-00187,2026-10-19,C05030,Shreya Gupta,Consumer,P0504,Cricket Ball Pack,Cricket,2,599.00,119.80,1078.20,302.99
+ORD-05-00188,2026-10-19,C05009,Shreya Malhotra,Consumer,P0506,Badminton Racket,Racket Sports,1,1799.00,0.00,1799.00,510.86
+ORD-05-00189,2026-10-19,C05005,Vikram Mehta,Corporate,P0503,Cricket Bat,Cricket,3,2999.00,0.00,8997.00,2228.25
+ORD-05-00190,2026-10-19,C05023,Pooja Menon,Consumer,P0505,Running Shoes,Footwear,3,3499.00,1049.70,9447.30,2416.62

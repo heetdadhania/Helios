@@ -30,7 +30,8 @@ def deduplicate_records(
             if composite_key in seen_keys:
                 rej_row = dict(row)
                 keys_str = ", ".join(f"{k}={row.get(k)}" for k in key_fields)
-                rej_row["rejection_reason"] = f"duplicate_natural_key: {keys_str}"
+                orig_key_str = "_".join(str(row.get(k, "")) for k in key_fields)
+                rej_row["rejection_reason"] = f"duplicate_order_line: duplicate line for {keys_str} (original_value: {orig_key_str})"
                 duplicate_list.append(rej_row)
                 continue
             seen_keys.add(composite_key)

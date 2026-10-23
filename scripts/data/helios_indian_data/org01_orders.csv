@@ -1,0 +1,267 @@
+order_id,order_date,customer_id,customer_name,segment,product_id,product_name,category,quantity,unit_price,discount,total,profit
+ORD-01-00001,2026-07-01,C01008,Shreya Nair,Consumer,P0104,Block Print Shirt,Menswear,1,1199.00,179.85,1019.15,306.54
+ORD-01-00002,2026-07-01,C01028,Divya Singh,Consumer,P0103,Handloom Dupatta,Ethnic Wear,2,1299.00,0.00,2598.00,793.80
+ORD-01-00003,2026-07-02,C01012,Manish Desai,Corporate,P0103,Handloom Dupatta,Ethnic Wear,3,1299.00,194.85,3702.15,1126.90
+ORD-01-00004,2026-07-02,C01019,Arjun Menon,Consumer,P0103,Handloom Dupatta,Ethnic Wear,1,1299.00,194.85,1104.15,322.35
+ORD-01-00005,2026-07-03,C01027,Sneha Verma,Corporate,P0108,Cotton Stole,Accessories,3,549.00,247.05,1399.95,408.43
+ORD-01-00006,2026-07-03,C01012,Manish Desai,Corporate,P0105,Linen Trousers,Menswear,2,1599.00,0.00,3198.00,1021.20
+ORD-01-00007,2026-07-03,C01018,Meera Pillai,Consumer,P0102,Silk Saree,Ethnic Wear,3,4999.00,1499.70,13497.30,3814.39
+ORD-01-00008,2026-07-04,C01018,Meera Pillai,Consumer,P0108,Cotton Stole,Accessories,3,549.00,247.05,1399.95,440.37
+ORD-01-00009,2026-07-04,C01024,Aarav Rao,Consumer,P0103,Handloom Dupatta,Ethnic Wear,3,1299.00,0.00,3897.00,1102.61
+ORD-01-00010,2026-07-04,C01007,Riya Iyer,Consumer,P0101,Cotton Kurta,Ethnic Wear,2,799.00,0.00,1598.00,485.32
+ORD-01-00011,2026-07-05,C01007,Riya Iyer,Consumer,P0108,Cotton Stole,Accessories,3,549.00,0.00,1647.00,545.58
+ORD-01-00012,2026-07-05,C01012,Manish Desai,Corporate,P0107,Kids Cotton Set,Kidswear,3,699.00,0.00,2097.00,670.99
+ORD-01-00013,2026-07-05,C01005,Deepak Verma,Corporate,P0101,Cotton Kurta,Ethnic Wear,1,799.00,79.90,719.10,226.58
+ORD-01-00014,2026-07-05,C01027,Sneha Verma,Corporate,P0103,Handloom Dupatta,Ethnic Wear,2,1299.00,0.00,2598.00,713.04
+ORD-01-00015,2026-07-05,C01005,Deepak Verma,Corporate,P0101,Cotton Kurta,Ethnic Wear,2,799.00,79.90,1518.10,401.79
+ORD-01-00016,2026-07-06,C01020,Deepak Malhotra,Consumer,P0103,Handloom Dupatta,Ethnic Wear,1,1299.00,0.00,1299.00,386.70
+ORD-01-00017,2026-07-07,C01008,Shreya Nair,Consumer,P0107,Kids Cotton Set,Kidswear,3,699.00,104.85,1992.15,672.53
+ORD-01-00018,2026-07-08,C01026,Pooja Nair,Home Office,P0104,Block Print Shirt,Menswear,2,1199.00,0.00,2398.00,774.07
+ORD-01-00019,2026-07-08,C01017,Sneha Iyer,Consumer,P0105,Linen Trousers,Menswear,2,1599.00,479.70,2718.30,853.91
+ORD-01-00020,2026-07-08,C01007,Riya Iyer,Consumer,P0107,Kids Cotton Set,Kidswear,1,699.00,104.85,594.15,200.69
+ORD-01-00021,2026-07-08,C01027,Sneha Verma,Corporate,P0107,Kids Cotton Set,Kidswear,2,699.00,0.00,1398.00,375.91
+ORD-01-00022,2026-07-08,C01005,Deepak Verma,Corporate,P0104,Block Print Shirt,Menswear,2,1199.00,0.00,2398.00,680.56
+ORD-01-00023,2026-07-09,C01005,Deepak Verma,Corporate,P0105,Linen Trousers,Menswear,2,1599.00,0.00,3198.00,910.98
+ORD-01-00024,2026-07-10,C01009,Shreya Verma,Consumer,P0102,Silk Saree,Ethnic Wear,2,4999.00,1499.70,8498.30,2473.96
+ORD-01-00025,2026-07-12,C01022,Sneha Rao,Consumer,P0103,Handloom Dupatta,Ethnic Wear,1,1299.00,194.85,1104.15,357.79
+ORD-01-00026,2026-07-12,C01021,Priya Desai,Home Office,P0108,Cotton Stole,Accessories,3,549.00,164.70,1482.30,446.92
+ORD-01-00027,2026-07-12,C01002,Arjun Singh,Consumer,P0108,Cotton Stole,Accessories,3,549.00,0.00,1647.00,421.54
+ORD-01-00028,2026-07-12,C01011,Swati Deshmukh,Consumer,P0105,Linen Trousers,Menswear,3,1599.00,239.85,4557.15,1503.69
+ORD-01-00029,2026-07-13,C01016,Tanvi Deshmukh,Consumer,P0103,Handloom Dupatta,Ethnic Wear,1,1299.00,0.00,1299.00,405.63
+ORD-01-00030,2026-07-13,C01011,Swati Deshmukh,Consumer,P0101,Cotton Kurta,Ethnic Wear,1,799.00,39.95,759.05,228.74
+ORD-01-00031,2026-07-14,C01018,Meera Pillai,Consumer,P0106,Embroidered Kurti,Womenswear,3,999.00,0.00,2997.00,1029.27
+ORD-01-00032,2026-07-14,C01015,Rohan Rao,Consumer,P0102,Silk Saree,Ethnic Wear,3,4999.00,0.00,14997.00,4776.49
+ORD-01-00033,2026-07-16,C01017,Sneha Iyer,Consumer,P0106,Embroidered Kurti,Womenswear,3,999.00,0.00,2997.00,793.38
+ORD-01-00034,2026-07-16,C01006,Meera Chopra,Corporate,P0105,Linen Trousers,Menswear,3,1599.00,0.00,4797.00,1649.96
+ORD-01-00035,2026-07-16,C01011,Swati Deshmukh,Consumer,P0103,Handloom Dupatta,Ethnic Wear,2,1299.00,259.80,2338.20,697.19
+ORD-01-00036,2026-07-17,C01009,Shreya Verma,Consumer,P0101,Cotton Kurta,Ethnic Wear,2,799.00,0.00,1598.00,410.62
+ORD-01-00037,2026-07-18,C01025,Rohan Patel,Consumer,P0104,Block Print Shirt,Menswear,2,1199.00,0.00,2398.00,722.05
+ORD-01-00038,2026-07-18,C01019,Arjun Menon,Consumer,P0101,Cotton Kurta,Ethnic Wear,2,799.00,0.00,1598.00,511.89
+ORD-01-90003,not-a-date,C01014,Isha Joshi,Consumer,P0107,Kids Cotton Set,Kidswear,3,699.00,0.00,2097.00,601.45
+ORD-01-00039,2026-07-18,C01018,Meera Pillai,Consumer,P0107,Kids Cotton Set,Kidswear,2,699.00,69.90,1328.10,412.34
+ORD-01-00040,2026-07-18,C01020,Deepak Malhotra,Consumer,P0103,Handloom Dupatta,Ethnic Wear,2,1299.00,389.70,2208.30,630.61
+ORD-01-00041,2026-07-18,C01028,Divya Singh,Consumer,P0107,Kids Cotton Set,Kidswear,2,699.00,139.80,1258.20,379.79
+ORD-01-00042,2026-07-19,C01007,Riya Iyer,Consumer,P0101,Cotton Kurta,Ethnic Wear,1,799.00,0.00,799.00,234.59
+ORD-01-00043,2026-07-20,C01026,Pooja Nair,Home Office,P0107,Kids Cotton Set,Kidswear,3,699.00,104.85,1992.15,532.51
+ORD-01-00044,2026-07-20,C01012,Manish Desai,Corporate,P0108,Cotton Stole,Accessories,2,549.00,109.80,988.20,306.71
+ORD-01-00045,2026-07-21,C01023,Neha Desai,Home Office,P0108,Cotton Stole,Accessories,3,549.00,0.00,1647.00,439.44
+ORD-01-00046,2026-07-21,C01002,Arjun Singh,Consumer,P0107,Kids Cotton Set,Kidswear,1,699.00,0.00,699.00,227.91
+ORD-01-00047,2026-07-21,C01018,Meera Pillai,Consumer,P0106,Embroidered Kurti,Womenswear,1,999.00,49.95,949.05,256.38
+ORD-01-00048,2026-07-23,C01022,Sneha Rao,Consumer,P0101,Cotton Kurta,Ethnic Wear,3,799.00,239.70,2157.30,645.20
+ORD-01-00049,2026-07-23,C01017,Sneha Iyer,Consumer,P0103,Handloom Dupatta,Ethnic Wear,3,1299.00,0.00,3897.00,1157.05
+ORD-01-00050,2026-07-23,C01005,Deepak Verma,Corporate,P0106,Embroidered Kurti,Womenswear,1,999.00,49.95,949.05,242.65
+ORD-01-00051,2026-07-23,C01023,Neha Desai,Home Office,P0106,Embroidered Kurti,Womenswear,2,999.00,0.00,1998.00,645.57
+ORD-01-00052,2026-07-24,C01027,Sneha Verma,Corporate,P0101,Cotton Kurta,Ethnic Wear,3,799.00,119.85,2277.15,621.55
+ORD-01-00053,2026-07-24,C01022,Sneha Rao,Consumer,P0108,Cotton Stole,Accessories,1,549.00,0.00,549.00,147.83
+ORD-01-00054,2026-07-24,C01014,Isha Joshi,Consumer,P0104,Block Print Shirt,Menswear,2,1199.00,359.70,2038.30,558.14
+ORD-01-00055,2026-07-24,C01030,Siddharth Pillai,Corporate,P0108,Cotton Stole,Accessories,3,549.00,82.35,1564.65,411.91
+ORD-01-00056,2026-07-25,C01004,Meera Pillai,Consumer,P0106,Embroidered Kurti,Womenswear,2,999.00,299.70,1698.30,536.85
+ORD-01-00057,2026-07-25,C01021,Priya Desai,Home Office,P0104,Block Print Shirt,Menswear,2,1199.00,0.00,2398.00,729.52
+ORD-01-00058,2026-07-26,C01021,Priya Desai,Home Office,P0107,Kids Cotton Set,Kidswear,2,699.00,209.70,1188.30,342.08
+ORD-01-00059,2026-07-26,C01029,Arjun Chopra,Corporate,P0102,Silk Saree,Ethnic Wear,2,4999.00,499.90,9498.10,3263.77
+ORD-01-00060,2026-07-26,C01012,Manish Desai,Corporate,P0104,Block Print Shirt,Menswear,3,1199.00,539.55,3057.45,942.84
+ORD-01-00061,2026-07-26,C01011,Swati Deshmukh,Consumer,P0106,Embroidered Kurti,Womenswear,3,999.00,0.00,2997.00,888.58
+ORD-01-00062,2026-07-26,C01017,Sneha Iyer,Consumer,P0107,Kids Cotton Set,Kidswear,1,699.00,0.00,699.00,196.91
+ORD-01-00063,2026-07-27,C01030,Siddharth Pillai,Corporate,P0104,Block Print Shirt,Menswear,1,1199.00,59.95,1139.05,372.38
+ORD-01-00064,2026-07-28,C01020,Deepak Malhotra,Consumer,P0104,Block Print Shirt,Menswear,1,1199.00,0.00,1199.00,402.67
+ORD-01-00065,2026-07-28,C01006,Meera Chopra,Corporate,P0105,Linen Trousers,Menswear,2,1599.00,0.00,3198.00,1095.21
+ORD-01-00066,2026-07-29,C01017,Sneha Iyer,Consumer,P0101,Cotton Kurta,Ethnic Wear,2,799.00,239.70,1358.30,365.10
+ORD-01-00067,2026-07-30,C01023,Neha Desai,Home Office,P0108,Cotton Stole,Accessories,3,549.00,0.00,1647.00,479.28
+ORD-01-00068,2026-07-31,C01014,Isha Joshi,Consumer,P0101,Cotton Kurta,Ethnic Wear,1,799.00,79.90,719.10,195.30
+ORD-01-00069,2026-07-31,C01019,Arjun Menon,Consumer,P0103,Handloom Dupatta,Ethnic Wear,3,1299.00,0.00,3897.00,1168.73
+ORD-01-00070,2026-08-02,C01017,Sneha Iyer,Consumer,P0104,Block Print Shirt,Menswear,1,1199.00,0.00,1199.00,331.76
+ORD-01-00071,2026-08-02,C01014,Isha Joshi,Consumer,P0107,Kids Cotton Set,Kidswear,3,699.00,0.00,2097.00,601.45
+ORD-01-00072,2026-08-02,C01004,Meera Pillai,Consumer,P0105,Linen Trousers,Menswear,1,1599.00,159.90,1439.10,376.81
+ORD-01-00073,2026-08-03,C01004,Meera Pillai,Consumer,P0107,Kids Cotton Set,Kidswear,2,699.00,69.90,1328.10,455.38
+ORD-01-00074,2026-08-03,C01017,Sneha Iyer,Consumer,P0102,Silk Saree,Ethnic Wear,2,4999.00,0.00,9998.00,2779.26
+ORD-01-00075,2026-08-04,C01027,Sneha Verma,Corporate,P0105,Linen Trousers,Menswear,3,1599.00,479.70,4317.30,1145.86
+ORD-01-00076,2026-08-05,C01012,Manish Desai,Corporate,P0108,Cotton Stole,Accessories,3,549.00,82.35,1564.65,517.40
+ORD-01-00077,2026-08-05,C01030,Siddharth Pillai,Corporate,P0108,Cotton Stole,Accessories,1,549.00,82.35,466.65,146.35
+ORD-01-00078,2026-08-06,C01006,Meera Chopra,Corporate,P0106,Embroidered Kurti,Womenswear,2,999.00,0.00,1998.00,510.80
+ORD-01-00079,2026-08-06,C01003,Riya Pillai,Home Office,P0108,Cotton Stole,Accessories,3,549.00,164.70,1482.30,400.35
+ORD-01-00080,2026-08-07,C01008,Shreya Nair,Consumer,P0104,Block Print Shirt,Menswear,1,1199.00,119.90,1079.10,309.36
+ORD-01-00081,2026-08-07,C01008,Shreya Nair,Consumer,P0101,Cotton Kurta,Ethnic Wear,2,799.00,79.90,1518.10,463.07
+ORD-01-00082,2026-08-07,C01006,Meera Chopra,Corporate,P0102,Silk Saree,Ethnic Wear,3,4999.00,0.00,14997.00,4505.64
+ORD-01-00083,2026-08-07,C01021,Priya Desai,Home Office,P0106,Embroidered Kurti,Womenswear,2,999.00,0.00,1998.00,512.90
+ORD-01-00084,2026-08-08,C01019,Arjun Menon,Consumer,P0107,Kids Cotton Set,Kidswear,1,699.00,34.95,664.05,221.36
+ORD-01-00085,2026-08-09,C01006,Meera Chopra,Corporate,P0104,Block Print Shirt,Menswear,1,1199.00,0.00,1199.00,305.91
+ORD-01-00086,2026-08-09,C01016,Tanvi Deshmukh,Consumer,P0105,Linen Trousers,Menswear,3,1599.00,479.70,4317.30,1232.48
+ORD-01-00087,2026-08-10,C01019,Arjun Menon,Consumer,P0101,Cotton Kurta,Ethnic Wear,2,799.00,0.00,1598.00,424.11
+ORD-01-00088,2026-08-10,C01020,Deepak Malhotra,Consumer,P0106,Embroidered Kurti,Womenswear,3,999.00,299.70,2697.30,731.42
+ORD-01-00089,2026-08-12,C01011,Swati Deshmukh,Consumer,P0108,Cotton Stole,Accessories,1,549.00,82.35,466.65,138.24
+ORD-01-00090,2026-08-12,C01025,Rohan Patel,Consumer,P0108,Cotton Stole,Accessories,3,549.00,164.70,1482.30,502.42
+ORD-01-00091,2026-08-14,C01020,Deepak Malhotra,Consumer,P0104,Block Print Shirt,Menswear,1,1199.00,59.95,1139.05,386.85
+ORD-01-00092,2026-08-15,C01005,Deepak Verma,Corporate,P0103,Handloom Dupatta,Ethnic Wear,3,1299.00,0.00,3897.00,1149.49
+ORD-01-00093,2026-08-15,C01011,Swati Deshmukh,Consumer,P0104,Block Print Shirt,Menswear,1,1199.00,59.95,1139.05,388.18
+ORD-01-00094,2026-08-16,C01027,Sneha Verma,Corporate,P0103,Handloom Dupatta,Ethnic Wear,2,1299.00,389.70,2208.30,686.75
+ORD-01-00095,2026-08-16,C01027,Sneha Verma,Corporate,P0101,Cotton Kurta,Ethnic Wear,3,799.00,239.70,2157.30,556.06
+ORD-01-00096,2026-08-17,C01023,Neha Desai,Home Office,P0108,Cotton Stole,Accessories,2,549.00,0.00,1098.00,365.73
+ORD-01-00097,2026-08-18,C01008,Shreya Nair,Consumer,P0103,Handloom Dupatta,Ethnic Wear,3,1299.00,0.00,3897.00,1219.79
+ORD-01-00098,2026-08-18,C01010,Vikram Bhatt,Corporate,P0108,Cotton Stole,Accessories,3,549.00,82.35,1564.65,496.66
+ORD-01-00099,2026-08-18,C01008,Shreya Nair,Consumer,P0101,Cotton Kurta,Ethnic Wear,2,799.00,0.00,1598.00,513.19
+ORD-01-00100,2026-08-19,C01028,Divya Singh,Consumer,P0104,Block Print Shirt,Menswear,3,1199.00,0.00,3597.00,1061.24
+ORD-01-00101,2026-08-20,C01002,Arjun Singh,Consumer,P0105,Linen Trousers,Menswear,3,1599.00,0.00,4797.00,1568.46
+ORD-01-00102,2026-08-20,C01027,Sneha Verma,Corporate,P0104,Block Print Shirt,Menswear,3,1199.00,539.55,3057.45,1022.31
+ORD-01-00103,2026-08-22,C01017,Sneha Iyer,Consumer,P0102,Silk Saree,Ethnic Wear,3,4999.00,1499.70,13497.30,4056.51
+ORD-01-00104,2026-08-22,C01013,Manish Kulkarni,Consumer,P0104,Block Print Shirt,Menswear,1,1199.00,59.95,1139.05,344.35
+ORD-01-00105,2026-08-22,C01012,Manish Desai,Corporate,P0107,Kids Cotton Set,Kidswear,1,699.00,69.90,629.10,193.52
+ORD-01-00106,2026-08-23,C01028,Divya Singh,Consumer,P0101,Cotton Kurta,Ethnic Wear,1,799.00,0.00,799.00,216.32
+ORD-01-00107,2026-08-23,C01027,Sneha Verma,Corporate,P0101,Cotton Kurta,Ethnic Wear,3,799.00,0.00,2397.00,691.92
+ORD-01-00108,2026-08-23,C01004,Meera Pillai,Consumer,P0102,Silk Saree,Ethnic Wear,1,4999.00,249.95,4749.05,1468.09
+ORD-01-90005,2026-08-15,C01011,Swati Deshmukh,Consumer,P0104,Block Print Shirt,Menswear,-2,1199.00,59.95,1139.05,388.18
+ORD-01-00109,2026-08-23,C01021,Priya Desai,Home Office,P0101,Cotton Kurta,Ethnic Wear,1,799.00,0.00,799.00,226.08
+ORD-01-00110,2026-08-24,C01025,Rohan Patel,Consumer,P0103,Handloom Dupatta,Ethnic Wear,1,1299.00,64.95,1234.05,384.36
+ORD-01-00111,2026-08-24,C01028,Divya Singh,Consumer,P0107,Kids Cotton Set,Kidswear,2,699.00,0.00,1398.00,431.28
+ORD-01-00112,2026-08-24,C01005,Deepak Verma,Corporate,P0104,Block Print Shirt,Menswear,1,1199.00,119.90,1079.10,352.44
+ORD-01-00113,2026-08-26,C01003,Riya Pillai,Home Office,P0101,Cotton Kurta,Ethnic Wear,2,799.00,79.90,1518.10,506.86
+ORD-01-00114,2026-08-26,C01015,Rohan Rao,Consumer,P0104,Block Print Shirt,Menswear,3,1199.00,0.00,3597.00,1240.22
+ORD-01-00115,2026-08-26,C01003,Riya Pillai,Home Office,P0102,Silk Saree,Ethnic Wear,3,4999.00,1499.70,13497.30,3743.16
+ORD-01-00116,2026-08-27,C01001,Pooja Desai,Consumer,P0107,Kids Cotton Set,Kidswear,3,699.00,209.70,1887.30,615.65
+ORD-01-00117,2026-08-28,C01026,Pooja Nair,Home Office,P0101,Cotton Kurta,Ethnic Wear,1,799.00,0.00,799.00,270.81
+ORD-01-00118,2026-08-28,C01003,Riya Pillai,Home Office,P0105,Linen Trousers,Menswear,3,1599.00,0.00,4797.00,1361.03
+ORD-01-00119,2026-08-28,C01010,Vikram Bhatt,Corporate,P0102,Silk Saree,Ethnic Wear,3,4999.00,1499.70,13497.30,3662.02
+ORD-01-00120,2026-08-29,C01009,Shreya Verma,Consumer,P0104,Block Print Shirt,Menswear,2,1199.00,119.90,2278.10,732.32
+ORD-01-00121,2026-08-29,C01030,Siddharth Pillai,Corporate,P0107,Kids Cotton Set,Kidswear,3,699.00,104.85,1992.15,537.22
+ORD-01-00122,2026-08-29,C01009,Shreya Verma,Consumer,P0103,Handloom Dupatta,Ethnic Wear,3,1299.00,0.00,3897.00,994.41
+ORD-01-00123,2026-08-29,C01023,Neha Desai,Home Office,P0103,Handloom Dupatta,Ethnic Wear,3,1299.00,0.00,3897.00,1225.57
+ORD-01-00124,2026-08-30,C01015,Rohan Rao,Consumer,P0105,Linen Trousers,Menswear,3,1599.00,0.00,4797.00,1644.47
+ORD-01-00125,2026-08-30,C01025,Rohan Patel,Consumer,P0106,Embroidered Kurti,Womenswear,3,999.00,0.00,2997.00,917.82
+ORD-01-00126,2026-08-30,C01013,Manish Kulkarni,Consumer,P0106,Embroidered Kurti,Womenswear,2,999.00,99.90,1898.10,485.73
+ORD-01-00127,2026-08-31,C01028,Divya Singh,Consumer,P0106,Embroidered Kurti,Womenswear,3,999.00,299.70,2697.30,880.37
+ORD-01-00128,2026-09-01,C01009,Shreya Verma,Consumer,P0103,Handloom Dupatta,Ethnic Wear,3,1299.00,0.00,3897.00,994.52
+ORD-01-00129,2026-09-03,C01002,Arjun Singh,Consumer,P0106,Embroidered Kurti,Womenswear,3,999.00,299.70,2697.30,798.54
+ORD-01-00130,2026-09-03,C01021,Priya Desai,Home Office,P0105,Linen Trousers,Menswear,2,1599.00,0.00,3198.00,846.60
+ORD-01-00131,2026-09-03,C01030,Siddharth Pillai,Corporate,P0101,Cotton Kurta,Ethnic Wear,1,799.00,79.90,719.10,239.96
+ORD-01-90006,not-a-date,C01004,Meera Pillai,Consumer,P0107,Kids Cotton Set,Kidswear,1,699.00,104.85,594.15,163.55
+ORD-01-00132,2026-09-04,C01027,Sneha Verma,Corporate,P0105,Linen Trousers,Menswear,1,1599.00,0.00,1599.00,466.60
+ORD-01-00133,2026-09-06,C01026,Pooja Nair,Home Office,P0104,Block Print Shirt,Menswear,1,1199.00,59.95,1139.05,322.40
+ORD-01-00134,2026-09-06,C01018,Meera Pillai,Consumer,P0101,Cotton Kurta,Ethnic Wear,2,799.00,239.70,1358.30,352.34
+ORD-01-00135,2026-09-06,C01027,Sneha Verma,Corporate,P0104,Block Print Shirt,Menswear,3,1199.00,539.55,3057.45,820.08
+ORD-01-00136,2026-09-06,C01004,Meera Pillai,Consumer,P0107,Kids Cotton Set,Kidswear,2,699.00,0.00,1398.00,390.43
+ORD-01-00137,2026-09-06,C01005,Deepak Verma,Corporate,P0102,Silk Saree,Ethnic Wear,1,4999.00,749.85,4249.15,1196.39
+ORD-01-00138,2026-09-07,C01013,Manish Kulkarni,Consumer,P0101,Cotton Kurta,Ethnic Wear,2,799.00,0.00,1598.00,530.81
+ORD-01-00139,2026-09-08,C01003,Riya Pillai,Home Office,P0102,Silk Saree,Ethnic Wear,1,4999.00,0.00,4999.00,1427.80
+ORD-01-00140,2026-09-08,C01004,Meera Pillai,Consumer,P0107,Kids Cotton Set,Kidswear,1,699.00,104.85,594.15,163.55
+ORD-01-00141,2026-09-09,C01028,Divya Singh,Consumer,P0101,Cotton Kurta,Ethnic Wear,1,799.00,0.00,799.00,243.46
+ORD-01-00142,2026-09-09,C01019,Arjun Menon,Consumer,P0105,Linen Trousers,Menswear,2,1599.00,0.00,3198.00,869.50
+ORD-01-00143,2026-09-09,C01003,Riya Pillai,Home Office,P0108,Cotton Stole,Accessories,3,549.00,0.00,1647.00,512.36
+ORD-01-00144,2026-09-09,C01018,Meera Pillai,Consumer,P0101,Cotton Kurta,Ethnic Wear,3,799.00,0.00,2397.00,794.07
+ORD-01-00145,2026-09-09,C01021,Priya Desai,Home Office,P0108,Cotton Stole,Accessories,2,549.00,0.00,1098.00,306.50
+ORD-01-00146,2026-09-09,C01023,Neha Desai,Home Office,P0101,Cotton Kurta,Ethnic Wear,2,799.00,0.00,1598.00,444.66
+ORD-01-00147,2026-09-10,C01016,Tanvi Deshmukh,Consumer,P0103,Handloom Dupatta,Ethnic Wear,2,1299.00,0.00,2598.00,889.62
+ORD-01-00148,2026-09-11,C01030,Siddharth Pillai,Corporate,P0101,Cotton Kurta,Ethnic Wear,2,799.00,0.00,1598.00,533.49
+ORD-01-00149,2026-09-11,C01001,Pooja Desai,Consumer,P0101,Cotton Kurta,Ethnic Wear,2,799.00,0.00,1598.00,411.48
+ORD-01-00150,2026-09-12,C01017,Sneha Iyer,Consumer,P0107,Kids Cotton Set,Kidswear,3,699.00,0.00,2097.00,636.76
+ORD-01-00151,2026-09-13,C01019,Arjun Menon,Consumer,P0106,Embroidered Kurti,Womenswear,3,999.00,149.85,2847.15,902.82
+ORD-01-00152,2026-09-14,C01028,Divya Singh,Consumer,P0103,Handloom Dupatta,Ethnic Wear,3,1299.00,0.00,3897.00,1188.33
+ORD-01-00153,2026-09-14,C01018,Meera Pillai,Consumer,P0107,Kids Cotton Set,Kidswear,1,699.00,104.85,594.15,186.14
+ORD-01-00154,2026-09-14,C01030,Siddharth Pillai,Corporate,P0106,Embroidered Kurti,Womenswear,3,999.00,299.70,2697.30,697.40
+ORD-01-00155,2026-09-15,C01013,Manish Kulkarni,Consumer,P0101,Cotton Kurta,Ethnic Wear,3,799.00,0.00,2397.00,817.78
+ORD-01-00156,2026-09-15,C01008,Shreya Nair,Consumer,P0105,Linen Trousers,Menswear,2,1599.00,0.00,3198.00,947.93
+ORD-01-00157,2026-09-15,C01017,Sneha Iyer,Consumer,P0104,Block Print Shirt,Menswear,1,1199.00,59.95,1139.05,382.95
+ORD-01-00158,2026-09-16,C01023,Neha Desai,Home Office,P0105,Linen Trousers,Menswear,1,1599.00,0.00,1599.00,515.81
+ORD-01-00159,2026-09-17,C01018,Meera Pillai,Consumer,P0104,Block Print Shirt,Menswear,1,1199.00,59.95,1139.05,328.99
+ORD-01-00160,2026-09-17,C01018,Meera Pillai,Consumer,P0106,Embroidered Kurti,Womenswear,3,999.00,449.55,2547.45,869.14
+ORD-01-00161,2026-09-18,C01023,Neha Desai,Home Office,P0102,Silk Saree,Ethnic Wear,3,4999.00,0.00,14997.00,4566.47
+ORD-01-00162,2026-09-19,C01006,Meera Chopra,Corporate,P0101,Cotton Kurta,Ethnic Wear,1,799.00,0.00,799.00,255.65
+ORD-01-00163,2026-09-19,C01014,Isha Joshi,Consumer,P0104,Block Print Shirt,Menswear,2,1199.00,0.00,2398.00,815.55
+ORD-01-00164,2026-09-19,C01027,Sneha Verma,Corporate,P0102,Silk Saree,Ethnic Wear,1,4999.00,749.85,4249.15,1101.23
+ORD-01-00165,2026-09-19,C01011,Swati Deshmukh,Consumer,P0106,Embroidered Kurti,Womenswear,1,999.00,49.95,949.05,317.92
+ORD-01-90001,2026-09-27,C01024,Aarav Rao,Consumer,P0101,Cotton Kurta,Ethnic Wear,,799.00,239.70,2157.30,583.03
+ORD-01-00166,2026-09-20,C01014,Isha Joshi,Consumer,P0101,Cotton Kurta,Ethnic Wear,3,799.00,359.55,2037.45,570.92
+ORD-01-00167,2026-09-21,C01005,Deepak Verma,Corporate,P0102,Silk Saree,Ethnic Wear,2,4999.00,999.80,8998.20,3034.72
+ORD-01-00168,2026-09-22,C01022,Sneha Rao,Consumer,P0102,Silk Saree,Ethnic Wear,3,4999.00,0.00,14997.00,5053.00
+ORD-01-00169,2026-09-22,C01016,Tanvi Deshmukh,Consumer,P0102,Silk Saree,Ethnic Wear,3,4999.00,2249.55,12747.45,4391.70
+ORD-01-00170,2026-09-22,C01009,Shreya Verma,Consumer,P0107,Kids Cotton Set,Kidswear,2,699.00,0.00,1398.00,379.06
+ORD-01-00171,2026-09-22,C01013,Manish Kulkarni,Consumer,P0106,Embroidered Kurti,Womenswear,3,999.00,0.00,2997.00,963.47
+ORD-01-00172,2026-09-22,C01023,Neha Desai,Home Office,P0101,Cotton Kurta,Ethnic Wear,2,799.00,239.70,1358.30,362.39
+ORD-01-00173,2026-09-22,C01019,Arjun Menon,Consumer,P0108,Cotton Stole,Accessories,2,549.00,0.00,1098.00,299.63
+ORD-01-00174,2026-09-22,C01008,Shreya Nair,Consumer,P0101,Cotton Kurta,Ethnic Wear,2,799.00,0.00,1598.00,436.17
+ORD-01-00175,2026-09-24,C01016,Tanvi Deshmukh,Consumer,P0104,Block Print Shirt,Menswear,3,1199.00,539.55,3057.45,991.22
+ORD-01-00176,2026-09-24,C01013,Manish Kulkarni,Consumer,P0107,Kids Cotton Set,Kidswear,1,699.00,0.00,699.00,203.45
+ORD-01-00177,2026-09-24,C01001,Pooja Desai,Consumer,P0102,Silk Saree,Ethnic Wear,1,4999.00,0.00,4999.00,1297.14
+ORD-01-00178,2026-09-24,C01001,Pooja Desai,Consumer,P0108,Cotton Stole,Accessories,2,549.00,0.00,1098.00,318.53
+ORD-01-00179,2026-09-25,C01029,Arjun Chopra,Corporate,P0104,Block Print Shirt,Menswear,1,1199.00,0.00,1199.00,403.77
+ORD-01-00180,2026-09-26,C01030,Siddharth Pillai,Corporate,P0101,Cotton Kurta,Ethnic Wear,1,799.00,39.95,759.05,223.64
+ORD-01-00181,2026-09-26,C01025,Rohan Patel,Consumer,P0105,Linen Trousers,Menswear,2,1599.00,159.90,3038.10,780.28
+ORD-01-00182,2026-09-27,C01024,Aarav Rao,Consumer,P0101,Cotton Kurta,Ethnic Wear,3,799.00,239.70,2157.30,583.03
+ORD-01-00183,2026-09-27,C01024,Aarav Rao,Consumer,P0107,Kids Cotton Set,Kidswear,1,699.00,0.00,699.00,209.15
+ORD-01-00184,2026-09-27,C01022,Sneha Rao,Consumer,P0107,Kids Cotton Set,Kidswear,3,699.00,104.85,1992.15,530.05
+ORD-01-00185,2026-09-28,C01028,Divya Singh,Consumer,P0107,Kids Cotton Set,Kidswear,3,699.00,0.00,2097.00,707.42
+ORD-01-00186,2026-09-28,C01022,Sneha Rao,Consumer,P0103,Handloom Dupatta,Ethnic Wear,2,1299.00,0.00,2598.00,723.23
+ORD-01-00187,2026-09-29,C01008,Shreya Nair,Consumer,P0107,Kids Cotton Set,Kidswear,1,699.00,34.95,664.05,199.12
+ORD-01-00188,2026-09-30,C01029,Arjun Chopra,Corporate,P0107,Kids Cotton Set,Kidswear,3,699.00,104.85,1992.15,543.13
+ORD-01-00189,2026-10-01,C01004,Meera Pillai,Consumer,P0104,Block Print Shirt,Menswear,3,1199.00,539.55,3057.45,973.99
+ORD-01-00190,2026-10-01,C01024,Aarav Rao,Consumer,P0108,Cotton Stole,Accessories,2,549.00,0.00,1098.00,331.07
+ORD-01-00191,2026-10-01,C01028,Divya Singh,Consumer,P0105,Linen Trousers,Menswear,1,1599.00,0.00,1599.00,483.65
+ORD-01-00192,2026-10-01,C01023,Neha Desai,Home Office,P0106,Embroidered Kurti,Womenswear,1,999.00,149.85,849.15,228.36
+ORD-01-00193,2026-10-02,C01017,Sneha Iyer,Consumer,P0102,Silk Saree,Ethnic Wear,2,4999.00,1499.70,8498.30,2915.10
+ORD-01-00194,2026-10-03,C01020,Deepak Malhotra,Consumer,P0105,Linen Trousers,Menswear,2,1599.00,0.00,3198.00,925.47
+ORD-01-00195,2026-10-03,C01018,Meera Pillai,Consumer,P0108,Cotton Stole,Accessories,3,549.00,247.05,1399.95,426.90
+ORD-01-00196,2026-10-04,C01015,Rohan Rao,Consumer,P0108,Cotton Stole,Accessories,1,549.00,0.00,549.00,151.52
+ORD-01-00197,2026-10-05,C01013,Manish Kulkarni,Consumer,P0105,Linen Trousers,Menswear,3,1599.00,239.85,4557.15,1461.23
+ORD-01-00198,2026-10-05,C01017,Sneha Iyer,Consumer,P0108,Cotton Stole,Accessories,1,549.00,27.45,521.55,151.58
+ORD-01-00199,2026-10-06,C01004,Meera Pillai,Consumer,P0106,Embroidered Kurti,Womenswear,3,999.00,149.85,2847.15,887.12
+ORD-01-00200,2026-10-06,C01012,Manish Desai,Corporate,P0103,Handloom Dupatta,Ethnic Wear,2,1299.00,0.00,2598.00,667.14
+ORD-01-00201,2026-10-06,C01025,Rohan Patel,Consumer,P0106,Embroidered Kurti,Womenswear,2,999.00,199.80,1798.20,604.41
+ORD-01-00202,2026-10-06,C01016,Tanvi Deshmukh,Consumer,P0103,Handloom Dupatta,Ethnic Wear,2,1299.00,0.00,2598.00,863.53
+ORD-01-00203,2026-10-07,C01024,Aarav Rao,Consumer,P0103,Handloom Dupatta,Ethnic Wear,1,1299.00,194.85,1104.15,351.44
+ORD-01-00204,2026-10-07,C01029,Arjun Chopra,Corporate,P0107,Kids Cotton Set,Kidswear,2,699.00,0.00,1398.00,447.66
+ORD-01-00205,2026-10-07,C01003,Riya Pillai,Home Office,P0108,Cotton Stole,Accessories,1,549.00,0.00,549.00,177.67
+ORD-01-00206,2026-10-07,C01021,Priya Desai,Home Office,P0103,Handloom Dupatta,Ethnic Wear,2,1299.00,0.00,2598.00,792.00
+ORD-01-00207,2026-10-08,C01021,Priya Desai,Home Office,P0103,Handloom Dupatta,Ethnic Wear,3,1299.00,0.00,3897.00,1264.60
+ORD-01-00208,2026-10-08,C01013,Manish Kulkarni,Consumer,P0101,Cotton Kurta,Ethnic Wear,1,799.00,119.85,679.15,230.21
+ORD-01-00209,2026-10-08,C01006,Meera Chopra,Corporate,P0101,Cotton Kurta,Ethnic Wear,1,799.00,0.00,799.00,230.20
+ORD-01-00210,2026-10-08,C01029,Arjun Chopra,Corporate,P0101,Cotton Kurta,Ethnic Wear,3,799.00,0.00,2397.00,788.38
+ORD-01-00211,2026-10-09,C01010,Vikram Bhatt,Corporate,P0101,Cotton Kurta,Ethnic Wear,1,799.00,79.90,719.10,191.99
+ORD-01-00212,2026-10-09,C01024,Aarav Rao,Consumer,P0105,Linen Trousers,Menswear,1,1599.00,0.00,1599.00,522.81
+ORD-01-00213,2026-10-09,C01005,Deepak Verma,Corporate,P0102,Silk Saree,Ethnic Wear,1,4999.00,749.85,4249.15,1393.26
+ORD-01-90004,2026-09-22,C01022,Sneha Rao,Consumer,P0102,Silk Saree,Ethnic Wear,,4999.00,0.00,14997.00,5053.00
+ORD-01-00214,2026-10-09,C01013,Manish Kulkarni,Consumer,P0102,Silk Saree,Ethnic Wear,3,4999.00,749.85,14247.15,4255.59
+ORD-01-00215,2026-10-09,C01012,Manish Desai,Corporate,P0103,Handloom Dupatta,Ethnic Wear,1,1299.00,0.00,1299.00,429.81
+ORD-01-00216,2026-10-10,C01022,Sneha Rao,Consumer,P0101,Cotton Kurta,Ethnic Wear,1,799.00,39.95,759.05,222.96
+ORD-01-00217,2026-10-10,C01006,Meera Chopra,Corporate,P0105,Linen Trousers,Menswear,3,1599.00,239.85,4557.15,1289.39
+ORD-01-00218,2026-10-10,C01013,Manish Kulkarni,Consumer,P0101,Cotton Kurta,Ethnic Wear,3,799.00,119.85,2277.15,598.75
+ORD-01-00219,2026-10-10,C01002,Arjun Singh,Consumer,P0106,Embroidered Kurti,Womenswear,2,999.00,0.00,1998.00,560.67
+ORD-01-00220,2026-10-10,C01001,Pooja Desai,Consumer,P0105,Linen Trousers,Menswear,1,1599.00,0.00,1599.00,469.21
+ORD-01-00221,2026-10-11,C01017,Sneha Iyer,Consumer,P0104,Block Print Shirt,Menswear,3,1199.00,359.70,3237.30,874.08
+ORD-01-90002,2026-10-11,C01008,Shreya Nair,Consumer,P0107,Kids Cotton Set,Kidswear,-2,699.00,34.95,664.05,192.58
+ORD-01-00222,2026-10-11,C01004,Meera Pillai,Consumer,P0101,Cotton Kurta,Ethnic Wear,3,799.00,119.85,2277.15,638.33
+ORD-01-00223,2026-10-11,C01010,Vikram Bhatt,Corporate,P0107,Kids Cotton Set,Kidswear,1,699.00,0.00,699.00,207.16
+ORD-01-00224,2026-10-11,C01008,Shreya Nair,Consumer,P0107,Kids Cotton Set,Kidswear,1,699.00,34.95,664.05,192.58
+ORD-01-00225,2026-10-11,C01013,Manish Kulkarni,Consumer,P0104,Block Print Shirt,Menswear,2,1199.00,0.00,2398.00,628.71
+ORD-01-00226,2026-10-12,C01016,Tanvi Deshmukh,Consumer,P0105,Linen Trousers,Menswear,1,1599.00,0.00,1599.00,502.93
+ORD-01-00227,2026-10-12,C01006,Meera Chopra,Corporate,P0107,Kids Cotton Set,Kidswear,1,699.00,69.90,629.10,195.87
+ORD-01-00228,2026-10-12,C01011,Swati Deshmukh,Consumer,P0102,Silk Saree,Ethnic Wear,3,4999.00,1499.70,13497.30,4046.51
+ORD-01-00229,2026-10-12,C01017,Sneha Iyer,Consumer,P0105,Linen Trousers,Menswear,2,1599.00,159.90,3038.10,957.66
+ORD-01-00230,2026-10-12,C01026,Pooja Nair,Home Office,P0101,Cotton Kurta,Ethnic Wear,1,799.00,39.95,759.05,194.71
+ORD-01-00231,2026-10-13,C01014,Isha Joshi,Consumer,P0108,Cotton Stole,Accessories,1,549.00,54.90,494.10,149.18
+ORD-01-00232,2026-10-13,C01017,Sneha Iyer,Consumer,P0101,Cotton Kurta,Ethnic Wear,3,799.00,119.85,2277.15,731.16
+ORD-01-00233,2026-10-13,C01009,Shreya Verma,Consumer,P0102,Silk Saree,Ethnic Wear,2,4999.00,499.90,9498.10,2655.55
+ORD-01-00234,2026-10-13,C01007,Riya Iyer,Consumer,P0101,Cotton Kurta,Ethnic Wear,1,799.00,0.00,799.00,234.80
+ORD-01-00235,2026-10-14,C01020,Deepak Malhotra,Consumer,P0101,Cotton Kurta,Ethnic Wear,2,799.00,0.00,1598.00,507.99
+ORD-01-00236,2026-10-14,C01025,Rohan Patel,Consumer,P0108,Cotton Stole,Accessories,2,549.00,54.90,1043.10,326.29
+ORD-01-00237,2026-10-15,C01015,Rohan Rao,Consumer,P0101,Cotton Kurta,Ethnic Wear,2,799.00,0.00,1598.00,416.57
+ORD-01-00238,2026-10-15,C01026,Pooja Nair,Home Office,P0102,Silk Saree,Ethnic Wear,1,4999.00,0.00,4999.00,1331.99
+ORD-01-00239,2026-10-15,C01014,Isha Joshi,Consumer,P0108,Cotton Stole,Accessories,1,549.00,0.00,549.00,163.00
+ORD-01-00240,2026-10-15,C01025,Rohan Patel,Consumer,P0101,Cotton Kurta,Ethnic Wear,3,799.00,0.00,2397.00,771.61
+ORD-01-00241,2026-10-15,C01001,Pooja Desai,Consumer,P0108,Cotton Stole,Accessories,3,549.00,0.00,1647.00,514.60
+ORD-01-00242,2026-10-15,C01020,Deepak Malhotra,Consumer,P0102,Silk Saree,Ethnic Wear,2,4999.00,0.00,9998.00,2703.44
+ORD-01-00243,2026-10-16,C01019,Arjun Menon,Consumer,P0104,Block Print Shirt,Menswear,2,1199.00,0.00,2398.00,716.71
+ORD-01-00244,2026-10-16,C01005,Deepak Verma,Corporate,P0104,Block Print Shirt,Menswear,1,1199.00,179.85,1019.15,299.07
+ORD-01-00245,2026-10-16,C01028,Divya Singh,Consumer,P0101,Cotton Kurta,Ethnic Wear,2,799.00,0.00,1598.00,495.49
+ORD-01-00246,2026-10-16,C01027,Sneha Verma,Corporate,P0108,Cotton Stole,Accessories,2,549.00,0.00,1098.00,362.89
+ORD-01-00247,2026-10-16,C01025,Rohan Patel,Consumer,P0108,Cotton Stole,Accessories,1,549.00,27.45,521.55,162.64
+ORD-01-00248,2026-10-17,C01029,Arjun Chopra,Corporate,P0102,Silk Saree,Ethnic Wear,1,4999.00,0.00,4999.00,1324.91
+ORD-01-00249,2026-10-17,C01014,Isha Joshi,Consumer,P0101,Cotton Kurta,Ethnic Wear,3,799.00,0.00,2397.00,730.80
+ORD-01-00250,2026-10-17,C01017,Sneha Iyer,Consumer,P0106,Embroidered Kurti,Womenswear,1,999.00,99.90,899.10,256.10
+ORD-01-00251,2026-10-17,C01020,Deepak Malhotra,Consumer,P0104,Block Print Shirt,Menswear,1,1199.00,0.00,1199.00,312.46
+ORD-01-00252,2026-10-17,C01027,Sneha Verma,Corporate,P0103,Handloom Dupatta,Ethnic Wear,2,1299.00,0.00,2598.00,734.65
+ORD-01-00253,2026-10-17,C01030,Siddharth Pillai,Corporate,P0104,Block Print Shirt,Menswear,3,1199.00,539.55,3057.45,847.71
+ORD-01-00254,2026-10-18,C01002,Arjun Singh,Consumer,P0106,Embroidered Kurti,Womenswear,2,999.00,0.00,1998.00,612.27
+ORD-01-00255,2026-10-18,C01020,Deepak Malhotra,Consumer,P0107,Kids Cotton Set,Kidswear,1,699.00,104.85,594.15,196.52
+ORD-01-00256,2026-10-18,C01027,Sneha Verma,Corporate,P0108,Cotton Stole,Accessories,1,549.00,0.00,549.00,168.94
+ORD-01-00257,2026-10-19,C01026,Pooja Nair,Home Office,P0103,Handloom Dupatta,Ethnic Wear,1,1299.00,64.95,1234.05,384.23
+ORD-01-00258,2026-10-19,C01019,Arjun Menon,Consumer,P0106,Embroidered Kurti,Womenswear,3,999.00,0.00,2997.00,994.63
+ORD-01-00259,2026-10-19,C01029,Arjun Chopra,Corporate,P0108,Cotton Stole,Accessories,1,549.00,0.00,549.00,162.80
+ORD-01-00260,2026-10-19,C01001,Pooja Desai,Consumer,P0103,Handloom Dupatta,Ethnic Wear,2,1299.00,259.80,2338.20,701.76

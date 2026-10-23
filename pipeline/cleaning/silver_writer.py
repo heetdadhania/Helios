@@ -257,7 +257,8 @@ def _log_data_quality_rejections(
     """
 
     for r in rejected_records:
-        row_id = str(r.get("order_id") or r.get("shipment_id") or r.get("tracking_number") or "unknown_row")
+        raw_oid = r.get("order_id")
+        row_id = str(raw_oid).strip() if raw_oid is not None and str(raw_oid).strip() != "" else str(r.get("shipment_id") or r.get("tracking_number") or r.get("product_id") or r.get("customer_id") or "missing_row_id")
         reason = str(r.get("rejection_reason", "unspecified_validation_failure"))
         cursor.execute(
             query,

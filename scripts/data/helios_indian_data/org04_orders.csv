@@ -1,0 +1,257 @@
+order_id,order_date,customer_id,customer_name,segment,product_id,product_name,category,quantity,unit_price,discount,total,profit
+ORD-04-00001,2026-07-01,C04024,Neha Patel,Corporate,P0401,Herbal Face Wash,Skincare,2,249.00,49.80,448.20,175.12
+ORD-04-00002,2026-07-02,C04003,Kavya Menon,Consumer,P0404,Vitamin C Serum,Skincare,2,799.00,239.70,1358.30,637.08
+ORD-04-00003,2026-07-03,C04006,Anjali Menon,Consumer,P0404,Vitamin C Serum,Skincare,4,799.00,319.60,2876.40,1270.98
+ORD-04-00004,2026-07-04,C04003,Kavya Menon,Consumer,P0405,Kajal,Makeup,2,199.00,0.00,398.00,160.31
+ORD-04-00005,2026-07-05,C04017,Shreya Gupta,Corporate,P0402,Aloe Vera Gel,Skincare,1,299.00,0.00,299.00,137.81
+ORD-04-00006,2026-07-06,C04010,Sanjay Mehta,Corporate,P0401,Herbal Face Wash,Skincare,3,249.00,74.70,672.30,274.69
+ORD-04-00007,2026-07-06,C04015,Priya Menon,Corporate,P0407,Lip Balm,Makeup,1,149.00,7.45,141.55,71.43
+ORD-04-00008,2026-07-06,C04010,Sanjay Mehta,Corporate,P0401,Herbal Face Wash,Skincare,4,249.00,99.60,896.40,394.27
+ORD-04-00009,2026-07-06,C04024,Neha Patel,Corporate,P0407,Lip Balm,Makeup,1,149.00,7.45,141.55,56.66
+ORD-04-00010,2026-07-08,C04022,Rahul Deshmukh,Corporate,P0407,Lip Balm,Makeup,1,149.00,14.90,134.10,67.13
+ORD-04-00011,2026-07-10,C04003,Kavya Menon,Consumer,P0408,Body Lotion,Bath & Body,1,449.00,0.00,449.00,206.84
+ORD-04-00012,2026-07-11,C04016,Anjali Menon,Consumer,P0404,Vitamin C Serum,Skincare,3,799.00,0.00,2397.00,1188.16
+ORD-04-00013,2026-07-11,C04029,Harsh Desai,Home Office,P0404,Vitamin C Serum,Skincare,2,799.00,79.90,1518.10,743.14
+ORD-04-00014,2026-07-12,C04020,Sanjay Pillai,Consumer,P0403,Amla Hair Oil,Haircare,1,349.00,17.45,331.55,165.26
+ORD-04-00015,2026-07-14,C04023,Arjun Rao,Consumer,P0406,Sandalwood Soap Pack,Bath & Body,1,399.00,0.00,399.00,188.09
+ORD-04-00016,2026-07-14,C04012,Siddharth Patel,Consumer,P0405,Kajal,Makeup,3,199.00,0.00,597.00,287.22
+ORD-04-00017,2026-07-15,C04010,Sanjay Mehta,Corporate,P0403,Amla Hair Oil,Haircare,3,349.00,0.00,1047.00,467.51
+ORD-04-00018,2026-07-17,C04008,Swati Bhatt,Consumer,P0407,Lip Balm,Makeup,3,149.00,67.05,379.95,183.61
+ORD-04-00019,2026-07-18,C04020,Sanjay Pillai,Consumer,P0407,Lip Balm,Makeup,3,149.00,0.00,447.00,200.19
+ORD-04-00020,2026-07-18,C04030,Tanvi Deshmukh,Consumer,P0403,Amla Hair Oil,Haircare,1,349.00,34.90,314.10,140.98
+ORD-04-00021,2026-07-18,C04025,Sneha Reddy,Corporate,P0401,Herbal Face Wash,Skincare,3,249.00,37.35,709.65,284.27
+ORD-04-00022,2026-07-19,C04023,Arjun Rao,Consumer,P0406,Sandalwood Soap Pack,Bath & Body,2,399.00,0.00,798.00,336.07
+ORD-04-00023,2026-07-20,C04006,Anjali Menon,Consumer,P0407,Lip Balm,Makeup,1,149.00,22.35,126.65,60.50
+ORD-04-00024,2026-07-20,C04007,Manish Shah,Home Office,P0408,Body Lotion,Bath & Body,3,449.00,202.05,1144.95,574.53
+ORD-04-00025,2026-07-20,C04022,Rahul Deshmukh,Corporate,P0402,Aloe Vera Gel,Skincare,1,299.00,0.00,299.00,120.47
+ORD-04-00026,2026-07-20,C04016,Anjali Menon,Consumer,P0404,Vitamin C Serum,Skincare,4,799.00,319.60,2876.40,1410.79
+ORD-04-00027,2026-07-20,C04018,Anjali Rao,Corporate,P0405,Kajal,Makeup,1,199.00,0.00,199.00,84.46
+ORD-04-00028,2026-07-21,C04004,Kavya Shah,Consumer,P0402,Aloe Vera Gel,Skincare,3,299.00,44.85,852.15,355.85
+ORD-04-00029,2026-07-21,C04015,Priya Menon,Corporate,P0404,Vitamin C Serum,Skincare,2,799.00,239.70,1358.30,664.86
+ORD-04-00030,2026-07-22,C04024,Neha Patel,Corporate,P0401,Herbal Face Wash,Skincare,1,249.00,0.00,249.00,97.51
+ORD-04-00031,2026-07-22,C04001,Tanvi Bhatt,Consumer,P0404,Vitamin C Serum,Skincare,1,799.00,39.95,759.05,350.57
+ORD-04-00032,2026-07-22,C04009,Diya Iyer,Consumer,P0404,Vitamin C Serum,Skincare,1,799.00,0.00,799.00,334.44
+ORD-04-00033,2026-07-22,C04017,Shreya Gupta,Corporate,P0404,Vitamin C Serum,Skincare,3,799.00,239.70,2157.30,1067.43
+ORD-04-00034,2026-07-23,C04003,Kavya Menon,Consumer,P0402,Aloe Vera Gel,Skincare,4,299.00,59.80,1136.20,444.90
+ORD-04-00035,2026-07-23,C04023,Arjun Rao,Consumer,P0401,Herbal Face Wash,Skincare,2,249.00,0.00,498.00,198.62
+ORD-04-00036,2026-07-24,C04010,Sanjay Mehta,Corporate,P0404,Vitamin C Serum,Skincare,2,799.00,0.00,1598.00,648.75
+ORD-04-00037,2026-07-24,C04007,Manish Shah,Home Office,P0408,Body Lotion,Bath & Body,4,449.00,0.00,1796.00,882.61
+ORD-04-00038,2026-07-24,C04012,Siddharth Patel,Consumer,P0407,Lip Balm,Makeup,2,149.00,0.00,298.00,124.25
+ORD-04-00039,2026-07-24,C04009,Diya Iyer,Consumer,P0404,Vitamin C Serum,Skincare,1,799.00,0.00,799.00,316.06
+ORD-04-00040,2026-07-26,C04023,Arjun Rao,Consumer,P0408,Body Lotion,Bath & Body,2,449.00,0.00,898.00,444.54
+ORD-04-00041,2026-07-26,C04024,Neha Patel,Corporate,P0404,Vitamin C Serum,Skincare,4,799.00,479.40,2716.60,1063.28
+ORD-04-00042,2026-07-27,C04004,Kavya Shah,Consumer,P0401,Herbal Face Wash,Skincare,3,249.00,74.70,672.30,294.88
+ORD-04-00043,2026-07-29,C04013,Isha Mehta,Consumer,P0405,Kajal,Makeup,1,199.00,0.00,199.00,96.17
+ORD-04-00044,2026-07-29,C04004,Kavya Shah,Consumer,P0406,Sandalwood Soap Pack,Bath & Body,2,399.00,39.90,758.10,368.28
+ORD-04-00045,2026-07-30,C04014,Deepak Bhatt,Home Office,P0408,Body Lotion,Bath & Body,1,449.00,0.00,449.00,179.82
+ORD-04-00046,2026-07-31,C04017,Shreya Gupta,Corporate,P0408,Body Lotion,Bath & Body,1,449.00,0.00,449.00,217.88
+ORD-04-00047,2026-07-31,C04008,Swati Bhatt,Consumer,P0407,Lip Balm,Makeup,3,149.00,22.35,424.65,187.12
+ORD-04-00048,2026-08-01,C04013,Isha Mehta,Consumer,P0405,Kajal,Makeup,1,199.00,0.00,199.00,101.16
+ORD-04-00049,2026-08-01,C04021,Divya Nair,Consumer,P0408,Body Lotion,Bath & Body,4,449.00,0.00,1796.00,714.75
+ORD-04-00050,2026-08-01,C04012,Siddharth Patel,Consumer,P0402,Aloe Vera Gel,Skincare,1,299.00,0.00,299.00,153.45
+ORD-04-00051,2026-08-02,C04016,Anjali Menon,Consumer,P0405,Kajal,Makeup,4,199.00,79.60,716.40,362.59
+ORD-04-00052,2026-08-02,C04021,Divya Nair,Consumer,P0404,Vitamin C Serum,Skincare,1,799.00,0.00,799.00,376.64
+ORD-04-00053,2026-08-03,C04021,Divya Nair,Consumer,P0401,Herbal Face Wash,Skincare,2,249.00,24.90,473.10,237.84
+ORD-04-00054,2026-08-04,C04013,Isha Mehta,Consumer,P0401,Herbal Face Wash,Skincare,3,249.00,0.00,747.00,295.75
+ORD-04-00055,2026-08-04,C04010,Sanjay Mehta,Corporate,P0405,Kajal,Makeup,2,199.00,0.00,398.00,191.08
+ORD-04-00056,2026-08-05,C04016,Anjali Menon,Consumer,P0408,Body Lotion,Bath & Body,1,449.00,0.00,449.00,210.98
+ORD-04-00057,2026-08-05,C04017,Shreya Gupta,Corporate,P0406,Sandalwood Soap Pack,Bath & Body,4,399.00,0.00,1596.00,707.75
+ORD-04-00058,2026-08-05,C04021,Divya Nair,Consumer,P0403,Amla Hair Oil,Haircare,2,349.00,0.00,698.00,329.10
+ORD-04-00059,2026-08-06,C04008,Swati Bhatt,Consumer,P0407,Lip Balm,Makeup,4,149.00,0.00,596.00,239.25
+ORD-04-00060,2026-08-06,C04028,Shreya Patel,Corporate,P0402,Aloe Vera Gel,Skincare,4,299.00,0.00,1196.00,487.06
+ORD-04-00061,2026-08-07,C04011,Vikram Verma,Corporate,P0407,Lip Balm,Makeup,2,149.00,0.00,298.00,137.48
+ORD-04-00062,2026-08-07,C04028,Shreya Patel,Corporate,P0403,Amla Hair Oil,Haircare,3,349.00,0.00,1047.00,526.86
+ORD-04-00063,2026-08-07,C04011,Vikram Verma,Corporate,P0404,Vitamin C Serum,Skincare,2,799.00,159.80,1438.20,550.19
+ORD-04-00064,2026-08-07,C04006,Anjali Menon,Consumer,P0408,Body Lotion,Bath & Body,4,449.00,179.60,1616.40,635.56
+ORD-04-00065,2026-08-07,C04018,Anjali Rao,Corporate,P0401,Herbal Face Wash,Skincare,3,249.00,74.70,672.30,289.53
+ORD-04-00066,2026-08-08,C04027,Kavya Joshi,Corporate,P0408,Body Lotion,Bath & Body,4,449.00,89.80,1706.20,822.42
+ORD-04-00067,2026-08-09,C04025,Sneha Reddy,Corporate,P0407,Lip Balm,Makeup,3,149.00,0.00,447.00,215.72
+ORD-04-00068,2026-08-09,C04029,Harsh Desai,Home Office,P0401,Herbal Face Wash,Skincare,3,249.00,0.00,747.00,303.58
+ORD-04-00069,2026-08-10,C04009,Diya Iyer,Consumer,P0405,Kajal,Makeup,2,199.00,0.00,398.00,185.43
+ORD-04-00070,2026-08-11,C04022,Rahul Deshmukh,Corporate,P0406,Sandalwood Soap Pack,Bath & Body,4,399.00,0.00,1596.00,647.10
+ORD-04-00071,2026-08-11,C04021,Divya Nair,Consumer,P0403,Amla Hair Oil,Haircare,4,349.00,69.80,1326.20,519.51
+ORD-04-00072,2026-08-11,C04013,Isha Mehta,Consumer,P0403,Amla Hair Oil,Haircare,1,349.00,17.45,331.55,145.45
+ORD-04-00073,2026-08-11,C04021,Divya Nair,Consumer,P0404,Vitamin C Serum,Skincare,1,799.00,0.00,799.00,363.95
+ORD-04-00074,2026-08-12,C04011,Vikram Verma,Corporate,P0407,Lip Balm,Makeup,3,149.00,0.00,447.00,227.63
+ORD-04-00075,2026-08-13,C04020,Sanjay Pillai,Consumer,P0406,Sandalwood Soap Pack,Bath & Body,2,399.00,119.70,678.30,260.21
+ORD-04-00076,2026-08-14,C04023,Arjun Rao,Consumer,P0407,Lip Balm,Makeup,1,149.00,0.00,149.00,73.58
+ORD-04-00077,2026-08-15,C04021,Divya Nair,Consumer,P0406,Sandalwood Soap Pack,Bath & Body,3,399.00,0.00,1197.00,462.94
+ORD-04-00078,2026-08-15,C04010,Sanjay Mehta,Corporate,P0401,Herbal Face Wash,Skincare,4,249.00,99.60,896.40,427.14
+ORD-04-00079,2026-08-15,C04010,Sanjay Mehta,Corporate,P0401,Herbal Face Wash,Skincare,2,249.00,0.00,498.00,233.80
+ORD-04-00080,2026-08-16,C04005,Vikram Iyer,Consumer,P0407,Lip Balm,Makeup,4,149.00,0.00,596.00,306.48
+ORD-04-00081,2026-08-16,C04017,Shreya Gupta,Corporate,P0407,Lip Balm,Makeup,4,149.00,0.00,596.00,304.00
+ORD-04-00082,2026-08-16,C04005,Vikram Iyer,Consumer,P0402,Aloe Vera Gel,Skincare,1,299.00,29.90,269.10,136.94
+ORD-04-00083,2026-08-17,C04007,Manish Shah,Home Office,P0401,Herbal Face Wash,Skincare,1,249.00,12.45,236.55,113.45
+ORD-04-00084,2026-08-18,C04005,Vikram Iyer,Consumer,P0403,Amla Hair Oil,Haircare,3,349.00,0.00,1047.00,513.70
+ORD-04-00085,2026-08-18,C04015,Priya Menon,Corporate,P0408,Body Lotion,Bath & Body,3,449.00,202.05,1144.95,490.66
+ORD-04-00086,2026-08-19,C04005,Vikram Iyer,Consumer,P0401,Herbal Face Wash,Skincare,2,249.00,0.00,498.00,207.79
+ORD-04-00087,2026-08-19,C04009,Diya Iyer,Consumer,P0401,Herbal Face Wash,Skincare,3,249.00,0.00,747.00,288.78
+ORD-04-00088,2026-08-19,C04028,Shreya Patel,Corporate,P0404,Vitamin C Serum,Skincare,1,799.00,0.00,799.00,327.70
+ORD-04-00089,2026-08-19,C04028,Shreya Patel,Corporate,P0401,Herbal Face Wash,Skincare,4,249.00,149.40,846.60,341.86
+ORD-04-00090,2026-08-19,C04008,Swati Bhatt,Consumer,P0405,Kajal,Makeup,2,199.00,0.00,398.00,159.41
+ORD-04-00091,2026-08-20,C04028,Shreya Patel,Corporate,P0407,Lip Balm,Makeup,2,149.00,0.00,298.00,129.48
+ORD-04-00092,2026-08-20,C04020,Sanjay Pillai,Consumer,P0403,Amla Hair Oil,Haircare,4,349.00,69.80,1326.20,683.47
+ORD-04-90004,2026-08-04,C04010,Sanjay Mehta,Corporate,P0405,Kajal,Makeup,,199.00,0.00,398.00,191.08
+ORD-04-00093,2026-08-20,C04005,Vikram Iyer,Consumer,P0406,Sandalwood Soap Pack,Bath & Body,1,399.00,19.95,379.05,172.40
+ORD-04-00094,2026-08-21,C04012,Siddharth Patel,Consumer,P0408,Body Lotion,Bath & Body,4,449.00,0.00,1796.00,893.36
+ORD-04-00095,2026-08-21,C04003,Kavya Menon,Consumer,P0408,Body Lotion,Bath & Body,4,449.00,0.00,1796.00,775.65
+ORD-04-00096,2026-08-22,C04018,Anjali Rao,Corporate,P0401,Herbal Face Wash,Skincare,4,249.00,0.00,996.00,444.55
+ORD-04-00097,2026-08-22,C04029,Harsh Desai,Home Office,P0408,Body Lotion,Bath & Body,1,449.00,0.00,449.00,216.70
+ORD-04-00098,2026-08-22,C04021,Divya Nair,Consumer,P0401,Herbal Face Wash,Skincare,1,249.00,0.00,249.00,126.05
+ORD-04-00099,2026-08-22,C04005,Vikram Iyer,Consumer,P0406,Sandalwood Soap Pack,Bath & Body,2,399.00,119.70,678.30,282.13
+ORD-04-00100,2026-08-22,C04010,Sanjay Mehta,Corporate,P0405,Kajal,Makeup,2,199.00,59.70,338.30,165.53
+ORD-04-00101,2026-08-23,C04025,Sneha Reddy,Corporate,P0406,Sandalwood Soap Pack,Bath & Body,2,399.00,119.70,678.30,339.32
+ORD-04-00102,2026-08-23,C04001,Tanvi Bhatt,Consumer,P0404,Vitamin C Serum,Skincare,3,799.00,119.85,2277.15,1154.58
+ORD-04-00103,2026-08-23,C04012,Siddharth Patel,Consumer,P0404,Vitamin C Serum,Skincare,2,799.00,0.00,1598.00,619.30
+ORD-04-00104,2026-08-23,C04020,Sanjay Pillai,Consumer,P0403,Amla Hair Oil,Haircare,3,349.00,0.00,1047.00,531.11
+ORD-04-00105,2026-08-24,C04013,Isha Mehta,Consumer,P0401,Herbal Face Wash,Skincare,3,249.00,0.00,747.00,318.86
+ORD-04-00106,2026-08-25,C04023,Arjun Rao,Consumer,P0401,Herbal Face Wash,Skincare,3,249.00,0.00,747.00,326.12
+ORD-04-00107,2026-08-25,C04015,Priya Menon,Corporate,P0402,Aloe Vera Gel,Skincare,2,299.00,0.00,598.00,291.63
+ORD-04-00108,2026-08-26,C04006,Anjali Menon,Consumer,P0402,Aloe Vera Gel,Skincare,4,299.00,59.80,1136.20,497.52
+ORD-04-00109,2026-08-26,C04023,Arjun Rao,Consumer,P0406,Sandalwood Soap Pack,Bath & Body,4,399.00,239.40,1356.60,563.39
+ORD-04-00110,2026-08-27,C04018,Anjali Rao,Corporate,P0406,Sandalwood Soap Pack,Bath & Body,2,399.00,79.80,718.20,276.04
+ORD-04-00111,2026-08-28,C04016,Anjali Menon,Consumer,P0406,Sandalwood Soap Pack,Bath & Body,3,399.00,0.00,1197.00,582.24
+ORD-04-00112,2026-08-29,C04006,Anjali Menon,Consumer,P0407,Lip Balm,Makeup,3,149.00,22.35,424.65,171.94
+ORD-04-00113,2026-08-29,C04025,Sneha Reddy,Corporate,P0401,Herbal Face Wash,Skincare,2,249.00,24.90,473.10,242.71
+ORD-04-00114,2026-08-29,C04020,Sanjay Pillai,Consumer,P0408,Body Lotion,Bath & Body,3,449.00,134.70,1212.30,535.73
+ORD-04-00115,2026-08-30,C04005,Vikram Iyer,Consumer,P0408,Body Lotion,Bath & Body,1,449.00,0.00,449.00,209.96
+ORD-04-00116,2026-08-31,C04002,Swati Singh,Consumer,P0404,Vitamin C Serum,Skincare,3,799.00,359.55,2037.45,861.26
+ORD-04-00117,2026-09-01,C04006,Anjali Menon,Consumer,P0403,Amla Hair Oil,Haircare,3,349.00,104.70,942.30,435.88
+ORD-04-00118,2026-09-01,C04012,Siddharth Patel,Consumer,P0405,Kajal,Makeup,4,199.00,39.80,756.20,384.14
+ORD-04-00119,2026-09-01,C04005,Vikram Iyer,Consumer,P0405,Kajal,Makeup,4,199.00,0.00,796.00,393.63
+ORD-04-00120,2026-09-01,C04003,Kavya Menon,Consumer,P0405,Kajal,Makeup,2,199.00,39.80,358.20,149.30
+ORD-04-00121,2026-09-02,C04020,Sanjay Pillai,Consumer,P0401,Herbal Face Wash,Skincare,1,249.00,24.90,224.10,113.01
+ORD-04-00122,2026-09-02,C04023,Arjun Rao,Consumer,P0407,Lip Balm,Makeup,3,149.00,22.35,424.65,214.33
+ORD-04-00123,2026-09-02,C04012,Siddharth Patel,Consumer,P0401,Herbal Face Wash,Skincare,2,249.00,0.00,498.00,217.73
+ORD-04-00124,2026-09-02,C04023,Arjun Rao,Consumer,P0408,Body Lotion,Bath & Body,2,449.00,0.00,898.00,381.60
+ORD-04-00125,2026-09-03,C04020,Sanjay Pillai,Consumer,P0408,Body Lotion,Bath & Body,4,449.00,179.60,1616.40,728.05
+ORD-04-00126,2026-09-04,C04021,Divya Nair,Consumer,P0402,Aloe Vera Gel,Skincare,2,299.00,0.00,598.00,302.64
+ORD-04-00127,2026-09-05,C04021,Divya Nair,Consumer,P0403,Amla Hair Oil,Haircare,1,349.00,0.00,349.00,178.80
+ORD-04-00128,2026-09-06,C04015,Priya Menon,Corporate,P0408,Body Lotion,Bath & Body,2,449.00,0.00,898.00,356.49
+ORD-04-00129,2026-09-06,C04002,Swati Singh,Consumer,P0403,Amla Hair Oil,Haircare,3,349.00,0.00,1047.00,406.39
+ORD-04-00130,2026-09-06,C04027,Kavya Joshi,Corporate,P0405,Kajal,Makeup,2,199.00,59.70,338.30,148.86
+ORD-04-00131,2026-09-06,C04011,Vikram Verma,Corporate,P0403,Amla Hair Oil,Haircare,3,349.00,0.00,1047.00,526.71
+ORD-04-00132,2026-09-06,C04018,Anjali Rao,Corporate,P0401,Herbal Face Wash,Skincare,2,249.00,0.00,498.00,254.08
+ORD-04-00133,2026-09-07,C04011,Vikram Verma,Corporate,P0401,Herbal Face Wash,Skincare,3,249.00,0.00,747.00,320.78
+ORD-04-00134,2026-09-08,C04022,Rahul Deshmukh,Corporate,P0405,Kajal,Makeup,2,199.00,39.80,358.20,179.57
+ORD-04-00135,2026-09-08,C04024,Neha Patel,Corporate,P0404,Vitamin C Serum,Skincare,3,799.00,0.00,2397.00,1108.11
+ORD-04-00136,2026-09-09,C04003,Kavya Menon,Consumer,P0401,Herbal Face Wash,Skincare,1,249.00,12.45,236.55,109.22
+ORD-04-00137,2026-09-10,C04026,Kavya Mehta,Consumer,P0406,Sandalwood Soap Pack,Bath & Body,3,399.00,0.00,1197.00,595.67
+ORD-04-00138,2026-09-10,C04007,Manish Shah,Home Office,P0401,Herbal Face Wash,Skincare,2,249.00,74.70,423.30,174.12
+ORD-04-00139,2026-09-11,C04023,Arjun Rao,Consumer,P0401,Herbal Face Wash,Skincare,2,249.00,0.00,498.00,211.51
+ORD-04-00140,2026-09-11,C04015,Priya Menon,Corporate,P0402,Aloe Vera Gel,Skincare,4,299.00,59.80,1136.20,586.84
+ORD-04-00141,2026-09-11,C04021,Divya Nair,Consumer,P0401,Herbal Face Wash,Skincare,1,249.00,0.00,249.00,97.94
+ORD-04-00142,2026-09-12,C04007,Manish Shah,Home Office,P0407,Lip Balm,Makeup,3,149.00,67.05,379.95,154.44
+ORD-04-00143,2026-09-12,C04016,Anjali Menon,Consumer,P0401,Herbal Face Wash,Skincare,2,249.00,0.00,498.00,220.51
+ORD-04-00144,2026-09-13,C04001,Tanvi Bhatt,Consumer,P0404,Vitamin C Serum,Skincare,2,799.00,0.00,1598.00,704.77
+ORD-04-00145,2026-09-14,C04010,Sanjay Mehta,Corporate,P0403,Amla Hair Oil,Haircare,3,349.00,0.00,1047.00,454.28
+ORD-04-00146,2026-09-14,C04018,Anjali Rao,Corporate,P0406,Sandalwood Soap Pack,Bath & Body,2,399.00,0.00,798.00,380.41
+ORD-04-00147,2026-09-15,C04026,Kavya Mehta,Consumer,P0404,Vitamin C Serum,Skincare,2,799.00,159.80,1438.20,650.31
+ORD-04-00148,2026-09-16,C04021,Divya Nair,Consumer,P0403,Amla Hair Oil,Haircare,3,349.00,0.00,1047.00,466.44
+ORD-04-00149,2026-09-16,C04007,Manish Shah,Home Office,P0406,Sandalwood Soap Pack,Bath & Body,1,399.00,19.95,379.05,157.01
+ORD-04-00150,2026-09-16,C04003,Kavya Menon,Consumer,P0401,Herbal Face Wash,Skincare,2,249.00,74.70,423.30,212.50
+ORD-04-00151,2026-09-17,C04002,Swati Singh,Consumer,P0403,Amla Hair Oil,Haircare,3,349.00,157.05,889.95,453.17
+ORD-04-00152,2026-09-17,C04010,Sanjay Mehta,Corporate,P0406,Sandalwood Soap Pack,Bath & Body,3,399.00,119.70,1077.30,430.76
+ORD-04-00153,2026-09-18,C04013,Isha Mehta,Consumer,P0404,Vitamin C Serum,Skincare,1,799.00,79.90,719.10,338.43
+ORD-04-00154,2026-09-19,C04025,Sneha Reddy,Corporate,P0402,Aloe Vera Gel,Skincare,4,299.00,119.60,1076.40,435.17
+ORD-04-00155,2026-09-19,C04002,Swati Singh,Consumer,P0403,Amla Hair Oil,Haircare,4,349.00,0.00,1396.00,579.48
+ORD-04-00156,2026-09-20,C04013,Isha Mehta,Consumer,P0401,Herbal Face Wash,Skincare,2,249.00,0.00,498.00,210.59
+ORD-04-00157,2026-09-20,C04006,Anjali Menon,Consumer,P0401,Herbal Face Wash,Skincare,2,249.00,24.90,473.10,223.44
+ORD-04-00158,2026-09-20,C04004,Kavya Shah,Consumer,P0406,Sandalwood Soap Pack,Bath & Body,3,399.00,0.00,1197.00,605.70
+ORD-04-90002,2026-08-07,C04028,Shreya Patel,Corporate,P0403,Amla Hair Oil,Haircare,-2,349.00,0.00,1047.00,526.86
+ORD-04-00159,2026-09-20,C04004,Kavya Shah,Consumer,P0403,Amla Hair Oil,Haircare,2,349.00,69.80,628.20,270.36
+ORD-04-00160,2026-09-21,C04007,Manish Shah,Home Office,P0404,Vitamin C Serum,Skincare,4,799.00,319.60,2876.40,1394.91
+ORD-04-00161,2026-09-21,C04028,Shreya Patel,Corporate,P0402,Aloe Vera Gel,Skincare,4,299.00,179.40,1016.60,474.69
+ORD-04-00162,2026-09-22,C04030,Tanvi Deshmukh,Consumer,P0404,Vitamin C Serum,Skincare,4,799.00,319.60,2876.40,1335.80
+ORD-04-00163,2026-09-22,C04011,Vikram Verma,Corporate,P0406,Sandalwood Soap Pack,Bath & Body,2,399.00,39.90,758.10,358.81
+ORD-04-00164,2026-09-23,C04008,Swati Bhatt,Consumer,P0402,Aloe Vera Gel,Skincare,1,299.00,0.00,299.00,128.30
+ORD-04-00165,2026-09-23,C04011,Vikram Verma,Corporate,P0405,Kajal,Makeup,1,199.00,0.00,199.00,94.77
+ORD-04-00166,2026-09-23,C04007,Manish Shah,Home Office,P0407,Lip Balm,Makeup,4,149.00,59.60,536.40,271.29
+ORD-04-00167,2026-09-24,C04024,Neha Patel,Corporate,P0405,Kajal,Makeup,1,199.00,0.00,199.00,94.99
+ORD-04-00168,2026-09-25,C04023,Arjun Rao,Consumer,P0405,Kajal,Makeup,4,199.00,119.40,676.60,302.22
+ORD-04-00169,2026-09-25,C04013,Isha Mehta,Consumer,P0401,Herbal Face Wash,Skincare,3,249.00,74.70,672.30,322.81
+ORD-04-00170,2026-09-25,C04018,Anjali Rao,Corporate,P0401,Herbal Face Wash,Skincare,2,249.00,0.00,498.00,201.67
+ORD-04-90001,2026-09-02,C04023,Arjun Rao,Consumer,P0407,Lip Balm,Makeup,,149.00,22.35,424.65,214.33
+ORD-04-90003,not-a-date,C04016,Anjali Menon,Consumer,P0408,Body Lotion,Bath & Body,3,449.00,202.05,1144.95,542.52
+ORD-04-00171,2026-09-26,C04001,Tanvi Bhatt,Consumer,P0403,Amla Hair Oil,Haircare,4,349.00,139.60,1256.40,518.23
+ORD-04-00172,2026-09-26,C04012,Siddharth Patel,Consumer,P0408,Body Lotion,Bath & Body,4,449.00,0.00,1796.00,722.77
+ORD-04-00173,2026-09-26,C04014,Deepak Bhatt,Home Office,P0401,Herbal Face Wash,Skincare,3,249.00,37.35,709.65,308.16
+ORD-04-00174,2026-09-27,C04025,Sneha Reddy,Corporate,P0403,Amla Hair Oil,Haircare,4,349.00,0.00,1396.00,577.72
+ORD-04-00175,2026-09-27,C04001,Tanvi Bhatt,Consumer,P0406,Sandalwood Soap Pack,Bath & Body,2,399.00,0.00,798.00,399.68
+ORD-04-90005,2026-07-27,C04004,Kavya Shah,Consumer,P0401,Herbal Face Wash,Skincare,-2,249.00,74.70,672.30,294.88
+ORD-04-00176,2026-09-28,C04028,Shreya Patel,Corporate,P0407,Lip Balm,Makeup,4,149.00,29.80,566.20,219.86
+ORD-04-00177,2026-09-28,C04009,Diya Iyer,Consumer,P0401,Herbal Face Wash,Skincare,4,249.00,99.60,896.40,432.83
+ORD-04-00178,2026-09-28,C04019,Manish Patel,Home Office,P0405,Kajal,Makeup,2,199.00,0.00,398.00,203.97
+ORD-04-00179,2026-09-28,C04028,Shreya Patel,Corporate,P0405,Kajal,Makeup,2,199.00,19.90,378.10,189.10
+ORD-04-00180,2026-09-29,C04028,Shreya Patel,Corporate,P0407,Lip Balm,Makeup,1,149.00,14.90,134.10,66.99
+ORD-04-00181,2026-09-29,C04012,Siddharth Patel,Consumer,P0405,Kajal,Makeup,4,199.00,0.00,796.00,315.07
+ORD-04-00182,2026-09-30,C04026,Kavya Mehta,Consumer,P0407,Lip Balm,Makeup,1,149.00,7.45,141.55,70.17
+ORD-04-00183,2026-09-30,C04030,Tanvi Deshmukh,Consumer,P0406,Sandalwood Soap Pack,Bath & Body,4,399.00,0.00,1596.00,693.78
+ORD-04-00184,2026-09-30,C04016,Anjali Menon,Consumer,P0405,Kajal,Makeup,4,199.00,0.00,796.00,328.76
+ORD-04-00185,2026-10-01,C04021,Divya Nair,Consumer,P0401,Herbal Face Wash,Skincare,4,249.00,99.60,896.40,345.09
+ORD-04-00186,2026-10-01,C04014,Deepak Bhatt,Home Office,P0402,Aloe Vera Gel,Skincare,4,299.00,0.00,1196.00,500.91
+ORD-04-00187,2026-10-02,C04027,Kavya Joshi,Corporate,P0408,Body Lotion,Bath & Body,1,449.00,0.00,449.00,208.79
+ORD-04-00188,2026-10-02,C04016,Anjali Menon,Consumer,P0401,Herbal Face Wash,Skincare,1,249.00,0.00,249.00,118.36
+ORD-04-00189,2026-10-02,C04029,Harsh Desai,Home Office,P0404,Vitamin C Serum,Skincare,2,799.00,0.00,1598.00,693.80
+ORD-04-00190,2026-10-03,C04007,Manish Shah,Home Office,P0406,Sandalwood Soap Pack,Bath & Body,4,399.00,0.00,1596.00,656.09
+ORD-04-00191,2026-10-03,C04026,Kavya Mehta,Consumer,P0401,Herbal Face Wash,Skincare,1,249.00,24.90,224.10,112.06
+ORD-04-00192,2026-10-03,C04019,Manish Patel,Home Office,P0401,Herbal Face Wash,Skincare,1,249.00,12.45,236.55,103.43
+ORD-04-00193,2026-10-04,C04030,Tanvi Deshmukh,Consumer,P0401,Herbal Face Wash,Skincare,1,249.00,24.90,224.10,89.90
+ORD-04-00194,2026-10-05,C04025,Sneha Reddy,Corporate,P0401,Herbal Face Wash,Skincare,1,249.00,0.00,249.00,121.63
+ORD-04-00195,2026-10-05,C04007,Manish Shah,Home Office,P0407,Lip Balm,Makeup,3,149.00,0.00,447.00,213.57
+ORD-04-90006,not-a-date,C04021,Divya Nair,Consumer,P0401,Herbal Face Wash,Skincare,1,249.00,0.00,249.00,97.94
+ORD-04-00196,2026-10-06,C04008,Swati Bhatt,Consumer,P0406,Sandalwood Soap Pack,Bath & Body,3,399.00,0.00,1197.00,469.66
+ORD-04-00197,2026-10-06,C04027,Kavya Joshi,Corporate,P0401,Herbal Face Wash,Skincare,2,249.00,24.90,473.10,210.36
+ORD-04-00198,2026-10-06,C04007,Manish Shah,Home Office,P0402,Aloe Vera Gel,Skincare,4,299.00,179.40,1016.60,467.25
+ORD-04-00199,2026-10-06,C04030,Tanvi Deshmukh,Consumer,P0404,Vitamin C Serum,Skincare,3,799.00,239.70,2157.30,890.12
+ORD-04-00200,2026-10-07,C04027,Kavya Joshi,Corporate,P0407,Lip Balm,Makeup,2,149.00,0.00,298.00,132.77
+ORD-04-00201,2026-10-07,C04025,Sneha Reddy,Corporate,P0406,Sandalwood Soap Pack,Bath & Body,3,399.00,0.00,1197.00,568.67
+ORD-04-00202,2026-10-07,C04017,Shreya Gupta,Corporate,P0408,Body Lotion,Bath & Body,3,449.00,67.35,1279.65,543.47
+ORD-04-00203,2026-10-08,C04016,Anjali Menon,Consumer,P0408,Body Lotion,Bath & Body,3,449.00,202.05,1144.95,542.52
+ORD-04-00204,2026-10-08,C04003,Kavya Menon,Consumer,P0408,Body Lotion,Bath & Body,1,449.00,0.00,449.00,217.61
+ORD-04-00205,2026-10-08,C04027,Kavya Joshi,Corporate,P0404,Vitamin C Serum,Skincare,1,799.00,0.00,799.00,382.28
+ORD-04-00206,2026-10-09,C04003,Kavya Menon,Consumer,P0407,Lip Balm,Makeup,2,149.00,0.00,298.00,130.75
+ORD-04-00207,2026-10-09,C04028,Shreya Patel,Corporate,P0406,Sandalwood Soap Pack,Bath & Body,3,399.00,0.00,1197.00,471.60
+ORD-04-00208,2026-10-09,C04002,Swati Singh,Consumer,P0405,Kajal,Makeup,3,199.00,0.00,597.00,292.70
+ORD-04-00209,2026-10-09,C04010,Sanjay Mehta,Corporate,P0406,Sandalwood Soap Pack,Bath & Body,4,399.00,0.00,1596.00,716.78
+ORD-04-00210,2026-10-09,C04010,Sanjay Mehta,Corporate,P0406,Sandalwood Soap Pack,Bath & Body,2,399.00,39.90,758.10,365.07
+ORD-04-00211,2026-10-10,C04017,Shreya Gupta,Corporate,P0406,Sandalwood Soap Pack,Bath & Body,2,399.00,39.90,758.10,324.76
+ORD-04-00212,2026-10-10,C04030,Tanvi Deshmukh,Consumer,P0408,Body Lotion,Bath & Body,2,449.00,44.90,853.10,439.34
+ORD-04-00213,2026-10-10,C04004,Kavya Shah,Consumer,P0407,Lip Balm,Makeup,1,149.00,0.00,149.00,58.13
+ORD-04-00214,2026-10-10,C04023,Arjun Rao,Consumer,P0401,Herbal Face Wash,Skincare,3,249.00,0.00,747.00,314.07
+ORD-04-00215,2026-10-11,C04009,Diya Iyer,Consumer,P0407,Lip Balm,Makeup,4,149.00,0.00,596.00,275.19
+ORD-04-00216,2026-10-11,C04007,Manish Shah,Home Office,P0403,Amla Hair Oil,Haircare,3,349.00,157.05,889.95,440.69
+ORD-04-00217,2026-10-11,C04014,Deepak Bhatt,Home Office,P0401,Herbal Face Wash,Skincare,1,249.00,0.00,249.00,98.13
+ORD-04-00218,2026-10-13,C04029,Harsh Desai,Home Office,P0403,Amla Hair Oil,Haircare,3,349.00,0.00,1047.00,511.87
+ORD-04-00219,2026-10-13,C04013,Isha Mehta,Consumer,P0402,Aloe Vera Gel,Skincare,1,299.00,0.00,299.00,144.23
+ORD-04-00220,2026-10-13,C04005,Vikram Iyer,Consumer,P0407,Lip Balm,Makeup,1,149.00,14.90,134.10,63.95
+ORD-04-00221,2026-10-13,C04001,Tanvi Bhatt,Consumer,P0405,Kajal,Makeup,1,199.00,19.90,179.10,85.25
+ORD-04-00222,2026-10-14,C04018,Anjali Rao,Corporate,P0404,Vitamin C Serum,Skincare,4,799.00,159.80,3036.20,1366.56
+ORD-04-00223,2026-10-14,C04023,Arjun Rao,Consumer,P0403,Amla Hair Oil,Haircare,4,349.00,209.40,1186.60,476.19
+ORD-04-00224,2026-10-14,C04027,Kavya Joshi,Corporate,P0403,Amla Hair Oil,Haircare,2,349.00,104.70,593.30,285.87
+ORD-04-00225,2026-10-14,C04022,Rahul Deshmukh,Corporate,P0404,Vitamin C Serum,Skincare,2,799.00,79.90,1518.10,592.59
+ORD-04-00226,2026-10-15,C04012,Siddharth Patel,Consumer,P0402,Aloe Vera Gel,Skincare,4,299.00,0.00,1196.00,467.05
+ORD-04-00227,2026-10-15,C04029,Harsh Desai,Home Office,P0407,Lip Balm,Makeup,3,149.00,22.35,424.65,180.09
+ORD-04-00228,2026-10-16,C04028,Shreya Patel,Corporate,P0402,Aloe Vera Gel,Skincare,2,299.00,29.90,568.10,262.04
+ORD-04-00229,2026-10-16,C04007,Manish Shah,Home Office,P0406,Sandalwood Soap Pack,Bath & Body,1,399.00,19.95,379.05,182.96
+ORD-04-00230,2026-10-16,C04019,Manish Patel,Home Office,P0405,Kajal,Makeup,2,199.00,39.80,358.20,139.76
+ORD-04-00231,2026-10-16,C04005,Vikram Iyer,Consumer,P0407,Lip Balm,Makeup,4,149.00,59.60,536.40,261.26
+ORD-04-00232,2026-10-16,C04028,Shreya Patel,Corporate,P0403,Amla Hair Oil,Haircare,1,349.00,17.45,331.55,145.84
+ORD-04-00233,2026-10-17,C04012,Siddharth Patel,Consumer,P0403,Amla Hair Oil,Haircare,1,349.00,0.00,349.00,155.85
+ORD-04-00234,2026-10-17,C04008,Swati Bhatt,Consumer,P0405,Kajal,Makeup,4,199.00,39.80,756.20,307.20
+ORD-04-00235,2026-10-17,C04023,Arjun Rao,Consumer,P0405,Kajal,Makeup,3,199.00,29.85,567.15,225.16
+ORD-04-00236,2026-10-17,C04030,Tanvi Deshmukh,Consumer,P0403,Amla Hair Oil,Haircare,3,349.00,52.35,994.65,413.72
+ORD-04-00237,2026-10-17,C04029,Harsh Desai,Home Office,P0408,Body Lotion,Bath & Body,4,449.00,89.80,1706.20,735.14
+ORD-04-00238,2026-10-17,C04001,Tanvi Bhatt,Consumer,P0408,Body Lotion,Bath & Body,1,449.00,22.45,426.55,187.09
+ORD-04-00239,2026-10-17,C04005,Vikram Iyer,Consumer,P0404,Vitamin C Serum,Skincare,4,799.00,0.00,3196.00,1429.73
+ORD-04-00240,2026-10-18,C04015,Priya Menon,Corporate,P0404,Vitamin C Serum,Skincare,4,799.00,0.00,3196.00,1536.29
+ORD-04-00241,2026-10-18,C04015,Priya Menon,Corporate,P0403,Amla Hair Oil,Haircare,2,349.00,0.00,698.00,315.83
+ORD-04-00242,2026-10-18,C04001,Tanvi Bhatt,Consumer,P0402,Aloe Vera Gel,Skincare,3,299.00,89.70,807.30,370.23
+ORD-04-00243,2026-10-18,C04025,Sneha Reddy,Corporate,P0403,Amla Hair Oil,Haircare,2,349.00,0.00,698.00,291.05
+ORD-04-00244,2026-10-18,C04025,Sneha Reddy,Corporate,P0403,Amla Hair Oil,Haircare,3,349.00,0.00,1047.00,510.60
+ORD-04-00245,2026-10-19,C04027,Kavya Joshi,Corporate,P0402,Aloe Vera Gel,Skincare,3,299.00,0.00,897.00,381.38
+ORD-04-00246,2026-10-19,C04001,Tanvi Bhatt,Consumer,P0402,Aloe Vera Gel,Skincare,1,299.00,44.85,254.15,124.21
+ORD-04-00247,2026-10-19,C04006,Anjali Menon,Consumer,P0401,Herbal Face Wash,Skincare,1,249.00,0.00,249.00,118.78
+ORD-04-00248,2026-10-19,C04006,Anjali Menon,Consumer,P0405,Kajal,Makeup,4,199.00,119.40,676.60,323.64
+ORD-04-00249,2026-10-19,C04026,Kavya Mehta,Consumer,P0403,Amla Hair Oil,Haircare,4,349.00,69.80,1326.20,534.29
+ORD-04-00250,2026-10-19,C04005,Vikram Iyer,Consumer,P0404,Vitamin C Serum,Skincare,3,799.00,0.00,2397.00,964.56

@@ -1,6 +1,12 @@
 import json
+import sys
 import unittest
+from pathlib import Path
 from unittest.mock import MagicMock, patch
+
+_BACKEND_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_BACKEND_DIR))
+sys.path.insert(0, str(_BACKEND_DIR / "pipeline"))
 
 from pipeline.cleaning.currency_cleaner import clean_currency, clean_currency_fields
 from pipeline.cleaning.date_standardizer import (
@@ -80,7 +86,7 @@ class TestNullHandler(unittest.TestCase):
         self.assertEqual(len(rejected), 1)
         self.assertIn("missing_required_key: order_id", rejected[0]["rejection_reason"])
 
-    def test_orders_imputes_defaults_and_calculates_total(self):
+    def test_orders_rejects_missing_total(self):
         records = [
             {
                 "order_id": "ORD-1",
@@ -90,14 +96,31 @@ class TestNullHandler(unittest.TestCase):
                 "unit_price": 25.0,
                 "quantity": 4,
                 "discount": 5.0,
-                # total missing -> calculated 25 * 4 - 5 = 95.0
+                # total missing -> rejected
             }
         ]
         valid, rejected = handle_nulls_orders(records)
-        self.assertEqual(len(rejected), 0)
-        self.assertEqual(len(valid), 1)
-        self.assertEqual(valid[0]["total"], 95.0)
-        self.assertEqual(valid[0]["quantity"], 4)
+        self.assertEqual(len(valid), 0)
+        self.assertEqual(len(rejected), 1)
+        self.assertIn("missing_required_key: total", rejected[0]["rejection_reason"])
+
+    def test_orders_rejects_missing_unit_price(self):
+        records = [
+            {
+                "order_id": "ORD-1",
+                "customer_id": "C1",
+                "product_id": "P1",
+                "order_date": "2026-10-15 10:00:00",
+                "total": 95.0,
+                "quantity": 4,
+                "discount": 5.0,
+                # unit_price missing -> rejected
+            }
+        ]
+        valid, rejected = handle_nulls_orders(records)
+        self.assertEqual(len(valid), 0)
+        self.assertEqual(len(rejected), 1)
+        self.assertIn("missing_required_key: unit_price", rejected[0]["rejection_reason"])
 
     def test_shipping_imputes_defaults(self):
         records = [{"order_id": "ORD-10"}]
@@ -120,7 +143,7 @@ class TestDeduplication(unittest.TestCase):
         self.assertEqual(len(unique), 2)
         self.assertEqual(len(duplicates), 1)
         self.assertEqual(duplicates[0]["order_id"], "ORD-1")
-        self.assertIn("duplicate_natural_key", duplicates[0]["rejection_reason"])
+        self.assertIn("duplicate", duplicates[0]["rejection_reason"])
 
 
 class TestSilverWriter(unittest.TestCase):
@@ -331,7 +354,7 @@ class TestAllTenSilverValidationRules(unittest.TestCase):
         unique, duplicates = deduplicate_records([row1, row2], key_fields=("order_id", "product_id"))
         self.assertEqual(len(unique), 1)
         self.assertEqual(len(duplicates), 1)
-        self.assertIn("duplicate_natural_key", duplicates[0]["rejection_reason"])
+        self.assertIn("duplicate", duplicates[0]["rejection_reason"])
 
 
 if __name__ == "__main__":
