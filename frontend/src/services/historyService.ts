@@ -5,43 +5,54 @@ import {
   SmbHistoryItem,
   TeamHistoryItem,
 } from '@/types/history';
+import { PaginatedResponse } from '@/types/pagination';
 
 export const historyService = {
   /**
-   * Fetch caller's tenant submission history (SMB Owner).
+   * Fetch caller's tenant submission history (SMB Owner) with server-side pagination.
    */
-  async getMyHistory(): Promise<SmbHistoryItem[]> {
-    const response = await api.get<SmbHistoryItem[]>('/history/mine');
+  async getMyHistory(page: number = 1, pageSize: number = 20): Promise<PaginatedResponse<SmbHistoryItem>> {
+    const response = await api.get<PaginatedResponse<SmbHistoryItem>>('/history/mine', {
+      params: { page, page_size: pageSize },
+    });
     return response.data;
   },
 
   /**
-   * Fetch operational submission history for Team Members / Admins.
+   * Fetch operational submission history for Team Members / Admins with server-side pagination.
    */
-  async getTeamHistory(filters?: HistoryFilterParams): Promise<TeamHistoryItem[]> {
-    const params: Record<string, string> = {};
+  async getTeamHistory(
+    filters?: HistoryFilterParams,
+    page: number = 1,
+    pageSize: number = 20
+  ): Promise<PaginatedResponse<TeamHistoryItem>> {
+    const params: Record<string, any> = { page, page_size: pageSize };
     if (filters?.status && filters.status !== 'all') {
       params.status = filters.status;
     }
     if (filters?.tenant && filters.tenant.trim()) {
       params.tenant = filters.tenant.trim();
     }
-    const response = await api.get<TeamHistoryItem[]>('/history/team', { params });
+    const response = await api.get<PaginatedResponse<TeamHistoryItem>>('/history/team', { params });
     return response.data;
   },
 
   /**
-   * Fetch system-wide submission history with Handled By column (Admin).
+   * Fetch system-wide submission history with Handled By column (Admin) with server-side pagination.
    */
-  async getAdminHistory(filters?: HistoryFilterParams): Promise<AdminHistoryItem[]> {
-    const params: Record<string, string> = {};
+  async getAdminHistory(
+    filters?: HistoryFilterParams,
+    page: number = 1,
+    pageSize: number = 20
+  ): Promise<PaginatedResponse<AdminHistoryItem>> {
+    const params: Record<string, any> = { page, page_size: pageSize };
     if (filters?.status && filters.status !== 'all') {
       params.status = filters.status;
     }
     if (filters?.tenant && filters.tenant.trim()) {
       params.tenant = filters.tenant.trim();
     }
-    const response = await api.get<AdminHistoryItem[]>('/history/admin', { params });
+    const response = await api.get<PaginatedResponse<AdminHistoryItem>>('/history/admin', { params });
     return response.data;
   },
 };

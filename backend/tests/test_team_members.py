@@ -230,11 +230,12 @@ def test_admin_list_team_members(client, admin_user):
             response = client.get("/api/team-members")
             assert response.status_code == status.HTTP_200_OK
             data = response.json()
-            assert len(data) == 2
-            assert data[0]["tenant_ids"] == [1, 2, 3]
-            assert data[1]["tenant_ids"] == [5]
+            assert len(data["items"]) == 2
+            assert data["total"] == 2
+            assert data["items"][0]["tenant_ids"] == [1, 2, 3]
+            assert data["items"][1]["tenant_ids"] == [5]
             # Ensure no password field leaked
-            for member in data:
+            for member in data["items"]:
                 assert "password" not in member
                 assert "password_hash" not in member
                 assert "temporary_password" not in member

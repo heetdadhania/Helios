@@ -17,6 +17,7 @@ from app.repositories.team_repository import TeamRepository
 from app.repositories.tenant_repository import TenantRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.auth import ResetPasswordResponse, UserOut, UserRole
+from app.schemas.common import PaginatedResponse
 from app.schemas.tenant import (
     EditOwnerRequest,
     OwnerResponse,
@@ -248,47 +249,71 @@ def create_tenant(
 
 @router.get(
     "",
-    response_model=List[TenantOut],
+    response_model=PaginatedResponse[TenantOut],
     summary="List registered tenants (Admin and Team Members)",
 )
 def list_tenants(
-    limit: int = Query(50, ge=1, le=200),
-    offset: int = Query(0, ge=0),
+    search: Optional[str] = Query(None, description="Search query"),
+    page: int = Query(1, ge=1, description="Page number (1-based)"),
+    page_size: int = Query(20, ge=1, le=100, description="Items per page (max 100)"),
+    limit: Optional[int] = Query(None, description="Optional legacy limit"),
+    offset: Optional[int] = Query(None, description="Optional legacy offset"),
     cursor: Cursor = Depends(get_db_cursor),
     current_user: UserOut = Depends(get_current_user),
-) -> List[TenantOut]:
-    """Retrieve tenant organizations list scoped by user role and assignments in SQL."""
+) -> PaginatedResponse[TenantOut]:
+    """Retrieve tenant organizations list scoped by user role and assignments in SQL with server-side pagination."""
     if current_user.role == UserRole.SMB_OWNER:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access denied: Organization Owners cannot list organizations.",
         )
 
+    if limit is not None:
+        page_size = min(100, max(1, limit))
+        if offset is not None:
+            page = max(1, (offset // page_size) + 1)
+
+    calc_limit = page_size
+    calc_offset = max(0, (page - 1) * page_size)
+
     role_str = "team_member" if current_user.role == UserRole.TEAM_MEMBER else "admin"
     tenant_repo = TenantRepository(cursor)
-    raw_tenants = tenant_repo.list_for_user(
+    raw_res = tenant_repo.list_for_user(
         user_id=current_user.id,
         role=role_str,
-        limit=limit,
-        offset=offset,
+        limit=calc_limit,
+        offset=calc_offset,
+        search=search,
     )
-    return [TenantOut(**t) for t in raw_tenants]
+    if isinstance(raw_res, tuple) and len(raw_res) == 2:
+        raw_tenants, total = raw_res
+    else:
+        raw_tenants = raw_res
+        total = len(raw_tenants)
+    return PaginatedResponse[TenantOut](
+        items=[TenantOut(**t) for t in raw_tenants],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
 
 
 @router.get(
     "/assigned",
-    response_model=List[TenantOut],
+    response_model=PaginatedResponse[TenantOut],
     summary="List assigned organizations for caller",
     include_in_schema=False,
 )
 def list_assigned_tenants(
-    limit: int = Query(50, ge=1, le=200),
-    offset: int = Query(0, ge=0),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    limit: Optional[int] = Query(None),
+    offset: Optional[int] = Query(None),
     cursor: Cursor = Depends(get_db_cursor),
     current_user: UserOut = Depends(get_current_user),
-) -> List[TenantOut]:
+) -> PaginatedResponse[TenantOut]:
     """Single-source alias for list_tenants."""
-    return list_tenants(limit=limit, offset=offset, cursor=cursor, current_user=current_user)
+    return list_tenants(page=page, page_size=page_size, limit=limit, offset=offset, cursor=cursor, current_user=current_user)
 
 
 @router.get(

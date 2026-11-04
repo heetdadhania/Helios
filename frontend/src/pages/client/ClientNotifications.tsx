@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   Bell,
   CheckCircle2,
@@ -12,28 +12,24 @@ import {
 import { notificationService } from '@/services/notificationService';
 import { Notification } from '@/types/notification';
 import { formatDateTimeIN } from '@/utils/currency';
+import { usePaginatedData } from '@/hooks/usePaginatedData';
+import { Pagination } from '@/components/ui/Pagination';
 
 export const ClientNotifications: React.FC = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchNotifications = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await notificationService.getNotifications({ limit: 50 });
-      setNotifications(res);
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Failed to load notifications.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
+  const {
+    data: notifications,
+    total,
+    page: currentPage,
+    pageSize,
+    isLoading: loading,
+    error,
+    setPage: setCurrentPage,
+    refetch: fetchNotifications,
+    setData: setNotifications,
+  } = usePaginatedData<Notification>({
+    fetchFn: (params) => notificationService.getNotifications({ page: params.page, pageSize: params.pageSize }),
+    pageSize: 20,
+  });
 
   const handleMarkAsRead = async (id: number) => {
     try {
@@ -183,6 +179,18 @@ export const ClientNotifications: React.FC = () => {
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!loading && !error && total > 0 && (
+          <div className="mt-4 pt-4 border-t border-helios-border-light dark:border-helios-border-dark flex items-center justify-between">
+            <Pagination
+              currentPage={currentPage}
+              totalItems={total}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+            />
           </div>
         )}
       </div>

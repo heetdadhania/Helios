@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Clock,
@@ -17,54 +17,30 @@ import {
 import { PendingUpload, SourceType } from '@/types/admin';
 import { adminService } from '@/services/adminService';
 import { Pagination } from '@/components/ui/Pagination';
+import { usePaginatedData } from '@/hooks/usePaginatedData';
 import { useBasePath } from '@/hooks/useBasePath';
+import { ENABLE_DB_CONNECTION } from '@/config/features';
 
 export const PendingUploads: React.FC = () => {
   const navigate = useNavigate();
   const basePath = useBasePath();
-  const [uploads, setUploads] = useState<PendingUpload[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sourceFilter, setSourceFilter] = useState<string>('all');
-  const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const pageSize = 10;
 
-  const loadUploads = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await adminService.getPendingUploads();
-      setUploads(data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch pending uploads.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const silentPoll = async () => {
-    try {
-      const data = await adminService.getPendingUploads();
-      setUploads(data);
-    } catch {
-      // Ignore background poll errors silently
-    }
-  };
-
-  useEffect(() => {
-    loadUploads();
-    const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        silentPoll();
-      }
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, sourceFilter]);
+  const {
+    data: uploads,
+    total,
+    page,
+    pageSize,
+    isLoading,
+    error,
+    setPage,
+    refetch: loadUploads,
+  } = usePaginatedData<PendingUpload>({
+    fetchFn: (params) => adminService.getPendingUploads(params.page, params.pageSize),
+    filters: { search: searchQuery, source: sourceFilter },
+    pageSize: 20,
+  });
 
   const filteredUploads = useMemo(() => {
     return uploads.filter((item) => {
@@ -165,7 +141,9 @@ export const PendingUploads: React.FC = () => {
           >
             <option value="all">All Sources</option>
             <option value="upload">File Uploads</option>
-            <option value="db_connection">Database Connectors</option>
+            {ENABLE_DB_CONNECTION && (
+              <option value="db_connection">Database Connectors</option>
+            )}
             <option value="api_push">API Stream</option>
           </select>
         </div>
@@ -222,9 +200,7 @@ export const PendingUploads: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                {filteredUploads
-                  .slice((currentPage - 1) * pageSize, currentPage * pageSize)
-                  .map((upl: PendingUpload) => {
+                {filteredUploads.map((upl: PendingUpload) => {
                     const isPreparing = upl.status === 'ingesting';
                     return (
                       <tr
@@ -312,10 +288,10 @@ export const PendingUploads: React.FC = () => {
             </table>
           </div>
           <Pagination
-            currentPage={currentPage}
-            totalItems={filteredUploads.length}
+            currentPage={page}
+            totalItems={total}
             pageSize={pageSize}
-            onPageChange={setCurrentPage}
+            onPageChange={setPage}
           />
         </>
       )}

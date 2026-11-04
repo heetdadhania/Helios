@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 try:
     from databricks.sql.client import Cursor
 except ImportError:
@@ -135,22 +135,35 @@ class TeamRepository(BaseRepository):
         rows = self.execute_query(query, {"user_id": user_id})
         return [int(r["tenant_id"]) for r in rows if r.get("tenant_id") is not None]
 
-    def list_team_members(self) -> List[Dict[str, Any]]:
-        """List all team members and admins, including their assigned tenant IDs."""
+    def list_team_members(self, page: int = 1, page_size: int = 20) -> Tuple[List[Dict[str, Any]], int]:
+        """List team members and admins with server-side pagination, including assigned tenant IDs."""
+        count_query = f"""
+            SELECT COUNT(*) AS total FROM {self.users_table}
+            WHERE role IN ('team_member', 'admin')
+        """
+        count_res = self.execute_query(count_query)
+        total = int(count_res[0]["total"]) if count_res and "total" in count_res[0] and count_res[0]["total"] is not None else 0
+
+        offset = max(0, (page - 1) * page_size)
         users_query = f"""
             SELECT {self.USER_COLUMNS} FROM {self.users_table}
             WHERE role IN ('team_member', 'admin')
             ORDER BY user_id ASC
+            LIMIT :limit OFFSET :offset
         """
-        users = self.execute_query(users_query)
+        users = self.execute_query(users_query, {"limit": page_size, "offset": offset})
         if not users:
-            return []
+            return [], total
 
+        user_ids = [int(u["user_id"]) for u in users]
+        placeholders = ", ".join(f":uid_{i}" for i in range(len(user_ids)))
+        uid_params = {f"uid_{i}": uid for i, uid in enumerate(user_ids)}
         assignments_query = f"""
             SELECT user_id, tenant_id FROM {self.team_assignments_table}
+            WHERE user_id IN ({placeholders})
             ORDER BY user_id, tenant_id ASC
         """
-        assignment_rows = self.execute_query(assignments_query)
+        assignment_rows = self.execute_query(assignments_query, uid_params)
 
         user_tenants_map: Dict[int, List[int]] = {}
         for row in assignment_rows:
@@ -170,7 +183,9 @@ class TeamRepository(BaseRepository):
             if user.get("failed_login_count") is None:
                 user["failed_login_count"] = 0
 
-        return users
+        if total == 0 and len(users) > 0:
+            total = len(users)
+        return users, total
 
     def add_assignments(self, user_id: int, tenant_ids: List[int]) -> None:
         """Insert team assignments for a user. Skips duplicates."""

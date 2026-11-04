@@ -6,17 +6,29 @@ import {
   RetryResponse,
   RestartResponse,
 } from '@/types/pipelineHealth';
+import { PaginatedResponse } from '@/types/pagination';
 
 const PIPELINE_BASE = '/pipeline';
 
 export const pipelineHealthService = {
   /**
-   * Retrieve list of pipeline execution runs.
+   * Retrieve list of pipeline execution runs with server-side pagination.
    * Team Members see assigned tenants; Admins see all.
    */
-  async listRuns(status?: string): Promise<PipelineRun[]> {
-    const params = status && status !== 'all' ? { status } : {};
-    const response = await api.get<PipelineRun[]>(`${PIPELINE_BASE}/runs`, { params });
+  async listRuns(
+    status?: string,
+    tenantId?: string,
+    page: number = 1,
+    pageSize: number = 20
+  ): Promise<PaginatedResponse<PipelineRun>> {
+    const params: Record<string, any> = { page, page_size: pageSize };
+    if (status && status !== 'all') {
+      params.status = status;
+    }
+    if (tenantId && tenantId !== 'all') {
+      params.tenant_id = tenantId;
+    }
+    const response = await api.get<PaginatedResponse<PipelineRun>>(`${PIPELINE_BASE}/runs`, { params });
     return response.data;
   },
 

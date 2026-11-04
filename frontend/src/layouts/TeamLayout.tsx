@@ -15,6 +15,7 @@ import {
 import { Sidebar, NavItem } from '@/components/Sidebar';
 import { TopBar } from '@/components/TopBar';
 import { useBasePath } from '@/hooks/useBasePath';
+import { ENABLE_DB_CONNECTION } from '@/config/features';
 
 const getTeamPageTitle = (pathname: string): string => {
   const normalized = pathname.replace(/^\/(admin|team)/, '');
@@ -22,7 +23,7 @@ const getTeamPageTitle = (pathname: string): string => {
   if (normalized === '/profile') return 'User Profile';
   if (normalized === '/uploads' || normalized === '/pending-uploads') return 'Pending Ingestion Approvals';
   if (normalized === '/upload' || normalized === '/ingest-upload') return 'Ingest File Upload';
-  if (normalized === '/connect-db' || normalized === '/connect-database') return 'Connect Database Ingestion';
+  if (normalized === '/connect-db' || normalized === '/connect-database') return 'Database Ingestion';
   if (normalized === '/history' || normalized === '/submission-history') return 'Submission History';
   if (normalized === '/support' || normalized === '/inbox') return 'Support & Update Requests';
   if (normalized === '/pipeline-health') return 'Pipeline Health & Telemetry';
@@ -40,7 +41,9 @@ export const TeamLayout: React.FC = () => {
     { label: 'Home', to: `${basePath}/home`, icon: Home },
     { label: 'Pending Uploads', to: `${basePath}/uploads`, icon: Clock },
     { label: 'Upload Data', to: `${basePath}/upload`, icon: UploadCloud },
-    { label: 'Connect Database', to: `${basePath}/connect-db`, icon: Database },
+    ...(ENABLE_DB_CONNECTION
+      ? [{ label: 'Connect Database', to: `${basePath}/connect-db`, icon: Database }]
+      : []),
     { label: 'Submission History', to: `${basePath}/history`, icon: History },
     { label: 'Support Inbox', to: `${basePath}/support`, icon: MessageSquare },
     { label: 'Pipeline Health', to: `${basePath}/pipeline-health`, icon: Activity },

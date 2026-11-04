@@ -57,6 +57,7 @@ class PipelineRunDetailOut(PipelineRunOut):
 
     stage_history: List[StageHistoryItem] = Field(default_factory=list, description="Stage timeline")
     audit_logs: List[EtlAuditLogOut] = Field(default_factory=list, description="Linked audit entries")
+    rejection_count: int = Field(0, description="Count of rejected rows quarantined in data_quality_log")
 
 
 class RetryRequest(BaseModel):

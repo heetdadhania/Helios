@@ -90,7 +90,7 @@ export const ConnectDatabase: React.FC = () => {
       const data = await dbConnectionService.listConnections();
       setConnections(data);
     } catch (err: any) {
-      addToast('error', 'Failed to load connections', err.message || 'Could not fetch saved database connections.');
+      addToast('error', 'Failed to load connections', err.message || 'Could not fetch saved connectors.');
     } finally {
       setIsLoadingList(false);
     }
@@ -219,7 +219,7 @@ export const ConnectDatabase: React.FC = () => {
       // 4. Refresh connections list
       await loadConnections();
     } catch (err: any) {
-      addToast('error', 'Save Failed', err.message || 'Could not save database connection.');
+      addToast('error', 'Save Failed', err.message || 'Could not save database connector.');
     } finally {
       setIsSaving(false);
     }
@@ -326,7 +326,7 @@ export const ConnectDatabase: React.FC = () => {
         <div>
           <h2 className="text-xl font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2.5">
             <Database className="w-6 h-6 text-helios-accent-blue" />
-            Database Connection Ingestion
+            Remote Database Ingestion
           </h2>
           <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1">
             Connect your MySQL, PostgreSQL, or Microsoft SQL Server database to pull live tables into Helios Medallion Bronze.
@@ -358,7 +358,7 @@ export const ConnectDatabase: React.FC = () => {
       <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm space-y-6">
         <div className="border-b border-helios-border-light dark:border-helios-border-dark pb-4">
           <h3 className="text-sm font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-            Configure Remote Database Connection
+            Configure Remote Database Connector
           </h3>
           <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-0.5">
             Provide the host details and extraction query. Test the connection before saving.
@@ -634,14 +634,14 @@ export const ConnectDatabase: React.FC = () => {
           <div className="p-8 text-center rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark">
             <RefreshCw className="w-6 h-6 animate-spin mx-auto text-helios-accent-blue mb-2" />
             <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
-              Loading registered database connections...
+              Loading registered connectors...
             </p>
           </div>
         ) : connections.length === 0 ? (
           <div className="p-8 text-center rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark space-y-2">
             <Database className="w-8 h-8 mx-auto text-helios-text-secondary-light dark:text-helios-text-secondary-dark opacity-50 mb-1" />
             <h4 className="text-xs font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-              No database connections configured yet
+              No connectors configured yet
             </h4>
             <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark max-w-sm mx-auto">
               Use the form above to connect your first PostgreSQL, MySQL, or SQL Server database.

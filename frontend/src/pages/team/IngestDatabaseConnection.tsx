@@ -144,7 +144,7 @@ export const IngestDatabaseConnection: React.FC = () => {
       addToast(
         'error',
         'Failed to load connections',
-        err.message || 'Could not fetch saved database connections for this tenant.'
+        err.message || 'Could not fetch saved database connectors for this organization.'
       );
     } finally {
       setIsLoadingList(false);
@@ -319,7 +319,7 @@ export const IngestDatabaseConnection: React.FC = () => {
       // 7. Refresh connections list for tenant
       await loadConnections();
     } catch (err: any) {
-      addToast('error', 'Save Failed', err.message || 'Could not save database connection.');
+      addToast('error', 'Save Failed', err.message || 'Could not save database connector.');
     } finally {
       setIsSaving(false);
     }
@@ -430,7 +430,7 @@ export const IngestDatabaseConnection: React.FC = () => {
         <div>
           <h2 className="text-xl font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2.5">
             <Database className="w-6 h-6 text-helios-accent-blue" />
-            Managed Database Connection Ingestion
+            Managed Remote Database Ingestion
           </h2>
           <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-1">
             Bulk Entry Mode: Configure external MySQL, PostgreSQL, or SQL Server connections across customer organizations in succession.
@@ -502,7 +502,7 @@ export const IngestDatabaseConnection: React.FC = () => {
               </label>
               <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
                 {isAdmin
-                  ? 'Administrator Mode: You can manage database connections for any organization.'
+                  ? 'Administrator Mode: You can manage database connectors for any organization.'
                   : 'Team Member Mode: Showing organizations currently assigned to your account.'}
               </p>
             </div>
@@ -582,7 +582,7 @@ export const IngestDatabaseConnection: React.FC = () => {
       <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm space-y-6">
         <div className="border-b border-helios-border-light dark:border-helios-border-dark pb-4">
           <h3 className="text-sm font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-            Configure Remote Database Connection
+            Configure Remote Database Connector
           </h3>
           <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark mt-0.5">
             Operating on behalf of{' '}
@@ -837,7 +837,7 @@ export const IngestDatabaseConnection: React.FC = () => {
       <SessionProgressList
         items={sessionItems}
         title="Session Progress"
-        description="Database connections configured during this active session without leaving the page"
+        description="Database connectors configured during this active session without leaving the page"
         onDone={handleDoneForNow}
         doneButtonLabel="Done for now"
         onClear={() => setSessionItems([])}
@@ -870,14 +870,14 @@ export const IngestDatabaseConnection: React.FC = () => {
           <div className="p-8 text-center rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark">
             <RefreshCw className="w-6 h-6 animate-spin mx-auto text-helios-accent-blue mb-2" />
             <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
-              Loading registered database connections for {selectedTenant?.name || 'organization'}...
+              Loading registered connectors for {selectedTenant?.name || 'organization'}...
             </p>
           </div>
         ) : connections.length === 0 ? (
           <div className="p-8 text-center rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark space-y-2">
             <Database className="w-8 h-8 mx-auto text-helios-text-secondary-light dark:text-helios-text-secondary-dark opacity-50 mb-1" />
             <h4 className="text-xs font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-              No database connections configured for this organization yet
+              No connectors configured for this organization yet
             </h4>
             <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark max-w-sm mx-auto">
               Use the form above to establish a remote connection on behalf of {selectedTenant?.name || 'this organization'}.

@@ -4,17 +4,22 @@ import {
   NotificationReadResponse,
   NotificationFilterParams,
 } from '@/types/notification';
+import { PaginatedResponse } from '@/types/pagination';
 
 export const notificationService = {
   /**
-   * Fetch notifications scoped to the current user and tenant.
+   * Fetch notifications scoped to the current user and tenant with server-side pagination.
    */
-  async getNotifications(params?: NotificationFilterParams): Promise<Notification[]> {
-    const response = await api.get<Notification[]>('/notifications', {
+  async getNotifications(
+    params?: NotificationFilterParams & { page?: number; pageSize?: number }
+  ): Promise<PaginatedResponse<Notification>> {
+    const page = params?.page ?? 1;
+    const pageSize = params?.pageSize ?? (params?.limit ?? 20);
+    const response = await api.get<PaginatedResponse<Notification>>('/notifications', {
       params: {
         unread_only: params?.unread_only,
-        limit: params?.limit ?? 50,
-        offset: params?.offset ?? 0,
+        page,
+        page_size: pageSize,
       },
     });
     return response.data;

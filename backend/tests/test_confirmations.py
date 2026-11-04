@@ -9,6 +9,7 @@ from app.core.dependencies import get_current_user, get_db_cursor
 from app.main import app
 from app.repositories.confirmation_repository import ConfirmationRepository
 from app.schemas.auth import UserOut, UserRole
+from app.schemas.common import PaginatedResponse
 from app.schemas.confirmation import (
     CompletenessResponse,
     ConfirmRequest,
@@ -106,9 +107,11 @@ class TestConfirmationRepository(unittest.TestCase):
             ("b1", 1, None, "schema_inference", "awaiting_confirmation", None, None, "template_orders", 0.95, "upload"),
             ("b2", 2, None, "schema_inference", "awaiting_confirmation", None, None, "template_shipping", 0.88, "api_push"),
         ]
+        self.mock_cursor.fetchone.return_value = (2,)
 
-        results = self.repo.get_pending(user_id=99, user_role="admin")
+        results, total = self.repo.get_pending(user_id=99, user_role="admin")
         self.assertEqual(len(results), 2)
+        self.assertEqual(total, 2)
         sql = self.mock_cursor.execute.call_args[0][0]
         self.assertNotIn("team_assignments", sql)
 
@@ -128,9 +131,11 @@ class TestConfirmationRepository(unittest.TestCase):
         self.mock_cursor.fetchall.return_value = [
             ("b1", 1, None, "schema_inference", "awaiting_confirmation", None, None, "template_orders", 0.95, "upload"),
         ]
+        self.mock_cursor.fetchone.return_value = (1,)
 
-        results = self.repo.get_pending(user_id=10, user_role="team_member")
+        results, total = self.repo.get_pending(user_id=10, user_role="team_member")
         self.assertEqual(len(results), 1)
+        self.assertEqual(total, 1)
         sql, params = self.mock_cursor.execute.call_args[0]
         self.assertIn("team_assignments", sql)
         self.assertEqual(params["user_id"], 10)
@@ -381,22 +386,28 @@ class TestConfirmationEndpoints(unittest.TestCase):
         app.dependency_overrides[get_current_user] = lambda: self.team_user
         app.dependency_overrides[get_db_cursor] = lambda: MagicMock()
 
-        mock_service.return_value = [
-            PendingUploadOut(
-                batch_id="batch-001",
-                tenant_id=10,
-                source_type="upload",
-                detected_template="template_orders",
-                confidence_score=0.91,
-            )
-        ]
+        mock_service.return_value = PaginatedResponse[PendingUploadOut](
+            items=[
+                PendingUploadOut(
+                    batch_id="batch-001",
+                    tenant_id=10,
+                    source_type="upload",
+                    detected_template="template_orders",
+                    confidence_score=0.91,
+                )
+            ],
+            total=1,
+            page=1,
+            page_size=20,
+        )
 
         res = self.client.get("/api/uploads/pending")
         self.assertEqual(res.status_code, 200)
         data = res.json()
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["batch_id"], "batch-001")
-        self.assertEqual(data[0]["source_type"], "upload")
+        self.assertEqual(len(data["items"]), 1)
+        self.assertEqual(data["total"], 1)
+        self.assertEqual(data["items"][0]["batch_id"], "batch-001")
+        self.assertEqual(data["items"][0]["source_type"], "upload")
 
     @patch.object(ConfirmationService, "get_preview")
     def test_get_preview_admin_success(self, mock_service):

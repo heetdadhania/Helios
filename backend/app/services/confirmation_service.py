@@ -5,6 +5,7 @@ from fastapi import HTTPException, status
 
 from app.repositories.confirmation_repository import ConfirmationRepository
 from app.schemas.auth import UserOut
+from app.schemas.common import PaginatedResponse
 from app.schemas.confirmation import (
     CompletenessResponse,
     ConfirmRequest,
@@ -57,16 +58,25 @@ class ConfirmationService:
         current_user: UserOut,
         repo: ConfirmationRepository,
         tenant_filter: Optional[str] = None,
-    ) -> List[PendingUploadOut]:
+        page: int = 1,
+        page_size: int = 20,
+    ) -> PaginatedResponse[PendingUploadOut]:
         """
-        Fetch uploads currently in 'awaiting_confirmation' state.
+        Fetch uploads currently in 'awaiting_confirmation' state with pagination.
         Admins see all tenants; Team Members see only their assigned tenants.
         """
-        raw_pending = repo.get_pending(
+        raw_res = repo.get_pending(
             user_id=current_user.id,
             user_role=current_user.role.value,
             tenant_filter=tenant_filter,
+            page=page,
+            page_size=page_size,
         )
+        if isinstance(raw_res, tuple) and len(raw_res) == 2:
+            raw_pending, total = raw_res
+        else:
+            raw_pending = raw_res
+            total = len(raw_pending)
 
         results: List[PendingUploadOut] = []
         for item in raw_pending:
@@ -86,7 +96,12 @@ class ConfirmationService:
                     updated_at=item.get("updated_at"),
                 )
             )
-        return results
+        return PaginatedResponse[PendingUploadOut](
+            items=results,
+            total=total,
+            page=page,
+            page_size=page_size,
+        )
 
     @staticmethod
     def get_preview(

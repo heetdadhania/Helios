@@ -5,6 +5,7 @@ import { AdminLayout } from '@/layouts/AdminLayout';
 import { ProtectedRoute } from './ProtectedRoute';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
+import { ENABLE_DB_CONNECTION } from '@/config/features';
 
 // Lazy-loaded route components for efficient bundle code-splitting
 const Login = lazy(() => import('@/pages/Login').then((m) => ({ default: m.Login })));
@@ -130,8 +131,16 @@ const renderOperationalRoutes = (prefix: 'admin' | 'team') => [
   <Route key="pending-uploads" path="pending-uploads" element={<PendingUploads />} />,
   <Route key="upload" path="upload" element={<IngestUpload />} />,
   <Route key="ingest-upload" path="ingest-upload" element={<IngestUpload />} />,
-  <Route key="connect-db" path="connect-db" element={<IngestDatabaseConnection />} />,
-  <Route key="connect-database" path="connect-database" element={<IngestDatabaseConnection />} />,
+  ...(ENABLE_DB_CONNECTION
+    ? [
+        <Route key="connect-db" path="connect-db" element={<IngestDatabaseConnection />} />,
+        <Route key="connect-database" path="connect-database" element={<IngestDatabaseConnection />} />,
+      ]
+    : [
+        <Route key="connect-db" path="connect-db" element={<Navigate to={`/${prefix}/home`} replace />} />,
+        <Route key="connect-database" path="connect-database" element={<Navigate to={`/${prefix}/home`} replace />} />,
+        <Route key="ingest-database-connection" path="ingest-database-connection" element={<Navigate to={`/${prefix}/home`} replace />} />,
+      ]),
   <Route key="confirm-schema" path="confirm-schema/:batchId" element={<ConfirmSchema />} />,
   <Route key="history" path="history" element={prefix === 'admin' ? <AdminHistory /> : <TeamHistory />} />,
   <Route key="submission-history" path="submission-history" element={prefix === 'admin' ? <AdminHistory /> : <TeamHistory />} />,
@@ -153,6 +162,11 @@ export const AppRoutes: React.FC = () => {
       <Routes>
         {/* Root Redirection */}
         <Route path="/" element={<RootRedirect />} />
+
+        {/* Top-level database connection redirects */}
+        <Route path="/connect-db" element={<RootRedirect />} />
+        <Route path="/connect-database" element={<RootRedirect />} />
+        <Route path="/ingest-database-connection" element={<RootRedirect />} />
 
         {/* Public Login Route */}
         <Route path="/login" element={<Login />} />

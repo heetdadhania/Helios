@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Inbox,
   CheckCircle2,
@@ -11,41 +11,42 @@ import {
   AlertCircle,
   Flag,
   AlertTriangle,
-  RotateCcw,
   Layers,
   ArrowRight,
 } from 'lucide-react';
 import { supportService } from '@/services/supportService';
 import { SupportMessage } from '@/types/support';
 import { formatDateTimeIN } from '@/utils/currency';
+import { usePaginatedData } from '@/hooks/usePaginatedData';
+import { Pagination } from '@/components/ui/Pagination';
 
 export const SupportInbox: React.FC = () => {
-  const [messages, setMessages] = useState<SupportMessage[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sourceFilter, setSourceFilter] = useState<'all' | 'flagged' | 'smb'>('all');
   const [resolvingId, setResolvingId] = useState<number | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  const fetchMessages = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await supportService.getMessages(statusFilter);
-      setMessages(data);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to retrieve support inquiries.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    data: messages,
+    total,
+    page: currentPage,
+    pageSize,
+    isLoading: loading,
+    error,
+    setPage: setCurrentPage,
+    refetch: fetchMessages,
+    setData: setMessages,
+  } = usePaginatedData<SupportMessage>({
+    fetchFn: (params) => supportService.getMessages(params.status, params.page, params.pageSize),
+    filters: { status: statusFilter },
+    pageSize: 20,
+  });
 
-  useEffect(() => {
-    fetchMessages();
-  }, [statusFilter]);
+  const displayError = actionError || error;
 
   const handleResolve = async (messageId: number) => {
     setResolvingId(messageId);
+    setActionError(null);
     try {
       await supportService.resolveMessage(messageId);
       // Update local state smoothly
@@ -57,7 +58,7 @@ export const SupportInbox: React.FC = () => {
         )
       );
     } catch (err: any) {
-      setError(err?.message || `Failed to mark message #${messageId} as resolved.`);
+      setActionError(err?.message || `Failed to mark message #${messageId} as resolved.`);
     } finally {
       setResolvingId(null);
     }
@@ -204,19 +205,18 @@ export const SupportInbox: React.FC = () => {
       </div>
 
       {/* Persistent / Action Error Alert Banner (if error occurred during resolve) */}
-      {error && messages.length > 0 && (
+      {displayError && messages.length > 0 && (
         <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-between text-rose-600 dark:text-rose-400 text-xs sm:text-sm">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
-            <span>{error}</span>
+            <span>{displayError}</span>
           </div>
           <button
             type="button"
-            onClick={fetchMessages}
+            onClick={() => setActionError(null)}
             className="inline-flex items-center gap-1 text-xs font-semibold underline hover:no-underline ml-3"
           >
-            <RotateCcw className="w-3 h-3" />
-            <span>Retry</span>
+            <span>Dismiss</span>
           </button>
         </div>
       )}
@@ -249,7 +249,7 @@ export const SupportInbox: React.FC = () => {
             </div>
           ))}
         </div>
-      ) : error && messages.length === 0 ? (
+      ) : displayError && messages.length === 0 ? (
         /* Dedicated Error State if initial fetch fails */
         <div className="p-12 rounded-2xl bg-helios-card-light dark:bg-helios-card-dark border border-rose-500/20 text-center space-y-4 shadow-sm">
           <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto">
@@ -260,7 +260,7 @@ export const SupportInbox: React.FC = () => {
               Failed to load support inquiries
             </h3>
             <p className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
-              {error}
+              {displayError}
             </p>
           </div>
           <button
@@ -450,6 +450,18 @@ export const SupportInbox: React.FC = () => {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {!loading && total > 0 && (
+        <div className="p-4 rounded-xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark flex items-center justify-between">
+          <Pagination
+            currentPage={currentPage}
+            totalItems={total}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+          />
         </div>
       )}
     </div>

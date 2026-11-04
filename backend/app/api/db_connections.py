@@ -20,7 +20,17 @@ from app.schemas.db_connection import (
 from app.schemas.upload import UploadResponse
 from app.services.db_connection_service import DbConnectionService
 
-router = APIRouter()
+
+def check_db_connection_enabled() -> None:
+    """Ensure database connection feature is enabled in backend settings."""
+    if not getattr(settings, "ENABLE_DB_CONNECTION", False):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Not Found",
+        )
+
+
+router = APIRouter(dependencies=[Depends(check_db_connection_enabled)])
 
 
 class DbConnectionCreateRequest(DbConnectionCreate):
@@ -125,6 +135,12 @@ def test_connection(
     summary="Create Database Connection",
     description="Save database connection metadata and store credentials in Databricks Secrets. Operated by Team Member or Admin on behalf of a tenant.",
 )
+@router.post(
+    "/",
+    response_model=DbConnectionOut,
+    status_code=status.HTTP_201_CREATED,
+    include_in_schema=False,
+)
 def create_connection(
     conn_in: DbConnectionCreateRequest,
     tenant_id: Optional[int] = Query(None, description="Target tenant ID on whose behalf the connection is created"),
@@ -156,6 +172,12 @@ def create_connection(
     status_code=status.HTTP_200_OK,
     summary="List Database Connections",
     description="List all saved database connections for a specified tenant. Operated by Team Member or Admin.",
+)
+@router.get(
+    "/",
+    response_model=List[DbConnectionOut],
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
 )
 def list_connections(
     tenant_id: Optional[int] = Query(None, description="Target tenant ID"),

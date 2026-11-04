@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Search,
   Filter,
@@ -15,38 +15,33 @@ import { historyService } from '@/services/historyService';
 import { TeamHistoryItem } from '@/types/history';
 import { StageStatusBadge } from '@/components/admin/StageStatusBadge';
 import { Pagination } from '@/components/ui/Pagination';
+import { usePaginatedData } from '@/hooks/usePaginatedData';
 import { formatDateTimeIN } from '@/utils/currency';
 
 export const TeamHistory: React.FC = () => {
-  const [history, setHistory] = useState<TeamHistoryItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [tenantFilter, setTenantFilter] = useState<string>('');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const pageSize = 15;
 
-  const fetchHistory = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await historyService.getTeamHistory({
-        status: statusFilter,
-        tenant: tenantFilter,
-      });
-      setHistory(data);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to load team submission history.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchHistory();
-  }, [statusFilter]);
+  const {
+    data: history,
+    total,
+    page,
+    pageSize,
+    isLoading: loading,
+    error,
+    setPage,
+    refetch: fetchHistory,
+  } = usePaginatedData<TeamHistoryItem>({
+    fetchFn: (params) =>
+      historyService.getTeamHistory(
+        { status: params.status, tenant: params.tenant },
+        params.page,
+        params.pageSize
+      ),
+    filters: { status: statusFilter, tenant: tenantFilter },
+    pageSize: 20,
+  });
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +69,14 @@ export const TeamHistory: React.FC = () => {
       default:
         return <UploadCloud className="w-4 h-4 text-helios-accent-blue" />;
     }
+  };
+
+  const formatSourceLabel = (sourceType?: string) => {
+    const norm = (sourceType || '').toLowerCase();
+    if (norm === 'db_connection') return 'External Sync';
+    if (norm === 'api_push') return 'API Push';
+    if (norm === 'upload') return 'File Upload';
+    return sourceType?.replace(/_/g, ' ') || 'Unknown';
   };
 
   return (
@@ -217,9 +220,7 @@ export const TeamHistory: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark text-sm">
-                {history
-                  .slice((currentPage - 1) * pageSize, currentPage * pageSize)
-                  .map((item) => {
+                {history.map((item) => {
                   const isExpanded = expandedRows.has(item.batch_id);
                   const hasError = Boolean(item.error_message);
 
@@ -240,9 +241,9 @@ export const TeamHistory: React.FC = () => {
                           </div>
                         </td>
                         <td className="py-4 px-6 text-helios-text-secondary-light dark:text-helios-text-secondary-dark">
-                          <div className="inline-flex items-center gap-1.5 capitalize text-xs">
+                          <div className="inline-flex items-center gap-1.5 text-xs">
                             {renderSourceIcon(item.source_type)}
-                            <span>{item.source_type?.replace(/_/g, ' ')}</span>
+                            <span>{formatSourceLabel(item.source_type)}</span>
                           </div>
                         </td>
                         <td className="py-4 px-6 text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-mono text-xs">
@@ -296,10 +297,10 @@ export const TeamHistory: React.FC = () => {
             </table>
           </div>
           <Pagination
-            currentPage={currentPage}
-            totalItems={history.length}
+            currentPage={page}
+            totalItems={total}
             pageSize={pageSize}
-            onPageChange={setCurrentPage}
+            onPageChange={setPage}
           />
         </>
       )}

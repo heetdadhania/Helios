@@ -12,6 +12,7 @@ from app.core.dependencies import get_current_user, get_db_cursor
 from app.main import app
 from app.repositories.support_repository import SupportRepository
 from app.schemas.auth import UserOut, UserRole
+from app.schemas.common import PaginatedResponse
 from app.schemas.support import SupportMessageCreate, SupportMessageOut
 from app.services.support_service import SupportService
 
@@ -206,13 +207,13 @@ class TestSupportEndpoints(unittest.TestCase):
 
         # Team Member allowed
         app.dependency_overrides[get_current_user] = lambda: self.team_user
-        with patch.object(SupportService, "get_messages", return_value=[]):
+        with patch.object(SupportService, "get_messages", return_value=PaginatedResponse[SupportMessageOut](items=[], total=0, page=1, page_size=20)):
             res_tm = self.client.get("/api/support/messages")
             self.assertEqual(res_tm.status_code, 200)
 
         # Admin allowed
         app.dependency_overrides[get_current_user] = lambda: self.admin_user
-        with patch.object(SupportService, "get_messages", return_value=[]):
+        with patch.object(SupportService, "get_messages", return_value=PaginatedResponse[SupportMessageOut](items=[], total=0, page=1, page_size=20)):
             res_adm = self.client.get("/api/support/messages")
             self.assertEqual(res_adm.status_code, 200)
 

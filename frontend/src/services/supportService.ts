@@ -5,6 +5,7 @@ import {
   SupportFlagPayload,
   SupportMessageResolveResponse,
 } from '@/types/support';
+import { PaginatedResponse } from '@/types/pagination';
 
 export const supportService = {
   /**
@@ -25,14 +26,18 @@ export const supportService = {
   },
 
   /**
-   * Retrieve support messages routed to caller (Team Member) or all (Admin).
+   * Retrieve support messages routed to caller (Team Member) or all (Admin) with server-side pagination.
    */
-  async getMessages(status?: string): Promise<SupportMessage[]> {
-    const params: Record<string, string> = {};
+  async getMessages(
+    status?: string,
+    page: number = 1,
+    pageSize: number = 20
+  ): Promise<PaginatedResponse<SupportMessage>> {
+    const params: Record<string, any> = { page, page_size: pageSize };
     if (status && status !== 'all') {
       params.status = status;
     }
-    const response = await api.get<SupportMessage[]>('/support/messages', { params });
+    const response = await api.get<PaginatedResponse<SupportMessage>>('/support/messages', { params });
     return response.data;
   },
 

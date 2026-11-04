@@ -62,6 +62,7 @@ export interface StageHistoryItem {
 export interface PipelineRunDetail extends PipelineRun {
   stage_history: StageHistoryItem[];
   audit_logs: EtlAuditLog[];
+  rejection_count?: number;
 }
 
 export interface RetryRequest {

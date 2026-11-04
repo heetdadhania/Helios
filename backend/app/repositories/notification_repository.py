@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 try:
     from databricks.sql.client import Cursor
 except ImportError:
@@ -80,18 +80,18 @@ class NotificationRepository(BaseRepository):
         user_role: str,
         tenant_id: Optional[int] = None,
         unread_only: bool = False,
-        limit: int = 50,
-        offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Tuple[List[Dict[str, Any]], int]:
         """
-        List notifications scoped strictly by role and tenant boundaries:
+        List notifications scoped strictly by role and tenant boundaries with server-side pagination:
         - Admin: all notifications, or filtered by tenant if provided
         - Team Member: notifications for assigned tenants or targeted to the user
         - SMB Owner: notifications where tenant_id == user.tenant_id and (user_id IS NULL or user_id == user.id)
         """
         role_norm = user_role.lower()
         where_clauses: List[str] = []
-        params: Dict[str, Any] = {"limit": limit, "offset": offset}
+        params: Dict[str, Any] = {}
 
         if role_norm == "admin":
             if tenant_id is not None:
@@ -121,6 +121,17 @@ class NotificationRepository(BaseRepository):
 
         where_stmt = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
 
+        count_query = f"""
+            SELECT COUNT(*) AS total
+            FROM {self.table}
+            {where_stmt}
+        """
+        count_res = self.execute_query(count_query, params if params else None)
+        total = int(count_res[0]["total"]) if count_res and "total" in count_res[0] and count_res[0]["total"] is not None else 0
+
+        offset = max(0, (page - 1) * page_size)
+        item_params = {**params, "limit": page_size, "offset": offset}
+
         query = f"""
             SELECT notification_id, tenant_id, user_id, message, type, is_read, created_at
             FROM {self.table}
@@ -128,7 +139,10 @@ class NotificationRepository(BaseRepository):
             ORDER BY created_at DESC, notification_id DESC
             LIMIT :limit OFFSET :offset
         """
-        return self.execute_query(query, params)
+        items = self.execute_query(query, item_params)
+        if total == 0 and len(items) > 0:
+            total = len(items)
+        return items, total
 
     def mark_as_read(
         self,

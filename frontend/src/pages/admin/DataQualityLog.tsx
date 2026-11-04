@@ -8,14 +8,16 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
+  Download,
+  Loader2,
 } from 'lucide-react';
 import { DataQualityLogItem } from '@/types/admin';
 import { adminService } from '@/services/adminService';
 import { Pagination } from '@/components/ui/Pagination';
+import { usePaginatedData } from '@/hooks/usePaginatedData';
 import { useOrganizations } from '@/hooks/useOrganizations';
 
 export const DataQualityLog: React.FC = () => {
-  const [logs, setLogs] = useState<DataQualityLogItem[]>([]);
   const {
     organizations: tenants,
     isLoading: isOrgsLoading,
@@ -24,22 +26,50 @@ export const DataQualityLog: React.FC = () => {
   } = useOrganizations();
   const [selectedTenant, setSelectedTenant] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedLog, setSelectedLog] = useState<DataQualityLogItem | null>(null);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [error, setError] = useState<string | null>(null);
-  const pageSize = 15;
+  const [downloadingBatchId, setDownloadingBatchId] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
-  const loadLogs = async () => {
-    setIsLoading(true);
-    setError(null);
+  const {
+    data: logs,
+    total,
+    page,
+    pageSize,
+    isLoading,
+    error,
+    setPage,
+    refetch: loadLogs,
+  } = usePaginatedData<DataQualityLogItem>({
+    fetchFn: (params) =>
+      adminService.getDataQualityLogs(
+        params.tenant !== 'all' ? params.tenant : undefined,
+        undefined,
+        params.page,
+        params.pageSize
+      ),
+    filters: { tenant: selectedTenant, search: searchQuery },
+    pageSize: 20,
+  });
+
+  const handleDownloadRejectedRows = async (batchId: string) => {
+    setDownloadingBatchId(batchId);
+    setDownloadError(null);
     try {
-      const logsData = await adminService.getDataQualityLogs();
-      setLogs(logsData);
+      await adminService.downloadRejectedRows(batchId);
     } catch (err: any) {
-      setError(err?.response?.data?.detail || err.message || 'Failed to load data quality logs.');
+      let msg = 'Failed to download rejected rows.';
+      if (err?.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const json = JSON.parse(text);
+          msg = json.detail || json.message || msg;
+        } catch (_) {}
+      } else if (err?.response?.data?.detail) {
+        msg = err.response.data.detail;
+      }
+      setDownloadError(msg);
     } finally {
-      setIsLoading(false);
+      setDownloadingBatchId(null);
     }
   };
 
@@ -48,18 +78,10 @@ export const DataQualityLog: React.FC = () => {
   };
 
   useEffect(() => {
-    loadLogs();
-  }, []);
-
-  useEffect(() => {
     if (tenants.length === 1) {
       setSelectedTenant(String(tenants[0].tenant_id));
     }
   }, [tenants]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedTenant, searchQuery]);
 
   const filteredLogs = useMemo(() => {
     return logs.filter((item) => {
@@ -241,12 +263,11 @@ export const DataQualityLog: React.FC = () => {
                   <th className="py-3 px-4 font-semibold">Category</th>
                   <th className="py-3 px-4 font-semibold">Rejection Reason</th>
                   <th className="py-3 px-4 font-semibold">Timestamp</th>
+                  <th className="py-3 px-4 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                {filteredLogs
-                  .slice((currentPage - 1) * pageSize, currentPage * pageSize)
-                  .map((log) => (
+                {filteredLogs.map((log) => (
                   <tr
                     key={log.id}
                     onClick={() => setSelectedLog(log)}
@@ -278,16 +299,32 @@ export const DataQualityLog: React.FC = () => {
                         <span>{new Date(log.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
                     </td>
+                    <td className="py-3.5 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadRejectedRows(log.batch_id)}
+                        disabled={downloadingBatchId === log.batch_id}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-colors disabled:opacity-50 cursor-pointer"
+                        title="Download rejected rows for this batch"
+                      >
+                        {downloadingBatchId === log.batch_id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-500" />
+                        ) : (
+                          <Download className="w-3.5 h-3.5" />
+                        )}
+                        <span>Download rejected rows</span>
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           <Pagination
-            currentPage={currentPage}
-            totalItems={filteredLogs.length}
+            currentPage={page}
+            totalItems={total}
             pageSize={pageSize}
-            onPageChange={setCurrentPage}
+            onPageChange={setPage}
           />
         </>
       )}
@@ -340,9 +377,28 @@ export const DataQualityLog: React.FC = () => {
                   {selectedLog.rejection_reason}
                 </div>
               </div>
+
+              {downloadError && (
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300 text-xs">
+                  {downloadError}
+                </div>
+              )}
             </div>
 
-            <div className="pt-2 flex justify-end">
+            <div className="pt-2 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => handleDownloadRejectedRows(selectedLog.batch_id)}
+                disabled={downloadingBatchId === selectedLog.batch_id}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                {downloadingBatchId === selectedLog.batch_id ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-500" />
+                ) : (
+                  <Download className="w-3.5 h-3.5" />
+                )}
+                <span>Download rejected rows</span>
+              </button>
               <button
                 type="button"
                 onClick={() => setSelectedLog(null)}

@@ -5,12 +5,13 @@ import string
 from typing import List, Optional
 
 from databricks.sql.client import Cursor
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.core.dependencies import get_current_user, get_db_cursor, require_admin
 from app.core.security import get_password_hash
 from app.repositories.team_repository import TeamRepository
 from app.schemas.auth import UserOut, UserRole
+from app.schemas.common import PaginatedResponse
 from app.schemas.team import (
     ReplaceAssignmentsRequest,
     TeamMemberCreate,
@@ -153,19 +154,31 @@ def create_team_member(
 
 @router.get(
     "",
-    response_model=List[TeamMemberOut],
+    response_model=PaginatedResponse[TeamMemberOut],
     status_code=status.HTTP_200_OK,
     summary="List Team Members",
-    description="Retrieve all internal team members and admins along with their assigned tenant IDs (Admin only).",
+    description="Retrieve all internal team members and admins along with their assigned tenant IDs (Admin only) with server-side pagination.",
 )
 def list_team_members(
+    page: int = Query(1, ge=1, description="Page number (1-based)"),
+    page_size: int = Query(20, ge=1, le=100, description="Items per page (max 100)"),
     cursor: Cursor = Depends(get_db_cursor),
     current_admin: UserOut = Depends(require_admin),
-) -> List[TeamMemberOut]:
-    """List all team members and admins with their assigned tenant IDs."""
+) -> PaginatedResponse[TeamMemberOut]:
+    """List all team members and admins with their assigned tenant IDs and server-side pagination."""
     team_repo = TeamRepository(cursor)
-    members = team_repo.list_team_members()
-    return [TeamMemberOut.model_validate(m) for m in members]
+    raw_res = team_repo.list_team_members(page=page, page_size=page_size)
+    if isinstance(raw_res, tuple) and len(raw_res) == 2:
+        members, total = raw_res
+    else:
+        members = raw_res
+        total = len(members)
+    return PaginatedResponse[TeamMemberOut](
+        items=[TeamMemberOut.model_validate(m) for m in members],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
 
 
 @router.put(

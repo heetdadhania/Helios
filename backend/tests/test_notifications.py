@@ -188,9 +188,10 @@ class TestNotificationEndpoints(unittest.TestCase):
             response = self.client.get("/api/notifications?unread_only=false")
             self.assertEqual(response.status_code, 200)
             data = response.json()
-            self.assertEqual(len(data), 2)
-            self.assertEqual(data[0]["message"], "Your data is being processed")
-            self.assertEqual(data[1]["message"], "Your dashboard is ready to view")
+            self.assertEqual(len(data["items"]), 2)
+            self.assertEqual(data["total"], 2)
+            self.assertEqual(data["items"][0]["message"], "Your data is being processed")
+            self.assertEqual(data["items"][1]["message"], "Your dashboard is ready to view")
         finally:
             app.dependency_overrides.clear()
 

@@ -129,8 +129,9 @@ class TestPipelineHealthRepository(unittest.TestCase):
             ("b-1", 10, "Acme", "Acme", "upload", "gold_transform", "success", None, None, None)
         ]
 
-        runs = self.repo.list_runs(user_id=1, user_role="admin")
+        runs, total = self.repo.list_runs(user_id=1, user_role="admin")
         self.assertEqual(len(runs), 1)
+        self.assertEqual(total, 1)
         self.assertEqual(runs[0]["batch_id"], "b-1")
 
         calls = self.mock_cursor.execute.call_args_list
@@ -147,8 +148,9 @@ class TestPipelineHealthRepository(unittest.TestCase):
             ("b-2", 15, "Beta", "Beta", "api_push", "silver_clean", "failed", None, None, "error")
         ]
 
-        runs = self.repo.list_runs(user_id=5, user_role="team_member")
+        runs, total = self.repo.list_runs(user_id=5, user_role="team_member")
         self.assertEqual(len(runs), 1)
+        self.assertEqual(total, 1)
 
         calls = self.mock_cursor.execute.call_args_list
         executed_sql = calls[0][0][0]
@@ -382,9 +384,10 @@ class TestPipelineHealthAPI(unittest.TestCase):
             response = self.client.get("/api/pipeline/runs")
             self.assertEqual(response.status_code, 200)
             data = response.json()
-            self.assertEqual(len(data), 1)
-            self.assertEqual(data[0]["batch_id"], "b-tm-1")
-            self.assertEqual(data[0]["tenant"], "Client 5")
+            self.assertEqual(len(data["items"]), 1)
+            self.assertEqual(data["total"], 1)
+            self.assertEqual(data["items"][0]["batch_id"], "b-tm-1")
+            self.assertEqual(data["items"][0]["tenant"], "Client 5")
 
     def test_admin_get_run_detail_success(self):
         admin_user = UserOut(

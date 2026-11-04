@@ -7,6 +7,7 @@ export interface PaginationProps {
   pageSize: number;
   onPageChange: (page: number) => void;
   className?: string;
+  alwaysShow?: boolean;
 }
 
 export const Pagination: React.FC<PaginationProps> = React.memo(({
@@ -15,10 +16,15 @@ export const Pagination: React.FC<PaginationProps> = React.memo(({
   pageSize,
   onPageChange,
   className = '',
+  alwaysShow = true,
 }) => {
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
-  if (totalItems <= pageSize && currentPage === 1) {
+  if (totalItems === 0) {
+    return null;
+  }
+
+  if (!alwaysShow && totalPages <= 1) {
     return null;
   }
 

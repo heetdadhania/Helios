@@ -113,7 +113,7 @@ def _acquire_cursor_context(cursor: Optional[Cursor], catalog: str) -> tuple[Cur
         return conn.cursor(), conn
     except Exception as exc:
         logger.error("Failed to establish default Databricks connection: %s", exc)
-        raise RuntimeError(f"Database connection could not be established: {exc}") from exc
+        raise RuntimeError(f"Catalog connection could not be established: {exc}") from exc
 
 
 def run_bronze_ingestion(

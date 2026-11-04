@@ -9,6 +9,7 @@ except ImportError:
 from app.core.dependencies import get_db_cursor, require_role
 from app.repositories.support_repository import SupportRepository
 from app.schemas.auth import UserOut
+from app.schemas.common import PaginatedResponse
 from app.schemas.support import (
     SupportFlagCreate,
     SupportMessageCreate,
@@ -85,21 +86,23 @@ def create_support_message(
 
 @router.get(
     "/messages",
-    response_model=List[SupportMessageOut],
+    response_model=PaginatedResponse[SupportMessageOut],
     status_code=status.HTTP_200_OK,
     summary="List Support Messages",
     description=(
-        "Retrieve support messages. Team Members see only messages routed to them. "
+        "Retrieve support messages with server-side pagination. Team Members see only messages routed to them. "
         "Admins see all messages system-wide across all tenants."
     ),
 )
 def get_support_messages(
     status_filter: Optional[str] = Query(None, alias="status", description="Filter messages by status: open, resolved, all"),
+    page: int = Query(1, ge=1, description="Page number (1-based)"),
+    page_size: int = Query(20, ge=1, le=100, description="Items per page (max 100)"),
     current_user: UserOut = Depends(require_role("team_member", "admin")),
     cursor: Cursor = Depends(get_db_cursor),
-) -> List[SupportMessageOut]:
+) -> PaginatedResponse[SupportMessageOut]:
     """
-    List messages received by the caller (Team Member) or all (Admin).
+    List messages received by the caller (Team Member) or all (Admin) with server-side pagination.
     """
     repo = SupportRepository(cursor)
     return SupportService.get_messages(
@@ -107,6 +110,8 @@ def get_support_messages(
         user_role=current_user.role.value,
         status_filter=status_filter,
         repo=repo,
+        page=page,
+        page_size=page_size,
     )
 
 

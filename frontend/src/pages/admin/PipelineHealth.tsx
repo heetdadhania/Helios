@@ -27,6 +27,9 @@ import { PipelineSection, SourceTypeIcon } from '@/components/admin/PipelineSect
 import { FlagForAdminButton } from '@/components/team/FlagForAdminButton';
 import { pipelineHealthService } from '@/services/pipelineHealthService';
 import { oversightService } from '@/services/oversightService';
+import { adminService } from '@/services/adminService';
+import { Pagination } from '@/components/ui/Pagination';
+import { usePaginatedData } from '@/hooks/usePaginatedData';
 import {
   PipelineRun,
   PipelineRunDetail,
@@ -39,13 +42,31 @@ export const PipelineHealth: React.FC = () => {
   const isAuthorized =
     isAuthenticated && user && (user.role === 'team_member' || user.role === 'admin');
 
-  const [runs, setRuns] = useState<PipelineRun[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
   // Filters & Search
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  const {
+    data: runs,
+    total,
+    page,
+    pageSize,
+    isLoading,
+    error,
+    setPage,
+    refetch: fetchRuns,
+  } = usePaginatedData<PipelineRun>({
+    fetchFn: (params) =>
+      pipelineHealthService.listRuns(
+        params.status !== 'all' ? params.status : undefined,
+        undefined,
+        params.page,
+        params.pageSize
+      ),
+    filters: { status: selectedStatus, search: searchQuery },
+    pageSize: 20,
+    enabled: Boolean(isAuthorized),
+  });
 
   // Selected Detail Modal state
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
@@ -81,41 +102,6 @@ export const PipelineHealth: React.FC = () => {
       setIsExporting(false);
     }
   };
-
-  // Load runs
-  const fetchRuns = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await pipelineHealthService.listRuns();
-      setRuns(data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load pipeline executions.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const silentPollRuns = async () => {
-    try {
-      const data = await pipelineHealthService.listRuns();
-      setRuns(data);
-    } catch {
-      // Ignore background poll errors silently
-    }
-  };
-
-  useEffect(() => {
-    if (isAuthorized) {
-      fetchRuns();
-      const interval = setInterval(() => {
-        if (document.visibilityState === 'visible') {
-          silentPollRuns();
-        }
-      }, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [isAuthorized]);
 
   // Load Run detail when selected
   useEffect(() => {
@@ -194,6 +180,31 @@ export const PipelineHealth: React.FC = () => {
     navigator.clipboard.writeText(text);
     setCopiedBatch(true);
     setTimeout(() => setCopiedBatch(false), 2000);
+  };
+
+  const [isDownloadingRejections, setIsDownloadingRejections] = useState<boolean>(false);
+
+  const handleDownloadRejectedRows = async (batchId: string) => {
+    setIsDownloadingRejections(true);
+    setActionError(null);
+    try {
+      await adminService.downloadRejectedRows(batchId);
+      setActionSuccess('Rejected rows downloaded successfully.');
+    } catch (err: any) {
+      let msg = 'Failed to download rejected rows.';
+      if (err?.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const json = JSON.parse(text);
+          msg = json.detail || json.message || msg;
+        } catch (_) {}
+      } else if (err?.response?.data?.detail) {
+        msg = err.response.data.detail;
+      }
+      setActionError(msg);
+    } finally {
+      setIsDownloadingRejections(false);
+    }
   };
 
   // Metrics summary
@@ -281,7 +292,7 @@ export const PipelineHealth: React.FC = () => {
         setDetail(updated);
       }
     } catch (err: any) {
-      setError(err?.message || 'Failed to cancel pipeline run.');
+      setActionError(err?.message || 'Failed to cancel pipeline run.');
     }
   }, [selectedBatchId]);
 
@@ -632,7 +643,7 @@ export const PipelineHealth: React.FC = () => {
           <PipelineSection
             id="restart_required"
             title="Restart Required Pipelines"
-            subtitle="Batches marked for Organization Owner re-upload or external database re-sync"
+            subtitle="Batches marked for Organization Owner re-upload or data re-sync"
             icon={<RotateCcw className="w-5 h-5 text-amber-500 flex-shrink-0" />}
             count={restartRequiredRuns.length}
             variant="amber"
@@ -640,7 +651,7 @@ export const PipelineHealth: React.FC = () => {
             isLoading={isLoading}
             searchQuery={searchQuery}
             emptyTitle="No runs requiring restart"
-            emptyDescription="No pipeline batches currently require organization file re-upload or connection reset."
+            emptyDescription="No pipeline batches currently require organization file re-upload or reset."
             emptyIcon={
               <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
                 <RotateCcw className="w-6 h-6" />
@@ -650,6 +661,13 @@ export const PipelineHealth: React.FC = () => {
           />
         )}
       </div>
+
+      <Pagination
+        currentPage={page}
+        totalItems={total}
+        pageSize={pageSize}
+        onPageChange={setPage}
+      />
 
 
       {/* DETAIL MODAL / DRAWER */}
@@ -680,6 +698,25 @@ export const PipelineHealth: React.FC = () => {
                       variant="compact"
                       label="Flag for Admin"
                     />
+                  )}
+                  {detail && (detail.rejection_count ?? 0) > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadRejectedRows(detail.batch_id)}
+                      disabled={isDownloadingRejections}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-colors disabled:opacity-50 cursor-pointer"
+                      title="Download rejected rows for this batch"
+                    >
+                      {isDownloadingRejections ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-500" />
+                      ) : (
+                        <Download className="w-3.5 h-3.5" />
+                      )}
+                      <span>Download rejected rows</span>
+                      <span className="ml-0.5 px-1.5 py-0.2 rounded-full bg-rose-500/20 text-[10px]">
+                        {detail.rejection_count}
+                      </span>
+                    </button>
                   )}
                 </div>
                 <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-400">
@@ -884,6 +921,23 @@ export const PipelineHealth: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-3 self-end sm:self-auto">
+                {detail && (detail.rejection_count ?? 0) > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadRejectedRows(detail.batch_id)}
+                    disabled={isDownloadingRejections}
+                    className="px-3.5 py-2 rounded-lg border border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 text-xs font-semibold transition-colors flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                    title="Download rejected rows CSV"
+                  >
+                    {isDownloadingRejections ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-500" />
+                    ) : (
+                      <Download className="w-3.5 h-3.5" />
+                    )}
+                    <span>Download rejected rows ({detail.rejection_count})</span>
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={() => setSelectedBatchId(null)}

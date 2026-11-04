@@ -18,15 +18,20 @@ import {
   Tenant,
 } from '@/types/admin';
 import { PipelineRun } from '@/types/pipelineHealth';
+import { PaginatedResponse } from '@/types/pagination';
 import { pipelineHealthService } from './pipelineHealthService';
 
 export const adminService = {
   /**
-   * Module 8: Get list of pending uploads awaiting schema confirmation.
+   * Module 8: Get list of pending uploads awaiting schema confirmation with server-side pagination.
    * Scoped to assigned tenants for Team Members, all tenants for Admins.
    */
-  async getPendingUploads(): Promise<PendingUpload[]> {
-    const response = await api.get<PendingUpload[]>('/uploads/pending');
+  async getPendingUploads(page: number = 1, pageSize: number = 20, tenantFilter?: string): Promise<PaginatedResponse<PendingUpload>> {
+    const params: Record<string, any> = { page, page_size: pageSize };
+    if (tenantFilter && tenantFilter !== 'all') {
+      params.tenant_id = tenantFilter;
+    }
+    const response = await api.get<PaginatedResponse<PendingUpload>>('/uploads/pending', { params });
     return response.data;
   },
 
@@ -128,15 +133,21 @@ export const adminService = {
   /**
    * Module 12: Get pipeline execution runs.
    */
-  async getPipelineRuns(status?: string): Promise<PipelineRun[]> {
-    return pipelineHealthService.listRuns(status);
+  async getPipelineRuns(status?: string, page: number = 1, pageSize: number = 20): Promise<PaginatedResponse<PipelineRun>> {
+    return pipelineHealthService.listRuns(status, undefined, page, pageSize);
   },
 
   /**
-   * Tenants: List tenants.
+   * Tenants: List tenants with server-side pagination.
    */
-  async getTenants(): Promise<Tenant[]> {
-    const response = await api.get<Tenant[]>('/tenants');
+  async getTenants(page: number = 1, pageSize: number = 20, search?: string): Promise<PaginatedResponse<Tenant>> {
+    const params: Record<string, any> = { page, page_size: pageSize };
+    if (search && search.trim()) {
+      params.search = search.trim();
+    }
+    const response = await api.get<PaginatedResponse<Tenant>>('/tenants', {
+      params,
+    });
     return response.data;
   },
 
@@ -157,10 +168,12 @@ export const adminService = {
   },
 
   /**
-   * Team Members: List operations team members. ADMIN ONLY.
+   * Team Members: List operations team members with server-side pagination. ADMIN ONLY.
    */
-  async getTeamMembers(): Promise<TeamMember[]> {
-    const response = await api.get<TeamMember[]>('/team-members');
+  async getTeamMembers(page: number = 1, pageSize: number = 20): Promise<PaginatedResponse<TeamMember>> {
+    const response = await api.get<PaginatedResponse<TeamMember>>('/team-members', {
+      params: { page, page_size: pageSize },
+    });
     return response.data;
   },
 
@@ -213,11 +226,16 @@ export const adminService = {
   },
 
   /**
-   * Data Quality: Retrieve rejected rows and schema hygiene audit log items.
+   * Data Quality: Retrieve rejected rows and schema hygiene audit log items with server-side pagination.
    * Filterable by tenant and batch. Connected to real GET /api/data-quality/logs.
    */
-  async getDataQualityLogs(tenantFilter?: string, batchId?: string): Promise<DataQualityLogItem[]> {
-    const params: Record<string, any> = {};
+  async getDataQualityLogs(
+    tenantFilter?: string,
+    batchId?: string,
+    page: number = 1,
+    pageSize: number = 20
+  ): Promise<PaginatedResponse<DataQualityLogItem>> {
+    const params: Record<string, any> = { page, page_size: pageSize };
     if (tenantFilter && tenantFilter !== 'all') {
       const num = Number(tenantFilter);
       if (!isNaN(num)) {
@@ -227,8 +245,26 @@ export const adminService = {
     if (batchId) {
       params.batch_id = batchId;
     }
-    const response = await api.get<DataQualityLogItem[]>('/data-quality/logs', { params });
+    const response = await api.get<PaginatedResponse<DataQualityLogItem>>('/data-quality/logs', { params });
     return response.data;
+  },
+
+  /**
+   * Download rejected rows for a batch as CSV (UTF-8 with BOM).
+   */
+  async downloadRejectedRows(batchId: string): Promise<void> {
+    const response = await api.get(`/quality/rejected-rows/${batchId}.csv`, {
+      responseType: 'blob',
+    });
+    const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `rejected_rows_${batchId}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode?.removeChild(link);
+    window.URL.revokeObjectURL(url);
   },
 
   /**

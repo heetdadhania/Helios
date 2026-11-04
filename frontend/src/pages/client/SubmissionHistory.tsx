@@ -1,32 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { CheckCircle2, AlertTriangle, RefreshCw, Inbox, Loader2 } from 'lucide-react';
 import { historyService } from '@/services/historyService';
 import { SmbHistoryItem } from '@/types/history';
 import { Pagination } from '@/components/ui/Pagination';
+import { usePaginatedData } from '@/hooks/usePaginatedData';
 
 export const SubmissionHistory: React.FC = () => {
-  const [history, setHistory] = useState<SmbHistoryItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const pageSize = 10;
-
-  const fetchHistory = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await historyService.getMyHistory();
-      setHistory(data);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to load submission history.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchHistory();
-  }, []);
+  const {
+    data: history,
+    total,
+    page,
+    pageSize,
+    isLoading: loading,
+    error,
+    setPage,
+    refetch: fetchHistory,
+  } = usePaginatedData<SmbHistoryItem>({
+    fetchFn: (params) => historyService.getMyHistory(params.page, params.pageSize),
+    pageSize: 20,
+  });
 
   const renderStatusBadge = (status: string) => {
     const s = (status || '').toLowerCase();
@@ -143,9 +135,7 @@ export const SubmissionHistory: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark text-sm">
-                  {history
-                    .slice((currentPage - 1) * pageSize, currentPage * pageSize)
-                    .map((item) => (
+                  {history.map((item) => (
                       <tr
                         key={item.batch_id}
                         className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
@@ -165,10 +155,10 @@ export const SubmissionHistory: React.FC = () => {
               </table>
             </div>
             <Pagination
-              currentPage={currentPage}
-              totalItems={history.length}
+              currentPage={page}
+              totalItems={total}
               pageSize={pageSize}
-              onPageChange={setCurrentPage}
+              onPageChange={setPage}
             />
           </>
         )}

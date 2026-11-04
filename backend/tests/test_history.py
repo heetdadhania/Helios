@@ -83,8 +83,9 @@ class TestHistoryRepository(unittest.TestCase):
             ("b-3", "failed", "bronze_ingest", test_dt),
         ]
 
-        results = self.repo.get_smb_history(tenant_id=10)
+        results, total = self.repo.get_smb_history(tenant_id=10)
         self.assertEqual(len(results), 3)
+        self.assertEqual(total, 3)
 
         # 1. Success maps to 'Ready'
         self.assertEqual(results[0]["status"], "Ready")
@@ -169,8 +170,9 @@ class TestHistoryRepository(unittest.TestCase):
             ("b-2", 2, "Beta", "api_push", "bronze_ingest", "failed", "Validation error", test_dt, "N/A"),
         ]
 
-        results = self.repo.get_admin_history(status_filter="success")
+        results, total = self.repo.get_admin_history(status_filter="success")
         self.assertEqual(len(results), 2)
+        self.assertEqual(total, 2)
         self.assertEqual(results[0]["handled_by"], "Alice Support")
         self.assertEqual(results[1]["handled_by"], "N/A")
 
@@ -282,15 +284,16 @@ class TestHistoryEndpoints(unittest.TestCase):
             {"batch_id": "b-1", "date": "2024-03-28 14:00:00", "status": "Ready", "label": "Data received"},
             {"batch_id": "b-2", "date": "2024-03-27 10:00:00", "status": "Needs attention — please resend", "label": "Data received"},
         ]
-        with patch.object(HistoryRepository, "get_smb_history", return_value=mock_data):
+        with patch.object(HistoryRepository, "get_smb_history", return_value=(mock_data, 2)):
             res = self.client.get("/api/history/mine")
             self.assertEqual(res.status_code, 200)
             data = res.json()
-            self.assertEqual(len(data), 2)
-            self.assertEqual(data[0]["status"], "Ready")
-            self.assertEqual(data[0]["label"], "Data received")
-            self.assertNotIn("stage", data[0])
-            self.assertNotIn("error_message", data[0])
+            self.assertEqual(len(data["items"]), 2)
+            self.assertEqual(data["total"], 2)
+            self.assertEqual(data["items"][0]["status"], "Ready")
+            self.assertEqual(data["items"][0]["label"], "Data received")
+            self.assertNotIn("stage", data["items"][0])
+            self.assertNotIn("error_message", data["items"][0])
 
     def test_team_success_payload_with_filters(self):
         app.dependency_overrides[get_current_user] = lambda: self.team_user
@@ -308,18 +311,21 @@ class TestHistoryEndpoints(unittest.TestCase):
                 "timestamp": datetime(2024, 3, 28, 15, 0, 0, tzinfo=timezone.utc),
             }
         ]
-        with patch.object(HistoryRepository, "get_team_history", return_value=mock_data) as mock_get:
+        with patch.object(HistoryRepository, "get_team_history", return_value=(mock_data, 1)) as mock_get:
             res = self.client.get("/api/history/team?status=failed&tenant=Acme")
             self.assertEqual(res.status_code, 200)
             data = res.json()
-            self.assertEqual(len(data), 1)
-            self.assertEqual(data[0]["error_message"], "Row validation rejected")
-            self.assertEqual(data[0]["stage"], "silver_clean")
+            self.assertEqual(len(data["items"]), 1)
+            self.assertEqual(data["total"], 1)
+            self.assertEqual(data["items"][0]["error_message"], "Row validation rejected")
+            self.assertEqual(data["items"][0]["stage"], "silver_clean")
             mock_get.assert_called_once_with(
                 user_id=2,
                 user_role="team_member",
                 status_filter="failed",
                 tenant_filter="Acme",
+                page=1,
+                page_size=20,
             )
 
     def test_admin_success_payload_handled_by(self):
@@ -339,13 +345,14 @@ class TestHistoryEndpoints(unittest.TestCase):
                 "handled_by": "Charlie Support",
             }
         ]
-        with patch.object(HistoryRepository, "get_admin_history", return_value=mock_data) as mock_get:
+        with patch.object(HistoryRepository, "get_admin_history", return_value=(mock_data, 1)) as mock_get:
             res = self.client.get("/api/history/admin")
             self.assertEqual(res.status_code, 200)
             data = res.json()
-            self.assertEqual(len(data), 1)
-            self.assertEqual(data[0]["handled_by"], "Charlie Support")
-            self.assertEqual(data[0]["tenant"], "Global Logistics")
+            self.assertEqual(len(data["items"]), 1)
+            self.assertEqual(data["total"], 1)
+            self.assertEqual(data["items"][0]["handled_by"], "Charlie Support")
+            self.assertEqual(data["items"][0]["tenant"], "Global Logistics")
 
 
 if __name__ == "__main__":

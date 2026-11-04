@@ -583,6 +583,11 @@ def run_tests() -> bool:
         passed = r.status_code in (403, 404)
         record_result("team-member-1", f"GET /api/uploads/{unassigned_batch}/completeness", tid_str, "403 or 404", f"{r.status_code}", passed)
 
+        # 10b. Rejected rows CSV: GET /api/v1/quality/rejected-rows/{batch_id}.csv on unassigned batch (must return 403 or 404)
+        r = requests.get(f"{BASE_URL}/api/v1/quality/rejected-rows/{unassigned_batch}.csv", headers=h_tm1)
+        passed = r.status_code in (403, 404)
+        record_result("team-member-1", f"GET /api/v1/quality/rejected-rows/{unassigned_batch}.csv", tid_str, "403 or 404", f"{r.status_code}", passed)
+
         # 11. Database connections: GET /api/db-connections?tenant_id={tid}
         r = requests.get(f"{BASE_URL}/api/db-connections?tenant_id={unassigned_tid}", headers=h_tm1)
         passed = r.status_code in (403, 404)

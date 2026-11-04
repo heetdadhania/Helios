@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     from databricks.sql.client import Cursor
@@ -61,11 +61,25 @@ class HistoryRepository:
             return val.strftime("%Y-%m-%d %H:%M:%S")
         return str(val)
 
-    def get_smb_history(self, tenant_id: int) -> List[Dict[str, Any]]:
+    def get_smb_history(
+        self,
+        tenant_id: int,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Tuple[List[Dict[str, Any]], int]:
         """
-        Fetch submission history strictly scoped to the authenticated tenant.
+        Fetch submission history strictly scoped to the authenticated tenant with pagination.
         Returns customer-facing plain-language status without technical stage/error jargon.
         """
+        count_query = f"""
+            SELECT COUNT(*) AS total
+            FROM {self.pipeline_table} ps
+            WHERE ps.tenant_id = :tenant_id
+        """
+        count_rows = self._fetch_all(count_query, {"tenant_id": tenant_id})
+        total = int(count_rows[0]["total"]) if count_rows and "total" in count_rows[0] and count_rows[0]["total"] is not None else 0
+
+        offset = max(0, (page - 1) * page_size)
         query = f"""
             SELECT 
                 ps.batch_id,
@@ -75,8 +89,9 @@ class HistoryRepository:
             FROM {self.pipeline_table} ps
             WHERE ps.tenant_id = :tenant_id
             ORDER BY ps.created_at DESC
+            LIMIT :limit OFFSET :offset
         """
-        raw_rows = self._fetch_all(query, {"tenant_id": tenant_id})
+        raw_rows = self._fetch_all(query, {"tenant_id": tenant_id, "limit": page_size, "offset": offset})
 
         results = []
         for r in raw_rows:
@@ -88,7 +103,9 @@ class HistoryRepository:
                     "label": "Data received",
                 }
             )
-        return results
+        if total == 0 and len(results) > 0:
+            total = len(results)
+        return results, total
 
     def get_team_history(
         self,
@@ -96,9 +113,11 @@ class HistoryRepository:
         user_role: str,
         status_filter: Optional[str] = None,
         tenant_filter: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Tuple[List[Dict[str, Any]], int]:
         """
-        Fetch operational submission history.
+        Fetch operational submission history with server-side pagination.
         - Team Member: strictly scoped to assigned tenants.
         - Admin: all tenants.
         Supports filtering by status and tenant business name or ID.
@@ -129,6 +148,17 @@ class HistoryRepository:
 
         where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
 
+        count_query = f"""
+            SELECT COUNT(*) AS total
+            FROM {self.pipeline_table} ps
+            LEFT JOIN {self.tenants_table} t ON ps.tenant_id = t.tenant_id
+            {where_sql}
+        """
+        count_rows = self._fetch_all(count_query, params if params else None)
+        total = int(count_rows[0]["total"]) if count_rows and "total" in count_rows[0] and count_rows[0]["total"] is not None else 0
+
+        offset = max(0, (page - 1) * page_size)
+        item_params = {**params, "limit": page_size, "offset": offset}
         query = f"""
             SELECT 
                 ps.batch_id,
@@ -150,16 +180,22 @@ class HistoryRepository:
             ) al ON ps.batch_id = al.batch_id
             {where_sql}
             ORDER BY ps.created_at DESC
+            LIMIT :limit OFFSET :offset
         """
-        return self._fetch_all(query, params if params else None)
+        items = self._fetch_all(query, item_params)
+        if total == 0 and len(items) > 0:
+            total = len(items)
+        return items, total
 
     def get_admin_history(
         self,
         status_filter: Optional[str] = None,
         tenant_filter: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Tuple[List[Dict[str, Any]], int]:
         """
-        Fetch system-wide submission history including the handling Team Member identity.
+        Fetch system-wide submission history including the handling Team Member identity with server-side pagination.
         Never scoped to tenant assignments.
         Surfaces 'handled_by': Team Member name if handled by Team Member, or 'N/A' if Admin / automated.
         """
@@ -182,6 +218,17 @@ class HistoryRepository:
 
         where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
 
+        count_query = f"""
+            SELECT COUNT(*) AS total
+            FROM {self.pipeline_table} ps
+            LEFT JOIN {self.tenants_table} t ON ps.tenant_id = t.tenant_id
+            {where_sql}
+        """
+        count_rows = self._fetch_all(count_query, params if params else None)
+        total = int(count_rows[0]["total"]) if count_rows and "total" in count_rows[0] and count_rows[0]["total"] is not None else 0
+
+        offset = max(0, (page - 1) * page_size)
+        item_params = {**params, "limit": page_size, "offset": offset}
         query = f"""
             SELECT 
                 ps.batch_id,
@@ -208,5 +255,9 @@ class HistoryRepository:
             ) al ON ps.batch_id = al.batch_id
             {where_sql}
             ORDER BY ps.created_at DESC
+            LIMIT :limit OFFSET :offset
         """
-        return self._fetch_all(query, params if params else None)
+        items = self._fetch_all(query, item_params)
+        if total == 0 and len(items) > 0:
+            total = len(items)
+        return items, total

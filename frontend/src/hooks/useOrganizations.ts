@@ -22,7 +22,8 @@ export function useOrganizations(): UseOrganizationsReturn {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await adminService.getTenants();
+      const res = await adminService.getTenants(1, 100);
+      const data = Array.isArray(res) ? res : (res?.items || []);
       setOrganizations(data);
       if (data.length === 1) {
         // Preselect the organization if there is only one

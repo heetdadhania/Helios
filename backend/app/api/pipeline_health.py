@@ -10,6 +10,7 @@ except ImportError:
 from app.core.dependencies import get_db_cursor, require_team_or_admin
 from app.repositories.pipeline_health_repository import PipelineHealthRepository
 from app.schemas.auth import UserOut
+from app.schemas.common import PaginatedResponse
 from app.schemas.pipeline_health import (
     CancelResponse,
     PipelineRunDetailOut,
@@ -25,24 +26,28 @@ router = APIRouter()
 
 @router.get(
     "/runs",
-    response_model=List[PipelineRunOut],
+    response_model=PaginatedResponse[PipelineRunOut],
     status_code=status.HTTP_200_OK,
     summary="List Pipeline Execution Runs",
-    description="Retrieve all pipeline runs across tenants. Team Members see assigned tenants; Admins see all.",
+    description="Retrieve all pipeline runs across tenants with server-side pagination. Team Members see assigned tenants; Admins see all.",
 )
 def list_pipeline_runs(
     status: Optional[str] = Query(None, description="Optional status filter"),
     tenant_id: Optional[str] = Query(None, description="Optional tenant ID or name filter"),
+    page: int = Query(1, ge=1, description="Page number (1-based)"),
+    page_size: int = Query(20, ge=1, le=100, description="Items per page (max 100)"),
     current_user: UserOut = Depends(require_team_or_admin),
     cursor: Cursor = Depends(get_db_cursor),
-) -> List[PipelineRunOut]:
-    """List pipeline execution records with tenant, source, current stage, and status."""
+) -> PaginatedResponse[PipelineRunOut]:
+    """List pipeline execution records with tenant, source, current stage, and status with server-side pagination."""
     repo = PipelineHealthRepository(cursor)
     return PipelineHealthService.list_runs(
         current_user=current_user,
         repo=repo,
         status_filter=status,
         tenant_filter=tenant_id,
+        page=page,
+        page_size=page_size,
     )
 
 

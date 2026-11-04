@@ -10,6 +10,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { ENABLE_DB_CONNECTION } from '@/config/features';
 
 export const DataSourceSelect: React.FC = () => {
   const navigate = useNavigate();
@@ -33,23 +34,27 @@ export const DataSourceSelect: React.FC = () => {
       ],
       buttonText: 'Upload Datasets',
     },
-    {
-      id: 'database',
-      title: 'Connect Database',
-      subtitle: 'Continuous synchronization with your transactional database',
-      description:
-        'Establish direct read replicas with PostgreSQL, MySQL, or SQL Server. Credentials are encrypted in Databricks Secrets and synchronized on a recurring schedule.',
-      route: '/client/connect-db',
-      icon: Database,
-      color: 'emerald',
-      badge: 'Live Sync',
-      features: [
-        'PostgreSQL, MySQL & SQL Server',
-        'Encrypted credential storage',
-        'Automated incremental sync',
-      ],
-      buttonText: 'Configure Connector',
-    },
+    ...(ENABLE_DB_CONNECTION
+      ? [
+          {
+            id: 'database',
+            title: 'Connect Remote Data',
+            subtitle: 'Continuous synchronization with your transactional database',
+            description:
+              'Establish direct read replicas with PostgreSQL, MySQL, or SQL Server. Credentials are encrypted in Databricks Secrets and synchronized on a recurring schedule.',
+            route: '/client/connect-db',
+            icon: Database,
+            color: 'emerald',
+            badge: 'Live Sync',
+            features: [
+              'PostgreSQL, MySQL & SQL Server',
+              'Encrypted credential storage',
+              'Automated incremental sync',
+            ],
+            buttonText: 'Configure Connector',
+          },
+        ]
+      : []),
     {
       id: 'api',
       title: 'Use API',

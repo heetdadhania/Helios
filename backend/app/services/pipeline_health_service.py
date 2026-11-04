@@ -6,6 +6,7 @@ from fastapi import HTTPException, status
 from app.core.config import settings
 from app.repositories.pipeline_health_repository import PipelineHealthRepository
 from app.schemas.auth import UserOut
+from app.schemas.common import PaginatedResponse
 from app.schemas.pipeline_health import (
     CancelResponse,
     EtlAuditLogOut,
@@ -29,17 +30,27 @@ class PipelineHealthService:
         repo: PipelineHealthRepository,
         status_filter: Optional[str] = None,
         tenant_filter: Optional[str] = None,
-    ) -> List[PipelineRunOut]:
+        page: int = 1,
+        page_size: int = 20,
+    ) -> PaginatedResponse[PipelineRunOut]:
         """
-        List all pipeline runs.
+        List all pipeline runs with server-side pagination.
         Admins see all tenants; Team Members see only their assigned tenants.
         """
-        rows = repo.list_runs(
+        raw_res = repo.list_runs(
             user_id=current_user.id,
             user_role=current_user.role.value,
             status_filter=status_filter,
             tenant_filter=tenant_filter,
+            page=page,
+            page_size=page_size,
         )
+        if isinstance(raw_res, tuple) and len(raw_res) == 2:
+            rows, total = raw_res
+        else:
+            rows = raw_res
+            total = len(rows)
+
         results: List[PipelineRunOut] = []
         for r in rows:
             results.append(
@@ -59,7 +70,12 @@ class PipelineHealthService:
                     failure_next_step=r.get("failure_next_step"),
                 )
             )
-        return results
+        return PaginatedResponse[PipelineRunOut](
+            items=results,
+            total=total,
+            page=page,
+            page_size=page_size,
+        )
 
     @staticmethod
     def _build_stage_history(
@@ -131,6 +147,7 @@ class PipelineHealthService:
             failure_next_step=run.get("failure_next_step"),
             stage_history=history,
             audit_logs=audit_models,
+            rejection_count=int(run.get("rejection_count", 0)),
         )
 
     @classmethod

@@ -11,6 +11,7 @@ from fastapi import HTTPException, status
 from app.core.config import settings
 from app.repositories.notification_repository import NotificationRepository
 from app.schemas.auth import UserOut
+from app.schemas.common import PaginatedResponse
 from app.schemas.notification import (
     NotificationOut,
     NotificationReadResponse,
@@ -218,18 +219,31 @@ class NotificationService:
         current_user: UserOut,
         repo: NotificationRepository,
         unread_only: bool = False,
-        limit: int = 50,
-        offset: int = 0,
-    ) -> List[NotificationOut]:
-        """Fetch notifications scoped to the current user's role and tenant."""
-        raw_items = repo.list_for_user(
+        page: int = 1,
+        page_size: int = 20,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+    ) -> PaginatedResponse[NotificationOut]:
+        """Fetch notifications scoped to the current user's role and tenant with server-side pagination."""
+        if limit is not None:
+            page_size = min(100, max(1, limit))
+            if offset is not None:
+                page = max(1, (offset // page_size) + 1)
+
+        raw_res = repo.list_for_user(
             user_id=current_user.id,
             user_role=current_user.role.value,
             tenant_id=current_user.tenant_id,
             unread_only=unread_only,
-            limit=limit,
-            offset=offset,
+            page=page,
+            page_size=page_size,
         )
+        if isinstance(raw_res, tuple) and len(raw_res) == 2:
+            raw_items, total = raw_res
+        else:
+            raw_items = raw_res
+            total = len(raw_items)
+
         results: List[NotificationOut] = []
         for r in raw_items:
             results.append(
@@ -243,7 +257,12 @@ class NotificationService:
                     created_at=r.get("created_at"),
                 )
             )
-        return results
+        return PaginatedResponse[NotificationOut](
+            items=results,
+            total=total,
+            page=page,
+            page_size=page_size,
+        )
 
     @classmethod
     def mark_notification_as_read(

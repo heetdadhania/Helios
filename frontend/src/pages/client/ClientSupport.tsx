@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   MessageSquare,
   Send,
@@ -10,38 +10,37 @@ import {
 import { supportService } from '@/services/supportService';
 import { SupportMessage } from '@/types/support';
 import { formatDateTimeIN } from '@/utils/currency';
+import { usePaginatedData } from '@/hooks/usePaginatedData';
+import { Pagination } from '@/components/ui/Pagination';
 
 export const ClientSupport: React.FC = () => {
-  const [messages, setMessages] = useState<SupportMessage[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState<string>('');
   const [sending, setSending] = useState<boolean>(false);
   const [sendSuccess, setSendSuccess] = useState<boolean>(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  const fetchMessages = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await supportService.getMessages('all');
-      setMessages(res);
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Failed to load support inquiries.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    data: messages,
+    total,
+    page: currentPage,
+    pageSize,
+    isLoading: loading,
+    error,
+    setPage: setCurrentPage,
+    refetch: fetchMessages,
+  } = usePaginatedData<SupportMessage>({
+    fetchFn: (params) => supportService.getMessages(undefined, params.page, params.pageSize),
+    pageSize: 20,
+  });
 
-  useEffect(() => {
-    fetchMessages();
-  }, []);
+  const displayError = actionError || error;
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
     setSending(true);
-    setError(null);
+    setActionError(null);
     try {
       await supportService.sendMessage(newMessage.trim());
       setNewMessage('');
@@ -49,7 +48,7 @@ export const ClientSupport: React.FC = () => {
       setTimeout(() => setSendSuccess(false), 5000);
       fetchMessages();
     } catch (err: any) {
-      setError(err?.message || 'Failed to dispatch message to operations team.');
+      setActionError(err?.message || 'Failed to dispatch message to operations team.');
     } finally {
       setSending(false);
     }
@@ -88,15 +87,15 @@ export const ClientSupport: React.FC = () => {
         )}
 
         {/* Error Alert */}
-        {error && (
+        {displayError && (
           <div className="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-xs flex items-center justify-between">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
-              <span>{error}</span>
+              <span>{displayError}</span>
             </div>
             <button
               type="button"
-              onClick={() => setError(null)}
+              onClick={() => setActionError(null)}
               className="text-xs font-semibold text-rose-600 hover:underline"
             >
               Dismiss
@@ -133,7 +132,7 @@ export const ClientSupport: React.FC = () => {
       <div className="p-6 rounded-2xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-xs">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-            Past Inquiries ({messages.length})
+            Past Inquiries ({total})
           </h2>
           <button
             type="button"
@@ -193,6 +192,18 @@ export const ClientSupport: React.FC = () => {
                 </p>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!loading && total > 0 && (
+          <div className="mt-4 pt-4 border-t border-helios-border-light dark:border-helios-border-dark flex items-center justify-between">
+            <Pagination
+              currentPage={currentPage}
+              totalItems={total}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+            />
           </div>
         )}
       </div>

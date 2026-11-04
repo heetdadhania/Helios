@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     from databricks.sql.client import Cursor
@@ -26,6 +26,7 @@ class PipelineHealthRepository:
         self.audit_table = f"`{self.catalog}`.`meta`.`etl_audit_log`"
         self.users_table = f"`{self.catalog}`.`platform`.`users`"
         self.notifications_table = f"`{self.catalog}`.`platform`.`notification_log`"
+        self.dq_table = f"`{self.catalog}`.`meta`.`data_quality_log`"
 
     def _fetch_all(self, query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """Helper to execute query and return list of dictionaries."""
@@ -66,9 +67,11 @@ class PipelineHealthRepository:
         user_role: str,
         status_filter: Optional[str] = None,
         tenant_filter: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Tuple[List[Dict[str, Any]], int]:
         """
-        List all pipeline runs.
+        List all pipeline runs with server-side pagination.
         Admins see all tenants; Team Members see only their assigned tenants.
         """
         stall_minutes = int(os.getenv("STALL_MINUTES", "15"))
@@ -113,8 +116,20 @@ class PipelineHealthRepository:
             END
         """
 
+        offset = max(0, (page - 1) * page_size)
+        item_params = {**params, "limit": page_size, "offset": offset}
+
         if is_admin:
             where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+            count_query = f"""
+                SELECT COUNT(*) AS total
+                FROM {self.pipeline_table} ps
+                LEFT JOIN {self.tenants_table} t ON ps.tenant_id = t.tenant_id
+                {where_sql}
+            """
+            count_rows = self._fetch_all(count_query, params if params else None)
+            total = int(count_rows[0]["total"]) if count_rows and "total" in count_rows[0] and count_rows[0]["total"] is not None else 0
+
             query = f"""
                 SELECT 
                     ps.batch_id,
@@ -135,13 +150,28 @@ class PipelineHealthRepository:
                 LEFT JOIN {self.pending_table} pu ON ps.upload_id = pu.upload_id
                 {where_sql}
                 ORDER BY ps.created_at DESC
+                LIMIT :limit OFFSET :offset
             """
-            return self._fetch_all(query, params if params else None)
+            items = self._fetch_all(query, item_params)
+            if total == 0 and len(items) > 0:
+                total = len(items)
+            return items, total
 
         # Team member query with tenant assignment constraint
         where_clauses.append("ta.user_id = :user_id")
         params["user_id"] = user_id
+        item_params["user_id"] = user_id
         where_sql = f"WHERE {' AND '.join(where_clauses)}"
+
+        count_query = f"""
+            SELECT COUNT(*) AS total
+            FROM {self.pipeline_table} ps
+            INNER JOIN {self.team_table} ta ON ps.tenant_id = ta.tenant_id
+            LEFT JOIN {self.tenants_table} t ON ps.tenant_id = t.tenant_id
+            {where_sql}
+        """
+        count_rows = self._fetch_all(count_query, params)
+        total = int(count_rows[0]["total"]) if count_rows and "total" in count_rows[0] and count_rows[0]["total"] is not None else 0
 
         query = f"""
             SELECT 
@@ -164,8 +194,12 @@ class PipelineHealthRepository:
             LEFT JOIN {self.pending_table} pu ON ps.upload_id = pu.upload_id
             {where_sql}
             ORDER BY ps.created_at DESC
+            LIMIT :limit OFFSET :offset
         """
-        return self._fetch_all(query, params)
+        items = self._fetch_all(query, item_params)
+        if total == 0 and len(items) > 0:
+            total = len(items)
+        return items, total
 
     def get_run_detail(
         self,
@@ -243,6 +277,16 @@ class PipelineHealthRepository:
         """
         audit_rows = self._fetch_all(audit_query, {"batch_id": batch_id})
         run_record["audit_logs"] = audit_rows
+
+        try:
+            dq_query = f"SELECT count(*) FROM {self.dq_table} WHERE batch_id = :batch_id"
+            self.cursor.execute(dq_query, {"batch_id": batch_id})
+            dq_row = self.cursor.fetchone()
+            run_record["rejection_count"] = int(dq_row[0]) if dq_row and dq_row[0] is not None else 0
+        except Exception as exc:
+            logger.warning("Failed to fetch rejection_count for batch %s: %s", batch_id, exc)
+            run_record["rejection_count"] = 0
+
         return run_record
 
     def update_status_for_retry(

@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     from databricks.sql.client import Cursor
@@ -33,9 +33,11 @@ class ConfirmationRepository:
         user_id: int,
         user_role: str,
         tenant_filter: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Tuple[List[Dict[str, Any]], int]:
         """
-        Retrieve all batches in 'awaiting_confirmation' status.
+        Retrieve batches in 'awaiting_confirmation' status with server-side pagination.
         Admins see all tenants; Team Members see only their assigned tenants.
         """
         is_admin = user_role.lower() == "admin"
@@ -57,6 +59,12 @@ class ConfirmationRepository:
         where_sql = f"WHERE {' AND '.join(where_clauses)}"
 
         if is_admin:
+            count_query = f"""
+                SELECT COUNT(*) AS total
+                FROM {self.pipeline_table} ps
+                LEFT JOIN `{self.catalog}`.`platform`.`tenants` t ON ps.tenant_id = t.tenant_id
+                {where_sql}
+            """
             query = f"""
                 SELECT 
                     ps.batch_id,
@@ -77,9 +85,16 @@ class ConfirmationRepository:
                 LEFT JOIN {self.pending_table} pu ON ps.upload_id = pu.upload_id
                 {where_sql}
                 ORDER BY ps.created_at DESC
+                LIMIT :limit OFFSET :offset
             """
-            self.cursor.execute(query, params)
         else:
+            count_query = f"""
+                SELECT COUNT(*) AS total
+                FROM {self.pipeline_table} ps
+                INNER JOIN {self.team_table} ta ON ps.tenant_id = ta.tenant_id AND ta.user_id = :user_id
+                LEFT JOIN `{self.catalog}`.`platform`.`tenants` t ON ps.tenant_id = t.tenant_id
+                {where_sql}
+            """
             query = f"""
                 SELECT 
                     ps.batch_id,
@@ -101,12 +116,23 @@ class ConfirmationRepository:
                 LEFT JOIN {self.pending_table} pu ON ps.upload_id = pu.upload_id
                 {where_sql}
                 ORDER BY ps.created_at DESC
+                LIMIT :limit OFFSET :offset
             """
-            self.cursor.execute(query, params)
+
+        self.cursor.execute(count_query, params)
+        count_row = self.cursor.fetchone()
+        total = int(count_row[0]) if count_row and count_row[0] is not None else 0
+
+        offset = max(0, (page - 1) * page_size)
+        item_params = {**params, "limit": page_size, "offset": offset}
+        self.cursor.execute(query, item_params)
 
         rows = self.cursor.fetchall() or []
         columns = [desc[0] for desc in self.cursor.description] if self.cursor.description else []
-        return [dict(zip(columns, row)) for row in rows]
+        items = [dict(zip(columns, row)) for row in rows]
+        if total == 0 and len(items) > 0:
+            total = len(items)
+        return items, total
 
     def check_user_tenant_access(self, user_id: int, user_role: str, tenant_id: int) -> bool:
         """Verify whether user can view or confirm batches for the given tenant."""

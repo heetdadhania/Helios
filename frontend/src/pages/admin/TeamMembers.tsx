@@ -25,6 +25,8 @@ import {
 import { CreateTeamMemberResponse, TeamMember, Tenant } from '@/types/admin';
 import { adminService } from '@/services/adminService';
 import { useAuth } from '@/hooks/useAuth';
+import { usePaginatedData } from '@/hooks/usePaginatedData';
+import { Pagination } from '@/components/ui/Pagination';
 
 const PHONE_REGEX = /^[0-9+\-() ]{7,20}$/;
 
@@ -56,10 +58,24 @@ export const TeamMembers: React.FC = () => {
     return <Navigate to="/team/home" replace />;
   }
 
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [tenants, setTenants] = useState<Tenant[]>([]);
+
+  const {
+    data: teamMembers,
+    total,
+    page: currentPage,
+    pageSize,
+    isLoading,
+    error: paginatedError,
+    setPage: setCurrentPage,
+    refetch: loadData,
+    setData: setTeamMembers,
+  } = usePaginatedData<TeamMember>({
+    fetchFn: (params) => adminService.getTeamMembers(params.page, params.pageSize),
+    enabled: user?.role === 'admin',
+    pageSize: 20,
+  });
 
   // Add Member Modal & Result Dialog
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
@@ -100,27 +116,17 @@ export const TeamMembers: React.FC = () => {
 
   const selectedTenantIds = watch('tenant_ids') || [];
   const selectedRole = watch('role');
-
-  const loadData = async () => {
-    setIsLoading(true);
-    setGeneralError(null);
-    try {
-      const [membersData, tenantsData] = await Promise.all([
-        adminService.getTeamMembers(),
-        adminService.getTenants(),
-      ]);
-      setTeamMembers(membersData);
-      setTenants(tenantsData);
-    } catch (err: any) {
-      setGeneralError(err?.response?.data?.detail || err.message || 'Failed to load team members.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const displayError = generalError || paginatedError;
 
   useEffect(() => {
     if (user?.role === 'admin') {
-      loadData();
+      adminService
+        .getTenants(1, 100)
+        .then((res) => {
+          const items = Array.isArray(res) ? res : (res?.items || []);
+          setTenants(items);
+        })
+        .catch(() => {});
     }
   }, [user]);
 
@@ -327,7 +333,7 @@ export const TeamMembers: React.FC = () => {
           />
         </div>
         <div className="text-xs text-slate-400">
-          Total: <span className="font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark">{filteredMembers.length}</span> staff
+          Total: <span className="font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark">{searchQuery ? filteredMembers.length : total}</span> staff
         </div>
       </div>
 
@@ -339,7 +345,7 @@ export const TeamMembers: React.FC = () => {
             <div className="h-10 w-full bg-slate-100 dark:bg-slate-900 rounded" />
             <div className="h-10 w-full bg-slate-100 dark:bg-slate-900 rounded" />
           </div>
-        ) : generalError ? (
+        ) : displayError ? (
           <div className="p-12 text-center space-y-3">
             <div className="w-12 h-12 mx-auto rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center">
               <AlertCircle className="w-6 h-6" />
@@ -348,7 +354,7 @@ export const TeamMembers: React.FC = () => {
               Failed to Load Team Members
             </h3>
             <p className="text-xs text-rose-600 dark:text-rose-400 max-w-sm mx-auto">
-              {generalError}
+              {displayError}
             </p>
             <button
               type="button"
@@ -526,6 +532,18 @@ export const TeamMembers: React.FC = () => {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!isLoading && total > 0 && (
+          <div className="p-4 border-t border-helios-border-light dark:border-helios-border-dark flex items-center justify-between">
+            <Pagination
+              currentPage={currentPage}
+              totalItems={total}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+            />
           </div>
         )}
       </div>

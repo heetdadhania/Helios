@@ -40,3 +40,4 @@ api_router.include_router(confirmations_router, prefix="/uploads", tags=["Confir
 api_router.include_router(uploads_router, prefix="/uploads", tags=["Uploads"])
 api_router.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboard"])
 api_router.include_router(data_quality_router, prefix="/data-quality", tags=["Data Quality"])
+api_router.include_router(data_quality_router, prefix="/quality", tags=["Quality"])

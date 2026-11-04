@@ -111,8 +111,8 @@ export const NotificationBell: React.FC = () => {
   // Fetch notifications from server
   const fetchNotifications = useCallback(async () => {
     try {
-      const data = await notificationService.getNotifications({ limit: 40 });
-      setNotifications(data);
+      const res = await notificationService.getNotifications({ pageSize: 40 });
+      setNotifications(Array.isArray(res) ? res : res.items || []);
     } catch {
       // Silently catch network/polling errors so UI remains stable
     }

@@ -130,9 +130,10 @@ export const ConfirmSchema: React.FC = () => {
       setRejectionsError(null);
       adminService
         .getDataQualityLogs(undefined, batchId)
-        .then((logs) => {
-          const matched = (logs || []).filter(
-            (log) => log.batch_id === batchId || log.batch_id.toLowerCase().includes(batchId.toLowerCase())
+        .then((res: any) => {
+          const list = Array.isArray(res) ? res : (res?.items || []);
+          const matched = list.filter(
+            (log: any) => log.batch_id === batchId || String(log.batch_id).toLowerCase().includes(batchId.toLowerCase())
           );
           setRejectionLogs(matched);
         })
@@ -223,7 +224,7 @@ export const ConfirmSchema: React.FC = () => {
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
             <Database className="w-3.5 h-3.5" />
-            <span>Database Replication</span>
+            <span>Replication Sync</span>
           </span>
         );
       case 'api_push':

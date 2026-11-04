@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     API_V1_STR: str = "/api/v1"
 
+    # Feature Flags
+    ENABLE_DB_CONNECTION: bool = False
+
     # Security & Tokens
     SECRET_KEY: str
     ALGORITHM: str = "HS256"

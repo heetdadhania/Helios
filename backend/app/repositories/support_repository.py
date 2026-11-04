@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     from databricks.sql.client import Cursor
@@ -189,9 +189,11 @@ class SupportRepository:
         user_id: int,
         user_role: str,
         status_filter: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Tuple[List[Dict[str, Any]], int]:
         """
-        Retrieve support messages:
+        Retrieve support messages with server-side pagination:
         - Team Member: messages routed to them (to_user_id = :user_id).
         - Admin: all messages across all tenants.
         """
@@ -209,6 +211,17 @@ class SupportRepository:
 
         where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
 
+        count_query = f"""
+            SELECT COUNT(*) AS total
+            FROM {self.table} sm
+            LEFT JOIN {self.tenants_table} t ON sm.tenant_id = t.tenant_id
+            {where_sql}
+        """
+        count_rows = self._fetch_all(count_query, params if params else None)
+        total = int(count_rows[0]["total"]) if count_rows and "total" in count_rows[0] and count_rows[0]["total"] is not None else 0
+
+        offset = max(0, (page - 1) * page_size)
+        item_params = {**params, "limit": page_size, "offset": offset}
         query = f"""
             SELECT 
                 sm.message_id,
@@ -229,8 +242,12 @@ class SupportRepository:
             LEFT JOIN {self.users_table} u_to ON sm.to_user_id = u_to.user_id
             {where_sql}
             ORDER BY sm.created_at DESC
+            LIMIT :limit OFFSET :offset
         """
-        return self._fetch_all(query, params if params else None)
+        items = self._fetch_all(query, item_params)
+        if total == 0 and len(items) > 0:
+            total = len(items)
+        return items, total
 
     def get_message_by_id(self, message_id: int) -> Optional[Dict[str, Any]]:
         """Fetch a single message by ID."""

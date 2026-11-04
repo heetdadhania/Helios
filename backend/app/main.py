@@ -63,6 +63,23 @@ def create_application() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # Middleware to ensure /db-connections returns 404 for all roles when ENABLE_DB_CONNECTION is False
+    @app.middleware("http")
+    async def db_connection_feature_flag_middleware(request: Request, call_next):
+        if not getattr(settings, "ENABLE_DB_CONNECTION", False):
+            path = request.url.path.rstrip("/")
+            if (
+                path == f"{settings.API_V1_STR}/db-connections"
+                or path.startswith(f"{settings.API_V1_STR}/db-connections/")
+                or path == "/api/db-connections"
+                or path.startswith("/api/db-connections/")
+            ):
+                return JSONResponse(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    content={"detail": "Not Found"},
+                )
+        return await call_next(request)
+
     # Include Direct Auth Router (/api/auth/login, /api/auth/me)
     from app.api.auth import router as auth_router
     app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
@@ -123,9 +140,10 @@ def create_application() -> FastAPI:
     from app.api.team import router as team_router
     app.include_router(team_router, prefix="/api/team-members", tags=["Team Members"])
 
-    # Include Data Quality Router (/api/data-quality)
+    # Include Data Quality Router (/api/data-quality & /api/quality)
     from app.api.data_quality import router as data_quality_router
     app.include_router(data_quality_router, prefix="/api/data-quality", tags=["Data Quality"])
+    app.include_router(data_quality_router, prefix="/api/quality", tags=["Quality"])
 
     # Include Team Home Router (/api/team)
     from app.api.team_home import router as team_home_router

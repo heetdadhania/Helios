@@ -5,6 +5,7 @@ from fastapi import HTTPException, status
 
 from app.repositories.notification_repository import NotificationRepository
 from app.repositories.support_repository import SupportRepository
+from app.schemas.common import PaginatedResponse
 from app.schemas.support import (
     SupportMessageOut,
     SupportMessageResolveResponse,
@@ -125,18 +126,32 @@ class SupportService:
         user_role: str,
         status_filter: Optional[str],
         repo: SupportRepository,
-    ) -> List[SupportMessageOut]:
+        page: int = 1,
+        page_size: int = 20,
+    ) -> PaginatedResponse[SupportMessageOut]:
         """
-        List support messages:
+        List support messages with server-side pagination:
         - Team Member sees only messages routed to them.
         - Admin sees all messages across all tenants.
         """
-        raw_list = repo.get_messages(
+        raw_res = repo.get_messages(
             user_id=user_id,
             user_role=user_role,
             status_filter=status_filter,
+            page=page,
+            page_size=page_size,
         )
-        return [SupportMessageOut.model_validate(r) for r in raw_list]
+        if isinstance(raw_res, tuple) and len(raw_res) == 2:
+            raw_list, total = raw_res
+        else:
+            raw_list = raw_res
+            total = len(raw_list)
+        return PaginatedResponse[SupportMessageOut](
+            items=[SupportMessageOut.model_validate(r) for r in raw_list],
+            total=total,
+            page=page,
+            page_size=page_size,
+        )
 
     @classmethod
     def resolve_message(

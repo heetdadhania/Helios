@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -31,7 +31,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/Toast';
 import { Pagination } from '@/components/ui/Pagination';
 import { formatDateIN } from '@/utils/currency';
-import { useOrganizations } from '@/hooks/useOrganizations';
+import { usePaginatedData } from '@/hooks/usePaginatedData';
 
 const INDUSTRY_OPTIONS = [
   'Apparel & Fashion',
@@ -158,18 +158,25 @@ export const Tenants: React.FC = () => {
   const isAdmin = user?.role === 'admin';
   const toast = useToast();
 
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
   const {
-    organizations: tenants,
+    data: tenants,
+    total,
+    page: currentPage,
+    pageSize,
     isLoading,
     error: orgsError,
+    setPage: setCurrentPage,
     refetch: loadTenants,
-  } = useOrganizations();
+  } = usePaginatedData<Tenant>({
+    fetchFn: (params) => adminService.getTenants(params.page, params.pageSize, params.search),
+    filters: { search: searchQuery },
+    pageSize: 20,
+  });
 
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const pageSize = 10;
 
   // Unified temporary password dialog state
   const [tempPasswordModal, setTempPasswordModal] = useState<{
@@ -241,8 +248,9 @@ export const Tenants: React.FC = () => {
   useEffect(() => {
     if (isAdmin) {
       adminService
-        .getTeamMembers()
-        .then((members) => {
+        .getTeamMembers(1, 100)
+        .then((res) => {
+          const members = Array.isArray(res) ? res : (res?.items || []);
           setTeamMembers(members.filter((m) => m.role === 'team_member' && m.is_active));
         })
         .catch(() => {
@@ -582,29 +590,7 @@ export const Tenants: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
-
-  const filteredTenants = useMemo(() => {
-    return tenants.filter((t) => {
-      const name = t.business_name || t.name || '';
-      const email = t.contact_email || '';
-      const slug = t.slug || '';
-      const query = searchQuery.toLowerCase();
-      return (
-        query === '' ||
-        name.toLowerCase().includes(query) ||
-        email.toLowerCase().includes(query) ||
-        slug.toLowerCase().includes(query)
-      );
-    });
-  }, [tenants, searchQuery]);
-
-  const paginatedTenants = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filteredTenants.slice(start, start + pageSize);
-  }, [filteredTenants, currentPage, pageSize]);
+  const paginatedTenants = tenants;
 
   return (
     <div className="space-y-6">
@@ -911,11 +897,11 @@ export const Tenants: React.FC = () => {
         </div>
 
         {/* Pagination */}
-        {!isLoading && filteredTenants.length > pageSize && (
+        {!isLoading && total > 0 && (
           <div className="p-4 border-t border-helios-border-light dark:border-helios-border-dark flex items-center justify-between">
             <Pagination
               currentPage={currentPage}
-              totalItems={filteredTenants.length}
+              totalItems={total}
               pageSize={pageSize}
               onPageChange={setCurrentPage}
             />

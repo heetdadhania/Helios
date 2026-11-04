@@ -1,5 +1,5 @@
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
 try:
     from databricks.sql.client import Cursor
@@ -9,6 +9,7 @@ except ImportError:
 from app.core.dependencies import get_db_cursor, require_team_or_admin
 from app.repositories.confirmation_repository import ConfirmationRepository
 from app.schemas.auth import UserOut
+from app.schemas.common import PaginatedResponse
 from app.schemas.confirmation import (
     CompletenessResponse,
     ConfirmRequest,
@@ -25,24 +26,28 @@ router = APIRouter()
 
 @router.get(
     "/pending",
-    response_model=List[PendingUploadOut],
+    response_model=PaginatedResponse[PendingUploadOut],
     status_code=status.HTTP_200_OK,
     summary="Get Pending Ingestion Batches",
-    description="Retrieve batches awaiting schema confirmation. Scoped to assigned tenants for Team Members, all tenants for Admins. SMB Owners are forbidden.",
+    description="Retrieve batches awaiting schema confirmation with server-side pagination. Scoped to assigned tenants for Team Members, all tenants for Admins. SMB Owners are forbidden.",
 )
 def get_pending_uploads(
     tenant_id: Optional[str] = None,
+    page: int = Query(1, ge=1, description="Page number (1-based)"),
+    page_size: int = Query(20, ge=1, le=100, description="Items per page (max 100)"),
     current_user: UserOut = Depends(require_team_or_admin),
     cursor: Cursor = Depends(get_db_cursor),
-) -> List[PendingUploadOut]:
+) -> PaginatedResponse[PendingUploadOut]:
     """
-    List pending batches requiring review. Includes source_type (upload, db_connection, api_push).
+    List pending batches requiring review with server-side pagination. Includes source_type (upload, db_connection, api_push).
     """
     repo = ConfirmationRepository(cursor)
     return ConfirmationService.get_pending_uploads(
         current_user=current_user,
         repo=repo,
         tenant_filter=tenant_id,
+        page=page,
+        page_size=page_size,
     )
 
 
