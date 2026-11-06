@@ -21,6 +21,19 @@ import { DiscountProfitWidget } from '@/components/dashboard/DiscountProfitWidge
 import { ShippingModeWidget } from '@/components/dashboard/ShippingModeWidget';
 import { formatDateAsOf } from '@/utils/formatters';
 
+// Lazy-loaded analytical widgets
+const CategoryRevenueWidget = React.lazy(() => import('@/components/dashboard/CategoryRevenueWidget'));
+const CustomerSegmentWidget = React.lazy(() => import('@/components/dashboard/CustomerSegmentWidget'));
+const MonthlyRevenueWidget = React.lazy(() => import('@/components/dashboard/MonthlyRevenueWidget'));
+
+const ChartCardSkeleton: React.FC = () => (
+  <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark animate-pulse">
+    <div className="h-5 w-48 bg-slate-200 dark:bg-slate-800 rounded mb-2" />
+    <div className="h-3 w-64 bg-slate-200 dark:bg-slate-800 rounded mb-6" />
+    <div className="h-64 w-full bg-slate-100 dark:bg-slate-900 rounded" />
+  </div>
+);
+
 interface DashboardError {
   status?: number;
   title: string;
@@ -142,7 +155,19 @@ export const TenantDashboardView: React.FC = () => {
     const hasShipments = (data.late_delivery_risk?.total_shipments || 0) > 0;
     const hasBands = (data.discount_vs_profit?.bands || []).length > 0;
     const hasModes = (data.shipping_modes?.modes || []).length > 0;
-    return hasTrend || hasProducts || hasShipments || hasBands || hasModes;
+    const hasCategories = (data.revenue_by_category?.categories || []).length > 0;
+    const hasSegments = (data.revenue_by_segment?.segments || []).length > 0;
+    const hasMonths = (data.monthly_revenue?.months || []).length > 0;
+    return (
+      hasTrend ||
+      hasProducts ||
+      hasShipments ||
+      hasBands ||
+      hasModes ||
+      hasCategories ||
+      hasSegments ||
+      hasMonths
+    );
   }, [data]);
 
   // Read data_as_of from the responses
@@ -154,6 +179,9 @@ export const TenantDashboardView: React.FC = () => {
       data?.late_delivery_risk?.data_as_of ??
       data?.discount_vs_profit?.data_as_of ??
       data?.shipping_modes?.data_as_of ??
+      data?.revenue_by_category?.data_as_of ??
+      data?.revenue_by_segment?.data_as_of ??
+      data?.monthly_revenue?.data_as_of ??
       null
     );
   }, [data]);
@@ -395,6 +423,32 @@ export const TenantDashboardView: React.FC = () => {
                 data={data?.shipping_modes || null}
                 isLoading={isLoading}
               />
+            </div>
+
+            {/* 4. Revenue by Category & Revenue by Customer Segment */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <React.Suspense fallback={<ChartCardSkeleton />}>
+                <CategoryRevenueWidget
+                  data={data?.revenue_by_category || null}
+                  isLoading={isLoading}
+                />
+              </React.Suspense>
+              <React.Suspense fallback={<ChartCardSkeleton />}>
+                <CustomerSegmentWidget
+                  data={data?.revenue_by_segment || null}
+                  isLoading={isLoading}
+                />
+              </React.Suspense>
+            </div>
+
+            {/* 5. Month-over-Month Revenue */}
+            <div>
+              <React.Suspense fallback={<ChartCardSkeleton />}>
+                <MonthlyRevenueWidget
+                  data={data?.monthly_revenue || null}
+                  isLoading={isLoading}
+                />
+              </React.Suspense>
             </div>
           </div>
         </>

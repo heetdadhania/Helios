@@ -14,10 +14,16 @@ from app.core.dependencies import get_db_cursor, require_role
 from app.repositories.dashboard_repository import DashboardRepository
 from app.schemas.auth import UserOut
 from app.schemas.dashboard import (
+    CategoryRevenueItem,
     DashboardSummaryResponse,
     DiscountVsProfitResponse,
     LateDeliveryRiskResponse,
+    MonthlyRevenueItem,
+    MonthlyRevenueResponse,
+    RevenueByCategoryResponse,
+    RevenueBySegmentResponse,
     RevenueTrendResponse,
+    SegmentRevenueItem,
     ShippingModeComparisonResponse,
     TopProductsResponse,
 )
@@ -231,3 +237,100 @@ def get_shipping_mode_comparison(
         query_fn=lambda: DashboardService.get_shipping_mode_comparison(current_user=current_user, repo=repo, days=days),
         response=response,
     )
+
+
+@router.get(
+    "/revenue-by-category",
+    response_model=RevenueByCategoryResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get Revenue by Product Category",
+    description="Retrieve product category revenue breakdown from Gold tables for authenticated organization owner or admin view-as.",
+)
+def get_revenue_by_category(
+    response: Response,
+    days: Optional[int] = Query(None, ge=1, le=365, description="Lookback window in calendar days (all-time if omitted)"),
+    tenant_id: Optional[int] = Query(None, description="Optional organization ID for Admin override"),
+    current_user: UserOut = Depends(require_role("smb_owner", "admin")),
+    cursor: Cursor = Depends(get_db_cursor),
+) -> RevenueByCategoryResponse:
+    """
+    Return net revenue by product category from Gold fact_orders joined with dim_product.
+    """
+    target_tenant_id = tenant_id if current_user.role.value == "admin" and tenant_id is not None else current_user.tenant_id
+    repo = DashboardRepository(cursor)
+    return execute_with_timing(
+        endpoint_name="/revenue-by-category",
+        cursor=cursor,
+        query_fn=lambda: DashboardService.get_revenue_by_category(
+            current_user=current_user,
+            days=days,
+            repo=repo,
+            tenant_id=target_tenant_id,
+        ),
+        response=response,
+    )
+
+
+@router.get(
+    "/revenue-by-segment",
+    response_model=RevenueBySegmentResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get Revenue by Customer Segment",
+    description="Retrieve customer market segment revenue breakdown from Gold tables for authenticated organization owner or admin view-as.",
+)
+def get_revenue_by_segment(
+    response: Response,
+    days: Optional[int] = Query(None, ge=1, le=365, description="Lookback window in calendar days (all-time if omitted)"),
+    tenant_id: Optional[int] = Query(None, description="Optional organization ID for Admin override"),
+    current_user: UserOut = Depends(require_role("smb_owner", "admin")),
+    cursor: Cursor = Depends(get_db_cursor),
+) -> RevenueBySegmentResponse:
+    """
+    Return net revenue by customer market segment from Gold fact_orders joined with dim_customer.
+    """
+    target_tenant_id = tenant_id if current_user.role.value == "admin" and tenant_id is not None else current_user.tenant_id
+    repo = DashboardRepository(cursor)
+    return execute_with_timing(
+        endpoint_name="/revenue-by-segment",
+        cursor=cursor,
+        query_fn=lambda: DashboardService.get_revenue_by_segment(
+            current_user=current_user,
+            days=days,
+            repo=repo,
+            tenant_id=target_tenant_id,
+        ),
+        response=response,
+    )
+
+
+@router.get(
+    "/monthly-revenue",
+    response_model=MonthlyRevenueResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get Month-over-Month Revenue",
+    description="Retrieve monthly chronological revenue and MoM percentage changes from Gold tables for authenticated organization owner or admin view-as.",
+)
+def get_monthly_revenue(
+    response: Response,
+    days: Optional[int] = Query(None, ge=1, le=365, description="Lookback window in calendar days (all-time if omitted)"),
+    tenant_id: Optional[int] = Query(None, description="Optional organization ID for Admin override"),
+    current_user: UserOut = Depends(require_role("smb_owner", "admin")),
+    cursor: Cursor = Depends(get_db_cursor),
+) -> MonthlyRevenueResponse:
+    """
+    Return monthly chronological revenue and MoM percentage growth from Gold fact_orders joined with dim_date.
+    """
+    target_tenant_id = tenant_id if current_user.role.value == "admin" and tenant_id is not None else current_user.tenant_id
+    repo = DashboardRepository(cursor)
+    return execute_with_timing(
+        endpoint_name="/monthly-revenue",
+        cursor=cursor,
+        query_fn=lambda: DashboardService.get_monthly_revenue(
+            current_user=current_user,
+            days=days,
+            repo=repo,
+            tenant_id=target_tenant_id,
+        ),
+        response=response,
+    )
+

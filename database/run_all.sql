@@ -15,7 +15,6 @@
 %run ./platform/03_team_assignments
 %run ./platform/04_pending_uploads
 %run ./platform/05_db_connections
-%run ./platform/06_api_keys
 %run ./platform/07_pipeline_status
 %run ./platform/08_inferred_schema
 %run ./platform/09_notification_log

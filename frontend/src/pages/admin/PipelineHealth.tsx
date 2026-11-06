@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import {
   Activity,
   AlertCircle,
@@ -29,11 +29,19 @@ import { pipelineHealthService } from '@/services/pipelineHealthService';
 import { oversightService } from '@/services/oversightService';
 import { adminService } from '@/services/adminService';
 import { Pagination } from '@/components/ui/Pagination';
+import { SortControl, SortOption } from '@/components/ui/SortControl';
 import { usePaginatedData } from '@/hooks/usePaginatedData';
 import {
   PipelineRun,
   PipelineRunDetail,
 } from '@/types/pipelineHealth';
+
+const PIPELINE_HEALTH_SORT_OPTIONS: SortOption[] = [
+  { value: 'updated', label: 'Updated' },
+  { value: 'organization', label: 'Organization' },
+  { value: 'stage', label: 'Stage' },
+  { value: 'status', label: 'Status' },
+];
 
 export const PipelineHealth: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
@@ -43,8 +51,11 @@ export const PipelineHealth: React.FC = () => {
     isAuthenticated && user && (user.role === 'team_member' || user.role === 'admin');
 
   // Filters & Search
+  const [searchParams] = useSearchParams();
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const sortBy = searchParams.get('sort_by') || '';
+  const sortOrder = (searchParams.get('sort_order') as 'asc' | 'desc') || 'desc';
 
   const {
     data: runs,
@@ -61,9 +72,11 @@ export const PipelineHealth: React.FC = () => {
         params.status !== 'all' ? params.status : undefined,
         undefined,
         params.page,
-        params.pageSize
+        params.pageSize,
+        params.sortBy,
+        params.sortOrder
       ),
-    filters: { status: selectedStatus, search: searchQuery },
+    filters: { status: selectedStatus, search: searchQuery, sortBy, sortOrder },
     pageSize: 20,
     enabled: Boolean(isAuthorized),
   });
@@ -485,15 +498,18 @@ export const PipelineHealth: React.FC = () => {
           ))}
         </div>
 
-        <div className="relative min-w-[240px]">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search organization, batch ID, or stage..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg bg-black/5 dark:bg-white/5 border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark placeholder-slate-400 focus:outline-none focus:border-helios-accent-blue"
-          />
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative min-w-[200px] flex-1">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search organization, batch ID, or stage..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg bg-black/5 dark:bg-white/5 border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark placeholder-slate-400 focus:outline-none focus:border-helios-accent-blue"
+            />
+          </div>
+          <SortControl options={PIPELINE_HEALTH_SORT_OPTIONS} defaultSortOrder="desc" />
         </div>
       </div>
 

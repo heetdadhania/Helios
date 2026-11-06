@@ -1,10 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Clock,
   FileText,
   Database,
-  Key,
   UploadCloud,
   ArrowRight,
   Search,
@@ -17,15 +16,26 @@ import {
 import { PendingUpload, SourceType } from '@/types/admin';
 import { adminService } from '@/services/adminService';
 import { Pagination } from '@/components/ui/Pagination';
+import { SortControl, SortOption } from '@/components/ui/SortControl';
 import { usePaginatedData } from '@/hooks/usePaginatedData';
 import { useBasePath } from '@/hooks/useBasePath';
 import { ENABLE_DB_CONNECTION } from '@/config/features';
 
+const PENDING_UPLOADS_SORT_OPTIONS: SortOption[] = [
+  { value: 'date', label: 'Date' },
+  { value: 'organization', label: 'Organization' },
+  { value: 'source', label: 'Source' },
+  { value: 'status', label: 'Status' },
+];
+
 export const PendingUploads: React.FC = () => {
   const navigate = useNavigate();
   const basePath = useBasePath();
+  const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sourceFilter, setSourceFilter] = useState<string>('all');
+  const sortBy = searchParams.get('sort_by') || '';
+  const sortOrder = (searchParams.get('sort_order') as 'asc' | 'desc') || 'desc';
 
   const {
     data: uploads,
@@ -37,8 +47,8 @@ export const PendingUploads: React.FC = () => {
     setPage,
     refetch: loadUploads,
   } = usePaginatedData<PendingUpload>({
-    fetchFn: (params) => adminService.getPendingUploads(params.page, params.pageSize),
-    filters: { search: searchQuery, source: sourceFilter },
+    fetchFn: (params) => adminService.getPendingUploads(params.page, params.pageSize, undefined, params.sortBy, params.sortOrder),
+    filters: { search: searchQuery, source: sourceFilter, sortBy, sortOrder },
     pageSize: 20,
   });
 
@@ -69,13 +79,6 @@ export const PendingUploads: React.FC = () => {
           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
             <Database className="w-3 h-3" />
             <span>Database</span>
-          </span>
-        );
-      case 'api_push':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
-            <Key className="w-3 h-3" />
-            <span>API Push</span>
           </span>
         );
       default:
@@ -131,21 +134,23 @@ export const PendingUploads: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <Filter className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-xs text-slate-400">Source:</span>
-          <select
-            value={sourceFilter}
-            onChange={(e) => setSourceFilter(e.target.value)}
-            className="px-2.5 py-1.5 text-xs rounded-xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
-          >
-            <option value="all">All Sources</option>
-            <option value="upload">File Uploads</option>
-            {ENABLE_DB_CONNECTION && (
-              <option value="db_connection">Database Connectors</option>
-            )}
-            <option value="api_push">API Stream</option>
-          </select>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Filter className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-xs text-slate-400">Source:</span>
+            <select
+              value={sourceFilter}
+              onChange={(e) => setSourceFilter(e.target.value)}
+              className="px-2.5 py-1.5 text-xs rounded-xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+            >
+              <option value="all">All Sources</option>
+              <option value="upload">File Uploads</option>
+              {ENABLE_DB_CONNECTION && (
+                <option value="db_connection">Database Connectors</option>
+              )}
+            </select>
+          </div>
+          <SortControl options={PENDING_UPLOADS_SORT_OPTIONS} defaultSortOrder="desc" />
         </div>
       </div>
 

@@ -145,7 +145,7 @@ class TestPipelineHealthRepository(unittest.TestCase):
             ("updated_at",), ("error_message",),
         ]
         self.mock_cursor.fetchall.return_value = [
-            ("b-2", 15, "Beta", "Beta", "api_push", "silver_clean", "failed", None, None, "error")
+            ("b-2", 15, "Beta", "Beta", "db_connection", "silver_clean", "failed", None, None, "error")
         ]
 
         runs, total = self.repo.list_runs(user_id=5, user_role="team_member")

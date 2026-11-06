@@ -1,4 +1,3 @@
-import apiClient, { createApiKeyClient } from './apiClient';
+import apiClient from './apiClient';
 
-export { createApiKeyClient };
 export default apiClient;

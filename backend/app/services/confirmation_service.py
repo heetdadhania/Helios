@@ -60,6 +60,7 @@ class ConfirmationService:
         tenant_filter: Optional[str] = None,
         page: int = 1,
         page_size: int = 20,
+        order_by: str = "ps.created_at DESC",
     ) -> PaginatedResponse[PendingUploadOut]:
         """
         Fetch uploads currently in 'awaiting_confirmation' state with pagination.
@@ -71,6 +72,7 @@ class ConfirmationService:
             tenant_filter=tenant_filter,
             page=page,
             page_size=page_size,
+            order_by=order_by,
         )
         if isinstance(raw_res, tuple) and len(raw_res) == 2:
             raw_pending, total = raw_res

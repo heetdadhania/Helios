@@ -13,6 +13,7 @@ except ImportError:
 from app.core.config import settings
 from app.core.dependencies import get_current_user, get_db_cursor, require_team_or_admin
 from app.core.security import get_password_hash
+from app.core.sorting import ORGANIZATION_SORT_FIELDS, validate_and_resolve_sort
 from app.repositories.team_repository import TeamRepository
 from app.repositories.tenant_repository import TenantRepository
 from app.repositories.user_repository import UserRepository
@@ -207,6 +208,24 @@ def create_tenant(
     # Safeguard check: re-count active owners; if > 1, deactivate newer and return 409
     check_and_safeguard_single_owner(new_tenant_id, int(created_owner["user_id"]), cursor=cursor)
 
+    # Write audit log for organization creation (never logs temporary password)
+    from app.services.audit_service import write_audit_log
+    write_audit_log(
+        cursor=cursor,
+        actor_user_id=current_user.id,
+        actor_role=current_user.role.value,
+        action="create_organization",
+        tenant_id=new_tenant_id,
+        reason=f"Organization created by {current_user.role.value}",
+        details={
+            "business_name": business_name_clean,
+            "contact_email": contact_email_clean,
+            "assigned_team_member_id": effective_team_member_id,
+            "owner_user_id": int(created_owner["user_id"]),
+            "owner_email": owner_email_clean,
+        },
+    )
+
     # Secure logging without password
     logger.info(
         "Tenant onboarded successfully: tenant_id=%d, business_name='%s', created_by=%d (%s), owner_email='%s', assigned_team_member_id=%s",
@@ -254,6 +273,8 @@ def create_tenant(
 )
 def list_tenants(
     search: Optional[str] = Query(None, description="Search query"),
+    sort_by: Optional[str] = Query(None, description="Sort field: ID, name, industry, state, created, last_data, status"),
+    sort_order: Optional[str] = Query(None, description="Sort order: asc, desc"),
     page: int = Query(1, ge=1, description="Page number (1-based)"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page (max 100)"),
     limit: Optional[int] = Query(None, description="Optional legacy limit"),
@@ -267,6 +288,13 @@ def list_tenants(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access denied: Organization Owners cannot list organizations.",
         )
+
+    order_by_sql = validate_and_resolve_sort(
+        sort_by=sort_by,
+        sort_order=sort_order,
+        allowed_fields=ORGANIZATION_SORT_FIELDS,
+        default_clause="t.tenant_id ASC",
+    )
 
     if limit is not None:
         page_size = min(100, max(1, limit))
@@ -284,6 +312,7 @@ def list_tenants(
         limit=calc_limit,
         offset=calc_offset,
         search=search,
+        order_by=order_by_sql,
     )
     if isinstance(raw_res, tuple) and len(raw_res) == 2:
         raw_tenants, total = raw_res

@@ -23,7 +23,7 @@ COMMENT 'Data quality audit logs, pipeline telemetry, and ingestion monitoring';
 -- 4. Create Bronze Layer Schema
 -- Stores raw, immutable, append-only ingested payloads
 CREATE SCHEMA IF NOT EXISTS helios.bronze
-COMMENT 'Raw immutable landing zone for uploads, API pushes, and database streams';
+COMMENT 'Raw immutable landing zone for uploads and database streams';
 
 -- 5. Create Silver Layer Schema
 -- Stores cleansed, validated, filtered, and conforming domain records

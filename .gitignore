@@ -5,7 +5,6 @@
 *.env
 token.txt
 scripts/output/
-api_keys.json
 
 # Virtual Environments
 .venv/

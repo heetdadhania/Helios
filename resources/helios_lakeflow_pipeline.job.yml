@@ -30,7 +30,7 @@ resources:
           default: "${var.catalog}"
 
       # Trigger: Triggered externally via Databricks Jobs API /api/2.1/jobs/run-now
-      # (Called from Upload/DB-Sync/API-Push endpoints in Modules 3, 4, 5).
+      # (Called from Upload/DB-Sync endpoints in Modules 3, 4).
       # No cron or fixed schedule configured.
       
       max_concurrent_runs: 20

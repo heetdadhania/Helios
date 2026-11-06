@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -27,6 +27,17 @@ import { adminService } from '@/services/adminService';
 import { useAuth } from '@/hooks/useAuth';
 import { usePaginatedData } from '@/hooks/usePaginatedData';
 import { Pagination } from '@/components/ui/Pagination';
+import { SortControl, SortOption } from '@/components/ui/SortControl';
+
+const TEAM_MEMBER_SORT_OPTIONS: SortOption[] = [
+  { value: 'id', label: 'ID' },
+  { value: 'name', label: 'Name' },
+  { value: 'email', label: 'Email' },
+  { value: 'designation', label: 'Designation' },
+  { value: 'assigned_count', label: 'Assigned Count' },
+  { value: 'created', label: 'Created' },
+  { value: 'status', label: 'Status' },
+];
 
 const PHONE_REGEX = /^[0-9+\-() ]{7,20}$/;
 
@@ -58,8 +69,11 @@ export const TeamMembers: React.FC = () => {
     return <Navigate to="/team/home" replace />;
   }
 
+  const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [tenants, setTenants] = useState<Tenant[]>([]);
+  const sortBy = searchParams.get('sort_by') || '';
+  const sortOrder = (searchParams.get('sort_order') as 'asc' | 'desc') || 'asc';
 
   const {
     data: teamMembers,
@@ -72,7 +86,8 @@ export const TeamMembers: React.FC = () => {
     refetch: loadData,
     setData: setTeamMembers,
   } = usePaginatedData<TeamMember>({
-    fetchFn: (params) => adminService.getTeamMembers(params.page, params.pageSize),
+    fetchFn: (params) => adminService.getTeamMembers(params.page, params.pageSize, params.sortBy, params.sortOrder),
+    filters: { sortBy, sortOrder },
     enabled: user?.role === 'admin',
     pageSize: 20,
   });
@@ -320,8 +335,8 @@ export const TeamMembers: React.FC = () => {
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="flex items-center justify-between gap-3">
+      {/* Search Bar & Sort Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
@@ -332,8 +347,11 @@ export const TeamMembers: React.FC = () => {
             className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
           />
         </div>
-        <div className="text-xs text-slate-400">
-          Total: <span className="font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark">{searchQuery ? filteredMembers.length : total}</span> staff
+        <div className="flex items-center gap-3">
+          <SortControl options={TEAM_MEMBER_SORT_OPTIONS} />
+          <div className="text-xs text-slate-400 whitespace-nowrap">
+            Total: <span className="font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark">{searchQuery ? filteredMembers.length : total}</span> staff
+          </div>
         </div>
       </div>
 

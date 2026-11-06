@@ -2,13 +2,6 @@ import base64
 import unittest
 from unittest.mock import MagicMock
 
-from app.core.api_key_security import (
-    API_KEY_PREFIX,
-    generate_api_key,
-    hash_api_key,
-    mask_api_key,
-    verify_api_key,
-)
 from app.core.secrets_manager import (
     decode_secret_value,
     decrypt_field,
@@ -129,43 +122,4 @@ class TestSecretsManager(unittest.TestCase):
         self.assertEqual(decode_secret_value("standard_unencoded_string"), "standard_unencoded_string")
 
 
-class TestApiKeySecurity(unittest.TestCase):
-    """Test suite for API key cryptographic generation, hashing, and verification."""
 
-    def test_generate_api_key_format_and_uniqueness(self):
-        key1 = generate_api_key()
-        key2 = generate_api_key()
-
-        self.assertTrue(key1.startswith(API_KEY_PREFIX))
-        self.assertTrue(key2.startswith(API_KEY_PREFIX))
-        self.assertNotEqual(key1, key2)
-        # Token part should have sufficient entropy (urlsafe base64 of 32 bytes is ~43 chars)
-        self.assertGreaterEqual(len(key1), len(API_KEY_PREFIX) + 32)
-
-    def test_hash_api_key_one_way(self):
-        raw_key = "helios_live_testkey_1234567890abcdef"
-        hash1 = hash_api_key(raw_key)
-        hash2 = hash_api_key(raw_key)
-
-        # Deterministic SHA-256
-        self.assertEqual(hash1, hash2)
-        self.assertEqual(len(hash1), 64)
-        # Raw key never appears in the hash
-        self.assertNotIn(raw_key, hash1)
-
-    def test_verify_api_key(self):
-        raw_key = "helios_live_valid_key_ABCDEFGHIJKL"
-        key_hash = hash_api_key(raw_key)
-
-        self.assertTrue(verify_api_key(raw_key, key_hash))
-        self.assertFalse(verify_api_key("helios_live_tampered_key", key_hash))
-
-    def test_mask_api_key(self):
-        raw_key = "helios_live_abcdef1234567890wxyz"
-        masked = mask_api_key(raw_key)
-
-        self.assertTrue(masked.startswith(API_KEY_PREFIX))
-        self.assertTrue(masked.endswith("wxyz"))
-        self.assertIn("••••", masked)
-        # Middle characters are masked
-        self.assertNotIn("1234567890", masked)

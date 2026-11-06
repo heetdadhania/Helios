@@ -42,7 +42,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger("helios.seed_accounts")
 
-from app.core.api_key_security import generate_api_key, hash_api_key, mask_api_key
 from app.core.config import settings
 from app.core.security import get_password_hash
 from app.db.base import databricks_cursor
@@ -187,7 +186,7 @@ TENANT_DEFINITIONS: List[Dict[str, Any]] = [
         "country": "India",
         "website_url": "https://www.sundarbansorganics.in",
         "tax_id": "19HIJKL8901M1Z2",
-        "ingestion_method": "REST API Push",
+        "ingestion_method": "File Upload (CSV/Excel)",
     },
     {
         "index": 9,
@@ -204,7 +203,7 @@ TENANT_DEFINITIONS: List[Dict[str, Any]] = [
         "country": "India",
         "website_url": "https://www.luminarygems.in",
         "tax_id": "27AABCL1234F1Z5",
-        "ingestion_method": "REST API Push",
+        "ingestion_method": "File Upload (CSV/Excel)",
     },
     {
         "index": 10,
@@ -221,7 +220,7 @@ TENANT_DEFINITIONS: List[Dict[str, Any]] = [
         "country": "India",
         "website_url": "https://www.pashucare.in",
         "tax_id": "07JKLMN0123O1Z4",
-        "ingestion_method": "REST API Push",
+        "ingestion_method": "File Upload (CSV/Excel)",
     },
 ]
 
@@ -294,7 +293,6 @@ def seed_accounts() -> int:
     tenants_table = f"`{catalog}`.`platform`.`tenants`"
     users_table = f"`{catalog}`.`platform`.`users`"
     assignments_table = f"`{catalog}`.`platform`.`team_assignments`"
-    api_keys_table = f"`{catalog}`.`platform`.`api_keys`"
 
     logger.info("Starting Helios test accounts seeding against catalog '%s'...", catalog)
 
@@ -656,104 +654,8 @@ def seed_accounts() -> int:
                 "designation": designation,
             })
 
-        # ---------------------------------------------------------------------
-        # STEP 4: Create API Keys for Tenants 8, 9, 10
-        # ---------------------------------------------------------------------
-        logger.info("Generating API keys for API Push tenants (Tenants 8, 9, 10)...")
-        output_dir = REPO_ROOT / "scripts" / "output"
-        output_dir.mkdir(parents=True, exist_ok=True)
-        api_keys_file = output_dir / "api_keys.json"
-
-        # Load existing saved keys if file exists to preserve raw keys across re-runs
-        existing_keys_data: Dict[str, Any] = {}
-        if api_keys_file.is_file():
-            try:
-                with open(api_keys_file, "r", encoding="utf-8") as f:
-                    existing_keys_data = json.load(f)
-            except Exception:
-                existing_keys_data = {}
-
-        saved_keys_by_tenant: Dict[int, Dict[str, Any]] = {}
-        for item in existing_keys_data.get("keys", []):
-            if "tenant_id" in item:
-                saved_keys_by_tenant[int(item["tenant_id"])] = item
-
-        generated_api_keys: List[Dict[str, Any]] = []
-
-        for api_tenant_idx in [8, 9, 10]:
-            target_tenant_id = tenant_id_map[api_tenant_idx]
-            tenant_name = TENANT_DEFINITIONS[api_tenant_idx - 1]["business_name"]
-
-            # Check if active key already exists in platform.api_keys
-            cursor.execute(
-                f"SELECT api_key_id, key_hash, key_prefix FROM {api_keys_table} WHERE tenant_id = :tenant_id AND is_active = true LIMIT 1",
-                {"tenant_id": target_tenant_id},
-            )
-            existing_key_row = cursor.fetchone()
-
-            # If existing raw key in file matches the hash in DB, reuse it
-            reused_existing = False
-            if existing_key_row and target_tenant_id in saved_keys_by_tenant:
-                saved_info = saved_keys_by_tenant[target_tenant_id]
-                candidate_raw = saved_info.get("api_key", "")
-                if hash_api_key(candidate_raw) == existing_key_row[1]:
-                    logger.info("Reusing existing verified raw API key for Tenant %d ('%s')", target_tenant_id, tenant_name)
-                    generated_api_keys.append(saved_info)
-                    reused_existing = True
-
-            if not reused_existing:
-                # Generate new key using existing cryptographic helper
-                raw_key = generate_api_key()
-                hashed = hash_api_key(raw_key)
-                masked = mask_api_key(raw_key)
-
-                # Revoke previous active keys if any
-                cursor.execute(
-                    f"UPDATE {api_keys_table} SET is_active = false WHERE tenant_id = :tenant_id",
-                    {"tenant_id": target_tenant_id},
-                )
-
-                # Insert new hashed key record
-                insert_key_query = f"""
-                    INSERT INTO {api_keys_table} (tenant_id, key_hash, key_prefix, created_at, is_active)
-                    VALUES (:tenant_id, :key_hash, :key_prefix, current_timestamp(), true)
-                """
-                cursor.execute(
-                    insert_key_query,
-                    {
-                        "tenant_id": target_tenant_id,
-                        "key_hash": hashed,
-                        "key_prefix": masked,
-                    },
-                )
-
-                key_entry = {
-                    "tenant_id": target_tenant_id,
-                    "tenant_index": api_tenant_idx,
-                    "business_name": tenant_name,
-                    "api_key": raw_key,
-                    "masked_key": masked,
-                    "key_hash": hashed,
-                    "created_at": datetime.now(timezone.utc).isoformat(),
-                }
-                generated_api_keys.append(key_entry)
-                logger.info("Generated new API key for Tenant %d ('%s'): %s", target_tenant_id, tenant_name, masked)
-
-        # Write raw keys to git-ignored output file
-        with open(api_keys_file, "w", encoding="utf-8") as f:
-            json.dump(
-                {
-                    "generated_at": datetime.now(timezone.utc).isoformat(),
-                    "note": "CONFIDENTIAL: Raw tenant API keys generated for local integration testing. Never commit this file.",
-                    "keys": generated_api_keys,
-                },
-                f,
-                indent=2,
-            )
-        logger.info("Raw API keys successfully written to '%s'", api_keys_file)
-
     # -------------------------------------------------------------------------
-    # STEP 5: Print Formatted Summary Table
+    # STEP 4: Print Formatted Summary Table
     # -------------------------------------------------------------------------
     print("\n" + "=" * 115)
     print(" HELIOS PLATFORM - TEST ACCOUNTS & TENANT SEEDING SUMMARY")
@@ -776,7 +678,6 @@ def seed_accounts() -> int:
     print("Authentication Note:")
     print(f"  - Password for all test accounts : (Read from TEST_ACCOUNT_PASSWORD environment variable)")
     print(f"  - First-login change password    : must_change_password = false (Test accounts can log in directly)")
-    print(f"  - Raw API Keys (Tenants 8, 9, 10): Saved to '{api_keys_file}' (git-ignored)")
     print("=" * 115 + "\n")
 
     return 0

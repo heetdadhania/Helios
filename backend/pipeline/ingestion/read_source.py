@@ -94,7 +94,7 @@ def read_source(
         if not source:
             return []
         if isinstance(source[0], dict):
-            # Already normalized API push or dictionary rows
+            # Already normalized dictionary rows
             return [dict(item) for item in source]
         elif columns:
             return [dict(zip(columns, row)) for row in source]

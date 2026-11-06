@@ -26,7 +26,7 @@ class TeamHistoryOut(BaseModel):
     batch_id: str = Field(..., description="Unique pipeline execution batch identifier")
     tenant_id: int = Field(..., description="ID of the tenant data owner")
     tenant: str = Field(..., description="Business name of the tenant organization")
-    source_type: str = Field("upload", description="Ingestion method (upload, api_push, db_connection)")
+    source_type: str = Field("upload", description="Ingestion method (upload, db_connection)")
     stage: str = Field(..., description="Pipeline stage: bronze_ingest, schema_inference, silver_clean, gold_transform")
     status: str = Field(..., description="Operational status: ingested, awaiting_confirmation, silver_running, gold_running, success, failed")
     error_message: Optional[str] = Field(None, description="Detailed error stack or failure reason if failed")

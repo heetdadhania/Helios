@@ -26,10 +26,22 @@ export const adminService = {
    * Module 8: Get list of pending uploads awaiting schema confirmation with server-side pagination.
    * Scoped to assigned tenants for Team Members, all tenants for Admins.
    */
-  async getPendingUploads(page: number = 1, pageSize: number = 20, tenantFilter?: string): Promise<PaginatedResponse<PendingUpload>> {
+  async getPendingUploads(
+    page: number = 1,
+    pageSize: number = 20,
+    tenantFilter?: string,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
+  ): Promise<PaginatedResponse<PendingUpload>> {
     const params: Record<string, any> = { page, page_size: pageSize };
     if (tenantFilter && tenantFilter !== 'all') {
       params.tenant_id = tenantFilter;
+    }
+    if (sortBy && sortBy.trim()) {
+      params.sort_by = sortBy.trim();
+    }
+    if (sortOrder) {
+      params.sort_order = sortOrder;
     }
     const response = await api.get<PaginatedResponse<PendingUpload>>('/uploads/pending', { params });
     return response.data;
@@ -140,10 +152,22 @@ export const adminService = {
   /**
    * Tenants: List tenants with server-side pagination.
    */
-  async getTenants(page: number = 1, pageSize: number = 20, search?: string): Promise<PaginatedResponse<Tenant>> {
+  async getTenants(
+    page: number = 1,
+    pageSize: number = 20,
+    search?: string,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
+  ): Promise<PaginatedResponse<Tenant>> {
     const params: Record<string, any> = { page, page_size: pageSize };
     if (search && search.trim()) {
       params.search = search.trim();
+    }
+    if (sortBy && sortBy.trim()) {
+      params.sort_by = sortBy.trim();
+    }
+    if (sortOrder) {
+      params.sort_order = sortOrder;
     }
     const response = await api.get<PaginatedResponse<Tenant>>('/tenants', {
       params,
@@ -170,9 +194,21 @@ export const adminService = {
   /**
    * Team Members: List operations team members with server-side pagination. ADMIN ONLY.
    */
-  async getTeamMembers(page: number = 1, pageSize: number = 20): Promise<PaginatedResponse<TeamMember>> {
+  async getTeamMembers(
+    page: number = 1,
+    pageSize: number = 20,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
+  ): Promise<PaginatedResponse<TeamMember>> {
+    const params: Record<string, any> = { page, page_size: pageSize };
+    if (sortBy && sortBy.trim()) {
+      params.sort_by = sortBy.trim();
+    }
+    if (sortOrder) {
+      params.sort_order = sortOrder;
+    }
     const response = await api.get<PaginatedResponse<TeamMember>>('/team-members', {
-      params: { page, page_size: pageSize },
+      params,
     });
     return response.data;
   },
@@ -233,7 +269,9 @@ export const adminService = {
     tenantFilter?: string,
     batchId?: string,
     page: number = 1,
-    pageSize: number = 20
+    pageSize: number = 20,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
   ): Promise<PaginatedResponse<DataQualityLogItem>> {
     const params: Record<string, any> = { page, page_size: pageSize };
     if (tenantFilter && tenantFilter !== 'all') {
@@ -244,6 +282,12 @@ export const adminService = {
     }
     if (batchId) {
       params.batch_id = batchId;
+    }
+    if (sortBy && sortBy.trim()) {
+      params.sort_by = sortBy.trim();
+    }
+    if (sortOrder) {
+      params.sort_order = sortOrder;
     }
     const response = await api.get<PaginatedResponse<DataQualityLogItem>>('/data-quality/logs', { params });
     return response.data;

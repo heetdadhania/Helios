@@ -442,21 +442,7 @@ def run_tests() -> bool:
     passed = r.status_code == 403
     record_result("smb-owner-1", f"POST /api/support/messages/{msg_t2}/resolve", "2", "403 Forbidden", f"{r.status_code}", passed)
 
-    # 17. API Keys: GET /api/api-keys?tenant_id=2
-    r = requests.get(f"{BASE_URL}/api/api-keys?tenant_id=2", headers=h_smb1)
-    # Must never return Tenant 2's key (only Tenant 1's key or None or 403 Forbidden)
-    key_data = r.json() if r.status_code == 200 and r.json() else {}
-    has_t2_leak = key_data.get("tenant_id") == 2
-    passed = (r.status_code == 403) or (r.status_code == 200 and not has_t2_leak and (key_data.get("tenant_id") in (1, None)))
-    record_result("smb-owner-1", "GET /api/api-keys", "2", "200 or 403 (no T2 key)", f"{r.status_code} (tenant={key_data.get('tenant_id')})", passed)
-
-    # 18. API Keys: POST /api/api-keys/regenerate?tenant_id=2
-    r = requests.post(f"{BASE_URL}/api/api-keys/regenerate?tenant_id=2", headers=h_smb1)
-    reg_data = r.json() if r.status_code in (200, 201) else {}
-    passed = (r.status_code == 403) or (r.status_code in (200, 201) and reg_data.get("tenant_id") == 1)
-    record_result("smb-owner-1", "POST /api/api-keys/regenerate", "2", "201 or 403 (tenant 1 key)", f"{r.status_code} (tenant={reg_data.get('tenant_id')})", passed)
-
-    # 19. DB Connections: GET /api/db-connections?tenant_id=2
+    # 17. DB Connections: GET /api/db-connections?tenant_id=2
     r = requests.get(f"{BASE_URL}/api/db-connections?tenant_id=2", headers=h_smb1)
     passed = r.status_code == 403
     record_result("smb-owner-1", "GET /api/db-connections", "2", "403 Forbidden", f"{r.status_code}", passed)

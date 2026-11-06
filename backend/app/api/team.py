@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.core.dependencies import get_current_user, get_db_cursor, require_admin
 from app.core.security import get_password_hash
+from app.core.sorting import TEAM_MEMBER_SORT_FIELDS, validate_and_resolve_sort
 from app.repositories.team_repository import TeamRepository
 from app.schemas.auth import UserOut, UserRole
 from app.schemas.common import PaginatedResponse
@@ -126,6 +127,24 @@ def create_team_member(
     full_user = team_repo.get_by_id(user_id) or user_record
     assigned_list = full_user.get("tenant_ids", tenant_ids)
 
+    # Write audit log for team member creation (never logs temporary password)
+    from app.services.audit_service import write_audit_log
+    write_audit_log(
+        cursor=cursor,
+        actor_user_id=current_admin.id,
+        actor_role=current_admin.role.value,
+        action="create_team_member",
+        tenant_id=None,
+        reason=f"Team member registered by {current_admin.role.value}",
+        details={
+            "target_user_id": user_id,
+            "name": payload.name.strip(),
+            "email": clean_email,
+            "role": payload.role.value,
+            "tenant_ids": tenant_ids,
+        },
+    )
+
     logger.info(
         "Team member registered successfully: user_id=%d, email=%s, role=%s by admin=%d",
         user_id,
@@ -160,14 +179,22 @@ def create_team_member(
     description="Retrieve all internal team members and admins along with their assigned tenant IDs (Admin only) with server-side pagination.",
 )
 def list_team_members(
+    sort_by: Optional[str] = Query(None, description="Sort field: ID, name, email, designation, assigned count, created, status"),
+    sort_order: Optional[str] = Query(None, description="Sort order: asc, desc"),
     page: int = Query(1, ge=1, description="Page number (1-based)"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page (max 100)"),
     cursor: Cursor = Depends(get_db_cursor),
     current_admin: UserOut = Depends(require_admin),
 ) -> PaginatedResponse[TeamMemberOut]:
     """List all team members and admins with their assigned tenant IDs and server-side pagination."""
+    order_by_sql = validate_and_resolve_sort(
+        sort_by=sort_by,
+        sort_order=sort_order,
+        allowed_fields=TEAM_MEMBER_SORT_FIELDS,
+        default_clause="u.user_id ASC",
+    )
     team_repo = TeamRepository(cursor)
-    raw_res = team_repo.list_team_members(page=page, page_size=page_size)
+    raw_res = team_repo.list_team_members(page=page, page_size=page_size, order_by=order_by_sql)
     if isinstance(raw_res, tuple) and len(raw_res) == 2:
         members, total = raw_res
     else:
@@ -247,6 +274,23 @@ def toggle_team_member_active_status(
         )
 
     team_repo.set_active_status(user_id, payload.is_active)
+
+    # Write audit log for team member deactivation/activation
+    from app.services.audit_service import write_audit_log
+    action_name = "reactivate_team_member" if payload.is_active else "deactivate_team_member"
+    write_audit_log(
+        cursor=cursor,
+        actor_user_id=current_admin.id,
+        actor_role=current_admin.role.value,
+        action=action_name,
+        tenant_id=None,
+        reason=f"Team member active status set to {payload.is_active} by {current_admin.role.value}",
+        details={
+            "target_user_id": user_id,
+            "email": user.get("email"),
+            "is_active": payload.is_active,
+        },
+    )
 
     updated_user = team_repo.get_by_id(user_id)
     logger.info(

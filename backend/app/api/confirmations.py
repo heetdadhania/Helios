@@ -20,6 +20,7 @@ from app.schemas.confirmation import (
     SchemaPreviewOut,
 )
 from app.services.confirmation_service import ConfirmationService
+from app.core.sorting import PENDING_UPLOADS_SORT_FIELDS, validate_and_resolve_sort
 
 router = APIRouter()
 
@@ -33,14 +34,22 @@ router = APIRouter()
 )
 def get_pending_uploads(
     tenant_id: Optional[str] = None,
+    sort_by: Optional[str] = Query(None, description="Sort field: date, organization, source, status"),
+    sort_order: Optional[str] = Query(None, description="Sort order: asc, desc"),
     page: int = Query(1, ge=1, description="Page number (1-based)"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page (max 100)"),
     current_user: UserOut = Depends(require_team_or_admin),
     cursor: Cursor = Depends(get_db_cursor),
 ) -> PaginatedResponse[PendingUploadOut]:
     """
-    List pending batches requiring review with server-side pagination. Includes source_type (upload, db_connection, api_push).
+    List pending batches requiring review with server-side pagination. Includes source_type (upload, db_connection).
     """
+    order_by_sql = validate_and_resolve_sort(
+        sort_by=sort_by,
+        sort_order=sort_order,
+        allowed_fields=PENDING_UPLOADS_SORT_FIELDS,
+        default_clause="ps.created_at DESC",
+    )
     repo = ConfirmationRepository(cursor)
     return ConfirmationService.get_pending_uploads(
         current_user=current_user,
@@ -48,6 +57,7 @@ def get_pending_uploads(
         tenant_filter=tenant_id,
         page=page,
         page_size=page_size,
+        order_by=order_by_sql,
     )
 
 

@@ -263,6 +263,27 @@ class UploadService:
             status="ingesting",
         )
 
+        # Record upload in meta.audit_trail
+        try:
+            from app.services.audit_service import write_audit_log
+            write_audit_log(
+                cursor=repo.cursor,
+                actor_user_id=current_user.id,
+                actor_role=user_role_str,
+                action="upload",
+                tenant_id=target_tenant_id,
+                batch_id=batch_id,
+                reason="Batch file uploaded",
+                details={
+                    "upload_id": int(upload_record["upload_id"]),
+                    "filename": cls._sanitize_filename(file.filename or "upload.data"),
+                    "file_hash": file_hash,
+                    "total_rows": total_rows,
+                },
+            )
+        except Exception as audit_err:
+            logger.warning("Failed to record upload in audit trail: %s", audit_err)
+
         try:
             from app.services.notification_service import NotificationService
             NotificationService.notify_upload_received(

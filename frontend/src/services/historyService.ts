@@ -11,9 +11,17 @@ export const historyService = {
   /**
    * Fetch caller's tenant submission history (SMB Owner) with server-side pagination.
    */
-  async getMyHistory(page: number = 1, pageSize: number = 20): Promise<PaginatedResponse<SmbHistoryItem>> {
+  async getMyHistory(
+    page: number = 1,
+    pageSize: number = 20,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
+  ): Promise<PaginatedResponse<SmbHistoryItem>> {
+    const params: Record<string, any> = { page, page_size: pageSize };
+    if (sortBy && sortBy.trim()) params.sort_by = sortBy.trim();
+    if (sortOrder) params.sort_order = sortOrder;
     const response = await api.get<PaginatedResponse<SmbHistoryItem>>('/history/mine', {
-      params: { page, page_size: pageSize },
+      params,
     });
     return response.data;
   },
@@ -24,7 +32,9 @@ export const historyService = {
   async getTeamHistory(
     filters?: HistoryFilterParams,
     page: number = 1,
-    pageSize: number = 20
+    pageSize: number = 20,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
   ): Promise<PaginatedResponse<TeamHistoryItem>> {
     const params: Record<string, any> = { page, page_size: pageSize };
     if (filters?.status && filters.status !== 'all') {
@@ -33,6 +43,8 @@ export const historyService = {
     if (filters?.tenant && filters.tenant.trim()) {
       params.tenant = filters.tenant.trim();
     }
+    if (sortBy && sortBy.trim()) params.sort_by = sortBy.trim();
+    if (sortOrder) params.sort_order = sortOrder;
     const response = await api.get<PaginatedResponse<TeamHistoryItem>>('/history/team', { params });
     return response.data;
   },
@@ -43,7 +55,9 @@ export const historyService = {
   async getAdminHistory(
     filters?: HistoryFilterParams,
     page: number = 1,
-    pageSize: number = 20
+    pageSize: number = 20,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
   ): Promise<PaginatedResponse<AdminHistoryItem>> {
     const params: Record<string, any> = { page, page_size: pageSize };
     if (filters?.status && filters.status !== 'all') {
@@ -52,6 +66,8 @@ export const historyService = {
     if (filters?.tenant && filters.tenant.trim()) {
       params.tenant = filters.tenant.trim();
     }
+    if (sortBy && sortBy.trim()) params.sort_by = sortBy.trim();
+    if (sortOrder) params.sort_order = sortOrder;
     const response = await api.get<PaginatedResponse<AdminHistoryItem>>('/history/admin', { params });
     return response.data;
   },

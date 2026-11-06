@@ -167,7 +167,7 @@ class TestHistoryRepository(unittest.TestCase):
         test_dt = datetime(2024, 3, 28, 10, 0, 0)
         self.mock_cursor.fetchall.return_value = [
             ("b-1", 1, "Acme", "upload", "gold_transform", "success", None, test_dt, "Alice Support"),
-            ("b-2", 2, "Beta", "api_push", "bronze_ingest", "failed", "Validation error", test_dt, "N/A"),
+            ("b-2", 2, "Beta", "db_connection", "bronze_ingest", "failed", "Validation error", test_dt, "N/A"),
         ]
 
         results, total = self.repo.get_admin_history(status_filter="success")
@@ -326,6 +326,7 @@ class TestHistoryEndpoints(unittest.TestCase):
                 tenant_filter="Acme",
                 page=1,
                 page_size=20,
+                order_by="ps.created_at DESC",
             )
 
     def test_admin_success_payload_handled_by(self):

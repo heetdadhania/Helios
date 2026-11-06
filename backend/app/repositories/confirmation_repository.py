@@ -35,6 +35,7 @@ class ConfirmationRepository:
         tenant_filter: Optional[str] = None,
         page: int = 1,
         page_size: int = 20,
+        order_by: str = "ps.created_at DESC",
     ) -> Tuple[List[Dict[str, Any]], int]:
         """
         Retrieve batches in 'awaiting_confirmation' status with server-side pagination.
@@ -84,7 +85,7 @@ class ConfirmationRepository:
                 LEFT JOIN {self.inferred_table} inf ON ps.batch_id = inf.batch_id
                 LEFT JOIN {self.pending_table} pu ON ps.upload_id = pu.upload_id
                 {where_sql}
-                ORDER BY ps.created_at DESC
+                ORDER BY {order_by}
                 LIMIT :limit OFFSET :offset
             """
         else:
@@ -115,7 +116,7 @@ class ConfirmationRepository:
                 LEFT JOIN {self.inferred_table} inf ON ps.batch_id = inf.batch_id
                 LEFT JOIN {self.pending_table} pu ON ps.upload_id = pu.upload_id
                 {where_sql}
-                ORDER BY ps.created_at DESC
+                ORDER BY {order_by}
                 LIMIT :limit OFFSET :offset
             """
 
@@ -329,29 +330,17 @@ class ConfirmationRepository:
         details_json: Optional[str] = None,
     ) -> None:
         """Insert immutable event into meta.audit_trail."""
-        q = f"""
-            INSERT INTO `{self.catalog}`.`meta`.`audit_trail` (
-                occurred_at, actor_user_id, actor_role, action, tenant_id, batch_id, reason, details_json
-            )
-            VALUES (
-                current_timestamp(), :actor_user_id, :actor_role, :action, :tenant_id, :batch_id, :reason, :details_json
-            )
-        """
-        try:
-            self.cursor.execute(
-                q,
-                {
-                    "actor_user_id": actor_user_id,
-                    "actor_role": actor_role,
-                    "action": action,
-                    "tenant_id": tenant_id,
-                    "batch_id": batch_id,
-                    "reason": reason,
-                    "details_json": details_json,
-                },
-            )
-        except Exception as e:
-            logger.warning("Failed to insert audit trail: %s", e)
+        from app.services.audit_service import write_audit_log
+        write_audit_log(
+            cursor=self.cursor,
+            actor_user_id=actor_user_id,
+            actor_role=actor_role,
+            action=action,
+            tenant_id=tenant_id,
+            batch_id=batch_id,
+            reason=reason,
+            details=details_json,
+        )
 
     def reject_batch(self, batch_id: str, reason: str, user_id: int, tenant_id: int) -> None:
         """Mark batch as rejected, update pending uploads decision, and leave Bronze rows in place."""

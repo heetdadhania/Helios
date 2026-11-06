@@ -191,6 +191,7 @@ class SupportRepository:
         status_filter: Optional[str] = None,
         page: int = 1,
         page_size: int = 20,
+        order_by: str = "sm.created_at DESC",
     ) -> Tuple[List[Dict[str, Any]], int]:
         """
         Retrieve support messages with server-side pagination:
@@ -241,7 +242,7 @@ class SupportRepository:
             LEFT JOIN {self.users_table} u_from ON sm.from_user_id = u_from.user_id
             LEFT JOIN {self.users_table} u_to ON sm.to_user_id = u_to.user_id
             {where_sql}
-            ORDER BY sm.created_at DESC
+            ORDER BY {order_by}
             LIMIT :limit OFFSET :offset
         """
         items = self._fetch_all(query, item_params)

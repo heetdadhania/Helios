@@ -8,6 +8,7 @@ except ImportError:
     Cursor = Any  # type: ignore
 
 from app.core.dependencies import get_db_cursor, require_team_or_admin
+from app.core.sorting import PIPELINE_HEALTH_SORT_FIELDS, validate_and_resolve_sort
 from app.repositories.pipeline_health_repository import PipelineHealthRepository
 from app.schemas.auth import UserOut
 from app.schemas.common import PaginatedResponse
@@ -34,12 +35,20 @@ router = APIRouter()
 def list_pipeline_runs(
     status: Optional[str] = Query(None, description="Optional status filter"),
     tenant_id: Optional[str] = Query(None, description="Optional tenant ID or name filter"),
+    sort_by: Optional[str] = Query(None, description="Field to sort by"),
+    sort_order: Optional[str] = Query(None, description="Sort direction: asc or desc"),
     page: int = Query(1, ge=1, description="Page number (1-based)"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page (max 100)"),
     current_user: UserOut = Depends(require_team_or_admin),
     cursor: Cursor = Depends(get_db_cursor),
 ) -> PaginatedResponse[PipelineRunOut]:
     """List pipeline execution records with tenant, source, current stage, and status with server-side pagination."""
+    order_by = validate_and_resolve_sort(
+        sort_by=sort_by,
+        sort_order=sort_order,
+        allowed_fields=PIPELINE_HEALTH_SORT_FIELDS,
+        default_clause="ps.created_at DESC",
+    )
     repo = PipelineHealthRepository(cursor)
     return PipelineHealthService.list_runs(
         current_user=current_user,
@@ -48,6 +57,7 @@ def list_pipeline_runs(
         tenant_filter=tenant_id,
         page=page,
         page_size=page_size,
+        order_by=order_by,
     )
 
 

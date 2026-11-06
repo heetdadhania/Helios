@@ -7,6 +7,7 @@ except ImportError:
     Cursor = Any  # type: ignore
 
 from app.core.dependencies import get_db_cursor, require_role
+from app.core.sorting import HISTORY_SORT_FIELDS, validate_and_resolve_sort
 from app.repositories.history_repository import HistoryRepository
 from app.schemas.auth import UserOut
 from app.schemas.common import PaginatedResponse
@@ -27,6 +28,8 @@ router = APIRouter()
     ),
 )
 def get_smb_history(
+    sort_by: Optional[str] = Query(None, description="Field to sort by"),
+    sort_order: Optional[str] = Query(None, description="Sort direction: asc or desc"),
     page: int = Query(1, ge=1, description="Page number (1-based)"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page (max 100)"),
     current_user: UserOut = Depends(require_role("smb_owner")),
@@ -41,8 +44,19 @@ def get_smb_history(
             detail="User account is not linked to any organization.",
         )
 
+    order_by = validate_and_resolve_sort(
+        sort_by=sort_by,
+        sort_order=sort_order,
+        allowed_fields=HISTORY_SORT_FIELDS,
+        default_clause="ps.created_at DESC",
+    )
     repo = HistoryRepository(cursor)
-    raw_history = repo.get_smb_history(tenant_id=int(current_user.tenant_id), page=page, page_size=page_size)
+    raw_history = repo.get_smb_history(
+        tenant_id=int(current_user.tenant_id),
+        page=page,
+        page_size=page_size,
+        order_by=order_by,
+    )
     if isinstance(raw_history, tuple) and len(raw_history) == 2:
         items, total = raw_history
     else:
@@ -69,6 +83,8 @@ def get_smb_history(
 def get_team_history(
     status_filter: Optional[str] = Query(None, alias="status", description="Filter submissions by status"),
     tenant_filter: Optional[str] = Query(None, alias="tenant", description="Filter submissions by tenant business name or ID"),
+    sort_by: Optional[str] = Query(None, description="Field to sort by"),
+    sort_order: Optional[str] = Query(None, description="Sort direction: asc or desc"),
     page: int = Query(1, ge=1, description="Page number (1-based)"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page (max 100)"),
     current_user: UserOut = Depends(require_role("team_member", "admin")),
@@ -77,6 +93,12 @@ def get_team_history(
     """
     Return operational submission history scoped to assigned tenants (or all for Admin) with server-side pagination.
     """
+    order_by = validate_and_resolve_sort(
+        sort_by=sort_by,
+        sort_order=sort_order,
+        allowed_fields=HISTORY_SORT_FIELDS,
+        default_clause="ps.created_at DESC",
+    )
     repo = HistoryRepository(cursor)
     raw_history = repo.get_team_history(
         user_id=current_user.id,
@@ -85,6 +107,7 @@ def get_team_history(
         tenant_filter=tenant_filter,
         page=page,
         page_size=page_size,
+        order_by=order_by,
     )
     if isinstance(raw_history, tuple) and len(raw_history) == 2:
         items, total = raw_history
@@ -111,6 +134,8 @@ def get_team_history(
 def get_admin_history(
     status_filter: Optional[str] = Query(None, alias="status", description="Filter submissions by status"),
     tenant_filter: Optional[str] = Query(None, alias="tenant", description="Filter submissions by tenant business name or ID"),
+    sort_by: Optional[str] = Query(None, description="Field to sort by"),
+    sort_order: Optional[str] = Query(None, description="Sort direction: asc or desc"),
     page: int = Query(1, ge=1, description="Page number (1-based)"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page (max 100)"),
     current_user: UserOut = Depends(require_role("admin")),
@@ -119,12 +144,19 @@ def get_admin_history(
     """
     Return system-wide submission history explicitly identifying which Team Member handled each batch with server-side pagination.
     """
+    order_by = validate_and_resolve_sort(
+        sort_by=sort_by,
+        sort_order=sort_order,
+        allowed_fields=HISTORY_SORT_FIELDS,
+        default_clause="ps.created_at DESC",
+    )
     repo = HistoryRepository(cursor)
     raw_history = repo.get_admin_history(
         status_filter=status_filter,
         tenant_filter=tenant_filter,
         page=page,
         page_size=page_size,
+        order_by=order_by,
     )
     if isinstance(raw_history, tuple) and len(raw_history) == 2:
         items, total = raw_history

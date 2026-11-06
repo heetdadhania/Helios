@@ -42,6 +42,8 @@ AS BEGIN
           ON c.tenant_id = s.tenant_id
          AND (
               (s.customer_id LIKE '%@%' AND c.email = lower(trim(s.customer_id)))
+              OR (c.customer_name = s.customer_name AND coalesce(c.segment, 'Consumer') = coalesce(s.segment, 'Consumer'))
+              OR c.customer_name = s.customer_name
               OR c.customer_name = s.customer_id
          )
         LEFT JOIN helios.gold.dim_date d

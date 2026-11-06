@@ -57,7 +57,6 @@ PRESERVED_TABLES = [
     f"{CATALOG}.platform.tenants",
     f"{CATALOG}.platform.users",
     f"{CATALOG}.platform.team_assignments",
-    f"{CATALOG}.platform.api_keys",
     f"{CATALOG}.platform.db_connections",
     f"{CATALOG}.gold.dim_date",
     f"{CATALOG}.gold.dim_shipping_mode",

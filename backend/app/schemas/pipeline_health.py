@@ -10,7 +10,7 @@ class PipelineRunOut(BaseModel):
     tenant_id: int = Field(..., description="ID of the tenant data owner")
     tenant: Optional[str] = Field(None, description="Business name or display label of tenant")
     tenant_name: Optional[str] = Field(None, description="Business name of tenant")
-    source_type: str = Field("upload", description="Ingestion channel: upload, db_connection, api_push")
+    source_type: str = Field("upload", description="Ingestion channel: upload, db_connection")
     current_stage: str = Field(..., description="Current or stopped stage of execution")
     status: str = Field(..., description="Pipeline execution state")
     started_at: Optional[datetime] = Field(None, description="Batch initiation timestamp")

@@ -69,6 +69,7 @@ class PipelineHealthRepository:
         tenant_filter: Optional[str] = None,
         page: int = 1,
         page_size: int = 20,
+        order_by: str = "ps.created_at DESC",
     ) -> Tuple[List[Dict[str, Any]], int]:
         """
         List all pipeline runs with server-side pagination.
@@ -149,7 +150,7 @@ class PipelineHealthRepository:
                 LEFT JOIN {self.tenants_table} t ON ps.tenant_id = t.tenant_id
                 LEFT JOIN {self.pending_table} pu ON ps.upload_id = pu.upload_id
                 {where_sql}
-                ORDER BY ps.created_at DESC
+                ORDER BY {order_by}
                 LIMIT :limit OFFSET :offset
             """
             items = self._fetch_all(query, item_params)
@@ -193,7 +194,7 @@ class PipelineHealthRepository:
             LEFT JOIN {self.tenants_table} t ON ps.tenant_id = t.tenant_id
             LEFT JOIN {self.pending_table} pu ON ps.upload_id = pu.upload_id
             {where_sql}
-            ORDER BY ps.created_at DESC
+            ORDER BY {order_by}
             LIMIT :limit OFFSET :offset
         """
         items = self._fetch_all(query, item_params)
@@ -384,27 +385,15 @@ class PipelineHealthRepository:
         details: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Record an administrative or operational event in meta.audit_trail."""
-        try:
-            query = f"""
-                INSERT INTO `{self.catalog}`.`meta`.`audit_trail` (
-                    occurred_at, actor_user_id, actor_role, action, tenant_id, batch_id, reason, details_json
-                )
-                VALUES (
-                    current_timestamp(), :actor_user_id, :actor_role, :action, :tenant_id, :batch_id, :reason, :details_json
-                )
-            """
-            self.cursor.execute(
-                query,
-                {
-                    "actor_user_id": actor_user_id,
-                    "actor_role": actor_role,
-                    "action": action,
-                    "tenant_id": tenant_id,
-                    "batch_id": batch_id,
-                    "reason": reason,
-                    "details_json": json.dumps(details) if details else None,
-                },
-            )
-        except Exception as e:
-            logger.warning("Failed to record audit trail in PipelineHealth: %s", e)
+        from app.services.audit_service import write_audit_log
+        write_audit_log(
+            cursor=self.cursor,
+            actor_user_id=actor_user_id,
+            actor_role=actor_role,
+            action=action,
+            tenant_id=tenant_id,
+            batch_id=batch_id,
+            reason=reason,
+            details=details,
+        )
 

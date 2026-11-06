@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   AlertTriangle,
   Search,
@@ -14,8 +15,16 @@ import {
 import { DataQualityLogItem } from '@/types/admin';
 import { adminService } from '@/services/adminService';
 import { Pagination } from '@/components/ui/Pagination';
+import { SortControl, SortOption } from '@/components/ui/SortControl';
 import { usePaginatedData } from '@/hooks/usePaginatedData';
 import { useOrganizations } from '@/hooks/useOrganizations';
+
+const DATA_QUALITY_SORT_OPTIONS: SortOption[] = [
+  { value: 'time', label: 'Time' },
+  { value: 'organization', label: 'Organization' },
+  { value: 'table', label: 'Table' },
+  { value: 'reason', label: 'Reason' },
+];
 
 export const DataQualityLog: React.FC = () => {
   const {
@@ -24,11 +33,14 @@ export const DataQualityLog: React.FC = () => {
     error: orgsError,
     refetch: retryOrgs,
   } = useOrganizations();
+  const [searchParams] = useSearchParams();
   const [selectedTenant, setSelectedTenant] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedLog, setSelectedLog] = useState<DataQualityLogItem | null>(null);
   const [downloadingBatchId, setDownloadingBatchId] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const sortBy = searchParams.get('sort_by') || '';
+  const sortOrder = (searchParams.get('sort_order') as 'asc' | 'desc') || 'desc';
 
   const {
     data: logs,
@@ -45,9 +57,11 @@ export const DataQualityLog: React.FC = () => {
         params.tenant !== 'all' ? params.tenant : undefined,
         undefined,
         params.page,
-        params.pageSize
+        params.pageSize,
+        params.sortBy,
+        params.sortOrder
       ),
-    filters: { tenant: selectedTenant, search: searchQuery },
+    filters: { tenant: selectedTenant, search: searchQuery, sortBy, sortOrder },
     pageSize: 20,
   });
 
@@ -172,43 +186,46 @@ export const DataQualityLog: React.FC = () => {
           />
         </div>
 
-        {/* Organization Filter Dropdown */}
-        <div className="flex items-center gap-2">
-          <Filter className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-xs text-slate-400">Filter by Organization:</span>
-          {isOrgsLoading ? (
-            <div className="h-8 w-36 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
-          ) : orgsError ? (
-            <div className="flex items-center gap-1.5 text-rose-500 text-xs">
-              <span>Failed to load</span>
-              <button
-                type="button"
-                onClick={retryOrgs}
-                className="underline font-semibold hover:text-rose-600"
+        {/* Organization Filter Dropdown & Sort Controls */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Filter className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-xs text-slate-400">Filter by Organization:</span>
+            {isOrgsLoading ? (
+              <div className="h-8 w-36 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+            ) : orgsError ? (
+              <div className="flex items-center gap-1.5 text-rose-500 text-xs">
+                <span>Failed to load</span>
+                <button
+                  type="button"
+                  onClick={retryOrgs}
+                  className="underline font-semibold hover:text-rose-600"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : (
+              <select
+                value={selectedTenant}
+                onChange={(e) => setSelectedTenant(e.target.value)}
+                className="px-3 py-1.5 text-xs rounded-xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
               >
-                Retry
-              </button>
-            </div>
-          ) : (
-            <select
-              value={selectedTenant}
-              onChange={(e) => setSelectedTenant(e.target.value)}
-              className="px-3 py-1.5 text-xs rounded-xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
-            >
-              {tenants.length === 0 ? (
-                <option value="">No organizations are assigned to you yet. Contact your admin.</option>
-              ) : (
-                <>
-                  {tenants.length > 1 && <option value="all">All Organizations</option>}
-                  {tenants.map((t) => (
-                    <option key={t.tenant_id} value={t.tenant_id}>
-                      {t.business_name || t.name}
-                    </option>
-                  ))}
-                </>
-              )}
-            </select>
-          )}
+                {tenants.length === 0 ? (
+                  <option value="">No organizations are assigned to you yet. Contact your admin.</option>
+                ) : (
+                  <>
+                    {tenants.length > 1 && <option value="all">All Organizations</option>}
+                    {tenants.map((t) => (
+                      <option key={t.tenant_id} value={t.tenant_id}>
+                        {t.business_name || t.name}
+                      </option>
+                    ))}
+                  </>
+                )}
+              </select>
+            )}
+          </div>
+          <SortControl options={DATA_QUALITY_SORT_OPTIONS} defaultSortOrder="desc" />
         </div>
       </div>
 

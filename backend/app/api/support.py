@@ -7,6 +7,7 @@ except ImportError:
     Cursor = Any  # type: ignore
 
 from app.core.dependencies import get_db_cursor, require_role
+from app.core.sorting import SUPPORT_SORT_FIELDS, validate_and_resolve_sort
 from app.repositories.support_repository import SupportRepository
 from app.schemas.auth import UserOut
 from app.schemas.common import PaginatedResponse
@@ -96,6 +97,8 @@ def create_support_message(
 )
 def get_support_messages(
     status_filter: Optional[str] = Query(None, alias="status", description="Filter messages by status: open, resolved, all"),
+    sort_by: Optional[str] = Query(None, description="Field to sort by"),
+    sort_order: Optional[str] = Query(None, description="Sort direction: asc or desc"),
     page: int = Query(1, ge=1, description="Page number (1-based)"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page (max 100)"),
     current_user: UserOut = Depends(require_role("team_member", "admin")),
@@ -104,6 +107,12 @@ def get_support_messages(
     """
     List messages received by the caller (Team Member) or all (Admin) with server-side pagination.
     """
+    order_by = validate_and_resolve_sort(
+        sort_by=sort_by,
+        sort_order=sort_order,
+        allowed_fields=SUPPORT_SORT_FIELDS,
+        default_clause="sm.created_at DESC",
+    )
     repo = SupportRepository(cursor)
     return SupportService.get_messages(
         user_id=current_user.id,
@@ -112,6 +121,7 @@ def get_support_messages(
         repo=repo,
         page=page,
         page_size=page_size,
+        order_by=order_by,
     )
 
 

@@ -303,31 +303,20 @@ class UserRepository(BaseRepository):
         tenant_id: Optional[int] = None,
         reason: Optional[str] = None,
         details_json: Optional[str] = None,
+        batch_id: Optional[str] = None,
     ) -> None:
         """Insert immutable administrative or security audit row into meta.audit_trail."""
-        audit_table = f"`{self.catalog}`.`meta`.`audit_trail`"
-        query = f"""
-            INSERT INTO {audit_table} (
-                occurred_at, actor_user_id, actor_role, action, tenant_id, batch_id, reason, details_json
-            )
-            VALUES (
-                current_timestamp(), :actor_user_id, :actor_role, :action, :tenant_id, NULL, :reason, :details_json
-            )
-        """
-        try:
-            self.execute_non_query(
-                query,
-                {
-                    "actor_user_id": actor_user_id,
-                    "actor_role": actor_role,
-                    "action": action,
-                    "tenant_id": tenant_id,
-                    "reason": reason,
-                    "details_json": details_json,
-                },
-            )
-        except Exception as exc:
-            logger.error("Failed to write to meta.audit_trail: %s", exc)
+        from app.services.audit_service import write_audit_log
+        write_audit_log(
+            cursor=self.cursor,
+            actor_user_id=actor_user_id,
+            actor_role=actor_role,
+            action=action,
+            tenant_id=tenant_id,
+            batch_id=batch_id,
+            reason=reason,
+            details=details_json,
+        )
 
     def get_owner_by_tenant_id(self, tenant_id: int) -> Optional[Dict[str, Any]]:
         """

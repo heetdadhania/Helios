@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import List, Optional
 from pydantic import BaseModel, Field
 
@@ -148,4 +149,72 @@ class DashboardSummaryResponse(BaseModel):
     has_data: bool = Field(False, description="Flag indicating whether organization has any data")
 
     model_config = {"from_attributes": True}
+
+
+# --- 7. Revenue by Product Category Schemas ---
+class CategoryRevenueItem(BaseModel):
+    """Product category revenue breakdown."""
+
+    category: str = Field(..., description="Product category classification")
+    revenue: Decimal = Field(..., description="Total net revenue for this category in INR")
+    percentage: float = Field(..., description="Percentage contribution to total organization revenue (0.0 - 100.0)")
+    order_count: int = Field(..., description="Distinct completed orders in this category")
+
+    model_config = {"from_attributes": True}
+
+
+class RevenueByCategoryResponse(BaseModel):
+    """Response payload for revenue aggregated by product category."""
+
+    total_revenue: Decimal = Field(..., description="Cumulative revenue across all categories in INR")
+    categories: List[CategoryRevenueItem] = Field(default_factory=list, description="Ranked category revenue items")
+    days: Optional[int] = Field(None, description="Lookback window in calendar days (None if all-time)")
+    data_as_of: Optional[str] = Field(None, description="Anchor date for lookback window in ISO format YYYY-MM-DD")
+
+
+# --- 8. Revenue by Customer Segment Schemas ---
+class SegmentRevenueItem(BaseModel):
+    """Customer segment revenue breakdown."""
+
+    segment: str = Field(..., description="Customer market segment (Consumer, Corporate, Home Office)")
+    revenue: Decimal = Field(..., description="Total net revenue for this segment in INR")
+    percentage: float = Field(..., description="Percentage contribution to total organization revenue (0.0 - 100.0)")
+    order_count: int = Field(..., description="Distinct completed orders in this segment")
+
+    model_config = {"from_attributes": True}
+
+
+class RevenueBySegmentResponse(BaseModel):
+    """Response payload for revenue aggregated by customer segment."""
+
+    total_revenue: Decimal = Field(..., description="Cumulative revenue across all segments in INR")
+    segments: List[SegmentRevenueItem] = Field(default_factory=list, description="Segment revenue breakdown items")
+    days: Optional[int] = Field(None, description="Lookback window in calendar days (None if all-time)")
+    data_as_of: Optional[str] = Field(None, description="Anchor date for lookback window in ISO format YYYY-MM-DD")
+
+
+# --- 9. Month-over-Month Revenue Schemas ---
+class MonthlyRevenueItem(BaseModel):
+    """Monthly revenue and month-over-month growth item."""
+
+    year: int = Field(..., description="Four digit calendar year")
+    month: int = Field(..., description="Calendar month number (1-12)")
+    month_name: str = Field(..., description="Formatted month label (e.g. Jul 2026)")
+    month_key: str = Field(..., description="Chronological sort key YYYY-MM")
+    revenue: Decimal = Field(..., description="Total net revenue for this month in INR")
+    previous_month_revenue: Optional[Decimal] = Field(None, description="Prior month revenue for comparison in INR")
+    mom_growth_pct: Optional[float] = Field(None, description="Percentage growth from previous month (+/-)")
+    order_count: int = Field(..., description="Distinct completed orders in this month")
+
+    model_config = {"from_attributes": True}
+
+
+class MonthlyRevenueResponse(BaseModel):
+    """Response payload for monthly chronological revenue trend and MoM growth."""
+
+    total_revenue: Decimal = Field(..., description="Cumulative revenue across all reported months in INR")
+    months: List[MonthlyRevenueItem] = Field(default_factory=list, description="Chronological monthly revenue series")
+    days: Optional[int] = Field(None, description="Lookback window in calendar days (None if all-time)")
+    data_as_of: Optional[str] = Field(None, description="Anchor date for lookback window in ISO format YYYY-MM-DD")
+
 

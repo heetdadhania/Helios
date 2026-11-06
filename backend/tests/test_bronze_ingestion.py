@@ -12,7 +12,7 @@ from pipeline.ingestion.run_bronze import run_bronze_ingestion
 
 
 class TestReadSource(unittest.TestCase):
-    """Test source normalization across CSV, Excel, DB queries, and API push."""
+    """Test source normalization across CSV, Excel, and DB queries."""
 
     def test_read_csv_bytes(self):
         csv_bytes = b"order_id,amount,status\nORD-1,100.50,completed\nORD-2,75.00,pending\n"
@@ -44,7 +44,7 @@ class TestReadSource(unittest.TestCase):
         self.assertEqual(records[0], {"order_id": "ORD-1", "customer_id": "CUST-A", "total": 150.0})
         self.assertEqual(records[1], {"order_id": "ORD-2", "customer_id": "CUST-B", "total": 250.0})
 
-    def test_read_api_push_dict_list(self):
+    def test_read_dict_list(self):
         payload_records = [
             {"order_id": "ORD-501", "amount": 99.0},
             {"order_id": "ORD-502", "amount": 149.0},
@@ -111,7 +111,7 @@ class TestBronzeLoader(unittest.TestCase):
             cursor=mock_cursor,
             tenant_id=7,
             batch_id="batch-uuid-456",
-            source_type="api_push",
+            source_type="upload",
             records=records,
             target_table="raw_shipping",
         )
@@ -120,7 +120,7 @@ class TestBronzeLoader(unittest.TestCase):
         mock_cursor.execute.assert_called_once()
         sql, params = mock_cursor.execute.call_args[0]
         self.assertIn("INSERT INTO `helios`.`bronze`.`raw_shipping`", sql)
-        self.assertEqual(params["source_type"], "api_push")
+        self.assertEqual(params["source_type"], "upload")
 
 
 class TestRunBronzeOrchestration(unittest.TestCase):

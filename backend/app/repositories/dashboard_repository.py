@@ -1,6 +1,7 @@
 import logging
 import time
 from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
 try:
@@ -75,6 +76,7 @@ class DashboardRepository:
         self.dim_date_table = f"`{self.catalog}`.`gold`.`dim_date`"
         self.fact_orders_table = f"`{self.catalog}`.`gold`.`fact_orders`"
         self.dim_product_table = f"`{self.catalog}`.`gold`.`dim_product`"
+        self.dim_customer_table = f"`{self.catalog}`.`gold`.`dim_customer`"
         self.fact_shipments_table = f"`{self.catalog}`.`gold`.`fact_shipments`"
         self.dim_shipping_mode_table = f"`{self.catalog}`.`gold`.`dim_shipping_mode`"
         self.dim_delivery_status_table = f"`{self.catalog}`.`gold`.`dim_delivery_status`"
@@ -553,4 +555,134 @@ class DashboardRepository:
             "latest_submission_batch_id": latest_batch_id,
             "has_data": has_data,
         }
+
+    def get_revenue_by_category(
+        self,
+        tenant_id: int,
+        days: Optional[int] = None,
+        anchor_date: Optional[date] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Query fact_orders joined with dim_product strictly scoped to tenant_id
+        for revenue aggregated by product category.
+        """
+        if anchor_date is None and days is not None:
+            anchor_date = self.get_latest_data_date(tenant_id)
+
+        start_date_id, end_date_id = calculate_date_window(anchor_date, days)
+
+        where_clauses = ["fo.tenant_id = :tenant_id"]
+        params: Dict[str, Any] = {"tenant_id": tenant_id}
+        if days is not None:
+            params["days"] = days
+
+        if start_date_id is not None:
+            where_clauses.append("fo.date_id >= :start_date_id")
+            params["start_date_id"] = start_date_id
+        if end_date_id is not None:
+            where_clauses.append("fo.date_id <= :end_date_id")
+            params["end_date_id"] = end_date_id
+
+        where_sql = " AND ".join(where_clauses)
+        query = f"""
+            SELECT
+                coalesce(p.category, 'Uncategorized') AS category,
+                round(sum(coalesce(fo.total, 0.0)), 2) AS revenue,
+                count(DISTINCT fo.source_order_id) AS order_count
+            FROM {self.fact_orders_table} fo
+            INNER JOIN {self.dim_product_table} p
+               ON fo.product_id = p.product_id
+              AND fo.tenant_id = p.tenant_id
+            WHERE {where_sql}
+            GROUP BY coalesce(p.category, 'Uncategorized')
+            ORDER BY revenue DESC
+        """
+        return self._execute_query_with_retry(query, params)
+
+    def get_revenue_by_segment(
+        self,
+        tenant_id: int,
+        days: Optional[int] = None,
+        anchor_date: Optional[date] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Query fact_orders joined with dim_customer strictly scoped to tenant_id
+        for revenue aggregated by customer market segment.
+        """
+        if anchor_date is None and days is not None:
+            anchor_date = self.get_latest_data_date(tenant_id)
+
+        start_date_id, end_date_id = calculate_date_window(anchor_date, days)
+
+        where_clauses = ["fo.tenant_id = :tenant_id"]
+        params: Dict[str, Any] = {"tenant_id": tenant_id}
+        if days is not None:
+            params["days"] = days
+
+        if start_date_id is not None:
+            where_clauses.append("fo.date_id >= :start_date_id")
+            params["start_date_id"] = start_date_id
+        if end_date_id is not None:
+            where_clauses.append("fo.date_id <= :end_date_id")
+            params["end_date_id"] = end_date_id
+
+        where_sql = " AND ".join(where_clauses)
+        query = f"""
+            SELECT
+                coalesce(c.segment, 'Other') AS segment,
+                round(sum(coalesce(fo.total, 0.0)), 2) AS revenue,
+                count(DISTINCT fo.source_order_id) AS order_count
+            FROM {self.fact_orders_table} fo
+            INNER JOIN {self.dim_customer_table} c
+               ON fo.customer_id = c.customer_id
+              AND fo.tenant_id = c.tenant_id
+            WHERE {where_sql}
+            GROUP BY coalesce(c.segment, 'Other')
+            ORDER BY revenue DESC
+        """
+        return self._execute_query_with_retry(query, params)
+
+    def get_monthly_revenue(
+        self,
+        tenant_id: int,
+        days: Optional[int] = None,
+        anchor_date: Optional[date] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Query fact_orders joined with dim_date strictly scoped to tenant_id
+        for monthly chronological revenue.
+        """
+        if anchor_date is None and days is not None:
+            anchor_date = self.get_latest_data_date(tenant_id)
+
+        start_date_id, end_date_id = calculate_date_window(anchor_date, days)
+
+        where_clauses = ["fo.tenant_id = :tenant_id"]
+        params: Dict[str, Any] = {"tenant_id": tenant_id}
+        if days is not None:
+            params["days"] = days
+
+        if start_date_id is not None:
+            where_clauses.append("fo.date_id >= :start_date_id")
+            params["start_date_id"] = start_date_id
+        if end_date_id is not None:
+            where_clauses.append("fo.date_id <= :end_date_id")
+            params["end_date_id"] = end_date_id
+
+        where_sql = " AND ".join(where_clauses)
+        query = f"""
+            SELECT
+                d.year,
+                d.month,
+                round(sum(coalesce(fo.total, 0.0)), 2) AS revenue,
+                count(DISTINCT fo.source_order_id) AS order_count
+            FROM {self.fact_orders_table} fo
+            INNER JOIN {self.dim_date_table} d
+               ON fo.date_id = d.date_id
+            WHERE {where_sql}
+            GROUP BY d.year, d.month
+            ORDER BY d.year ASC, d.month ASC
+        """
+        return self._execute_query_with_retry(query, params)
+
 

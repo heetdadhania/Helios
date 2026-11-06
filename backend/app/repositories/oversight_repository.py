@@ -25,6 +25,7 @@ class OversightRepository:
         self.pipeline_table = f"`{self.catalog}`.`platform`.`pipeline_status`"
         self.audit_table = f"`{self.catalog}`.`meta`.`etl_audit_log`"
         self.dq_table = f"`{self.catalog}`.`meta`.`data_quality_log`"
+        self.audit_trail_table = f"`{self.catalog}`.`meta`.`audit_trail`"
         self.shipments_table = f"`{self.catalog}`.`gold`.`fact_shipments`"
         self.orders_table = f"`{self.catalog}`.`gold`.`fact_orders`"
         self.summary_table = f"`{self.catalog}`.`gold`.`fact_orders_daily_summary`"
@@ -508,14 +509,45 @@ class OversightRepository:
             {dq_where_sql}
         """
 
+        at_where: List[str] = []
+        at_params: Dict[str, Any] = {}
+        if start_date:
+            at_where.append("to_date(at.occurred_at) >= :start_date")
+            at_params["start_date"] = start_date
+        if end_date:
+            at_where.append("to_date(at.occurred_at) <= :end_date")
+            at_params["end_date"] = end_date
+
+        at_where_sql = f"WHERE {' AND '.join(at_where)}" if at_where else ""
+
+        at_query = f"""
+            SELECT 
+                'audit_trail' AS log_type,
+                at.audit_id AS log_id,
+                cast(at.occurred_at AS string) AS timestamp,
+                coalesce(at.batch_id, '') AS batch_id,
+                coalesce(at.tenant_id, 0) AS tenant_id,
+                coalesce(t.business_name, 'System') AS tenant_name,
+                at.action AS stage_or_table,
+                coalesce(at.reason, at.actor_role, 'N/A') AS status_or_reason,
+                concat('Actor: ', coalesce(u.name, cast(at.actor_user_id AS string), 'System'), ' (', coalesce(at.actor_role, 'system'), ')') AS row_count_or_identifier,
+                coalesce(at.details_json, '') AS error_detail
+            FROM {self.audit_trail_table} at
+            LEFT JOIN {self.users_table} u ON at.actor_user_id = u.user_id
+            LEFT JOIN {self.tenants_table} t ON at.tenant_id = t.tenant_id
+            {at_where_sql}
+        """
+
         combined_query = f"""
             {audit_query}
             UNION ALL
             {dq_query}
+            UNION ALL
+            {at_query}
             ORDER BY timestamp DESC
             LIMIT 5000
         """
-        combined_params = {**audit_params, **dq_params}
+        combined_params = {**audit_params, **dq_params, **at_params}
         try:
             return self._fetch_all(combined_query, combined_params if combined_params else None)
         except Exception as exc:

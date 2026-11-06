@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Inbox,
   CheckCircle2,
@@ -19,12 +20,23 @@ import { SupportMessage } from '@/types/support';
 import { formatDateTimeIN } from '@/utils/currency';
 import { usePaginatedData } from '@/hooks/usePaginatedData';
 import { Pagination } from '@/components/ui/Pagination';
+import { SortControl, SortOption } from '@/components/ui/SortControl';
+
+const SUPPORT_SORT_OPTIONS: SortOption[] = [
+  { value: 'date', label: 'Date' },
+  { value: 'organization', label: 'Organization' },
+  { value: 'status', label: 'Status' },
+  { value: 'source', label: 'Source' },
+];
 
 export const SupportInbox: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sourceFilter, setSourceFilter] = useState<'all' | 'flagged' | 'smb'>('all');
   const [resolvingId, setResolvingId] = useState<number | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const sortBy = searchParams.get('sort_by') || '';
+  const sortOrder = (searchParams.get('sort_order') as 'asc' | 'desc') || 'desc';
 
   const {
     data: messages,
@@ -37,8 +49,8 @@ export const SupportInbox: React.FC = () => {
     refetch: fetchMessages,
     setData: setMessages,
   } = usePaginatedData<SupportMessage>({
-    fetchFn: (params) => supportService.getMessages(params.status, params.page, params.pageSize),
-    filters: { status: statusFilter },
+    fetchFn: (params) => supportService.getMessages(params.status, params.page, params.pageSize, params.sortBy, params.sortOrder),
+    filters: { status: statusFilter, sortBy, sortOrder },
     pageSize: 20,
   });
 
@@ -199,8 +211,11 @@ export const SupportInbox: React.FC = () => {
           </div>
         </div>
 
-        <div className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-medium">
-          Showing {displayedMessages.length} message{displayedMessages.length === 1 ? '' : 's'}
+        <div className="flex flex-wrap items-center gap-3">
+          <SortControl options={SUPPORT_SORT_OPTIONS} defaultSortOrder="desc" />
+          <div className="text-xs text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-medium whitespace-nowrap">
+            Showing {displayedMessages.length} message{displayedMessages.length === 1 ? '' : 's'}
+          </div>
         </div>
       </div>
 

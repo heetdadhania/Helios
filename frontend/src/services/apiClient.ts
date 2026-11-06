@@ -47,29 +47,4 @@ apiClient.interceptors.response.use(
   }
 );
 
-/**
- * Dedicated Non-JWT API Push Client for Module 5.
- * Authenticates exclusively via the X-Helios-Api-Key header without sending Bearer tokens.
- */
-export function createApiKeyClient(apiKey: string): AxiosInstance {
-  const client = axios.create({
-    baseURL: BASE_URL,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Helios-Api-Key': apiKey.trim(),
-    },
-    timeout: 30000,
-  });
-
-  client.interceptors.response.use(
-    (response) => response,
-    (error: AxiosError) => {
-      // Do not redirect to login on 401 for programmatic API key calls
-      return Promise.reject(error);
-    }
-  );
-
-  return client;
-}
-
 export default apiClient;

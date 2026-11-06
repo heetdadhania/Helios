@@ -43,13 +43,13 @@ class TestConfirmationSchemas(unittest.TestCase):
             tenant_id=2,
             detected_template="template_shipping",
             confidence_score=0.92,
-            source_type="api_push",
+            source_type="db_connection",
             column_mapping={"track_no": {"target_field": "tracking_number", "similarity_score": 90.0}},
             sample_rows=[{"track_no": "TRK12345", "carrier": "FedEx"}],
             internal_notes="Verified against carrier tracking schema.",
         )
         self.assertEqual(preview.batch_id, "batch-preview")
-        self.assertEqual(preview.source_type, "api_push")
+        self.assertEqual(preview.source_type, "db_connection")
         self.assertEqual(len(preview.sample_rows), 1)
         self.assertEqual(preview.internal_notes, "Verified against carrier tracking schema.")
 
@@ -105,7 +105,7 @@ class TestConfirmationRepository(unittest.TestCase):
         ]
         self.mock_cursor.fetchall.return_value = [
             ("b1", 1, None, "schema_inference", "awaiting_confirmation", None, None, "template_orders", 0.95, "upload"),
-            ("b2", 2, None, "schema_inference", "awaiting_confirmation", None, None, "template_shipping", 0.88, "api_push"),
+            ("b2", 2, None, "schema_inference", "awaiting_confirmation", None, None, "template_shipping", 0.88, "db_connection"),
         ]
         self.mock_cursor.fetchone.return_value = (2,)
 
@@ -254,7 +254,7 @@ class TestConfirmationService(unittest.TestCase):
         req = ConfirmRequest(confirmed_template="template_orders")
         with self.assertRaises(Exception) as cm:
             ConfirmationService.confirm_mapping("batch-running", req, self.team_user, self.mock_repo)
-        self.assertEqual(cm.exception.status_code, 400)
+        self.assertEqual(cm.exception.status_code, 409)
 
     @patch("app.services.confirmation_service.trigger_silver_stage")
     def test_confirm_mapping_success(self, mock_trigger):

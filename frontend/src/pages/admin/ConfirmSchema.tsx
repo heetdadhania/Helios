@@ -8,7 +8,6 @@ import {
   Database,
   Table,
   UploadCloud,
-  Key,
   ShieldCheck,
   Loader2,
   Info,
@@ -225,13 +224,6 @@ export const ConfirmSchema: React.FC = () => {
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
             <Database className="w-3.5 h-3.5" />
             <span>Replication Sync</span>
-          </span>
-        );
-      case 'api_push':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
-            <Key className="w-3.5 h-3.5" />
-            <span>API Event Stream</span>
           </span>
         );
       default:

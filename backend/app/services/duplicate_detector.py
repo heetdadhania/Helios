@@ -61,7 +61,7 @@ class DuplicateDetector:
     @staticmethod
     def compute_rows_hash(records: List[Dict[str, Any]]) -> str:
         """
-        Compute SHA-256 hash for database sync and API push records in a fixed order and format.
+        Compute SHA-256 hash for database sync records in a fixed order and format.
         Serializes each row into deterministic JSON with sorted keys.
         """
         canonical_rows = [
@@ -298,43 +298,26 @@ class DuplicateDetector:
                     detail="override_reason must be at least 5 characters.",
                 )
 
-            # Write audit_trail record
-            audit_table = f"`{catalog}`.`meta`.`audit_trail`"
-            audit_query = f"""
-                INSERT INTO {audit_table} (
-                    actor_user_id, actor_role, action, tenant_id, batch_id, reason, details_json, occurred_at
-                )
-                VALUES (
-                    :actor_user_id, :actor_role, 'duplicate_override', :tenant_id, :batch_id, :reason, :details_json, current_timestamp()
-                )
-            """
-            details_json = json.dumps({
+            # Write audit_trail record via centralized helper
+            details_dict = {
                 "matched": conflict["matched"],
                 "prior_batch_id": conflict["batch_id"],
                 "prior_submitted_by": conflict["submitted_by"],
                 "prior_submitted_at": conflict["submitted_at"],
                 "overlapping_rows": conflict["overlapping_rows"],
                 "file_hash": file_hash,
-            })
-            params = {
-                "actor_user_id": acting_user_id,
-                "actor_role": acting_user_role or "system",
-                "tenant_id": tenant_id,
-                "batch_id": new_batch_id,
-                "reason": override_reason.strip(),
-                "details_json": details_json,
             }
-            max_retries = 5
-            for attempt in range(max_retries):
-                try:
-                    cursor.execute(audit_query, params)
-                    break
-                except Exception as exc:
-                    if "DELTA_METADATA_CHANGED" in str(exc) and attempt < max_retries - 1:
-                        logger.warning("Delta concurrency conflict writing audit_trail, retrying (%d/%d)...", attempt + 1, max_retries)
-                        time.sleep(1.0 * (attempt + 1))
-                        continue
-                    raise
+            from app.services.audit_service import write_audit_log
+            write_audit_log(
+                cursor=cursor,
+                actor_user_id=acting_user_id,
+                actor_role=acting_user_role or "system",
+                action="duplicate_override",
+                tenant_id=tenant_id,
+                batch_id=new_batch_id,
+                reason=override_reason.strip(),
+                details=details_dict,
+            )
             logger.info(
                 "Duplicate submission overridden for tenant %d (new_batch=%s, matched=%s, reason=%s)",
                 tenant_id,

@@ -28,7 +28,6 @@ SQL_EXECUTION_ORDER: List[str] = [
     "platform/03_team_assignments.sql",
     "platform/04_pending_uploads.sql",
     "platform/05_db_connections.sql",
-    "platform/06_api_keys.sql",
     "platform/07_pipeline_status.sql",
     "platform/08_inferred_schema.sql",
     "platform/09_notification_log.sql",

@@ -1,15 +1,12 @@
 from fastapi import APIRouter
 from app.api.v1.endpoints import auth, datasets, health, tenants
 from app.api.db_connections import router as db_connections_router
-from app.api.api_ingest import router as api_ingest_router
-from app.api.api_keys import router as api_keys_router
 from app.api.pipeline_health import router as pipeline_health_router
 from app.api.export import router as export_router
 from app.api.notifications import router as notifications_router
 from app.api.history import router as history_router
 from app.api.support import router as support_router
 from app.api.oversight import router as oversight_router
-
 from app.api.confirmations import router as confirmations_router
 from app.api.uploads import router as uploads_router
 from app.api.dashboard import router as dashboard_router
@@ -17,6 +14,7 @@ from app.api.data_quality import router as data_quality_router
 from app.api.team import router as team_router
 from app.api.team_home import router as team_home_router
 from app.api.profile import router as profile_router
+from app.api.audit import router as audit_router
 
 api_router = APIRouter()
 
@@ -28,8 +26,6 @@ api_router.include_router(team_router, prefix="/team-members", tags=["Team Membe
 api_router.include_router(team_home_router, prefix="/team", tags=["Team"])
 api_router.include_router(datasets.router, prefix="/datasets", tags=["Datasets"])
 api_router.include_router(db_connections_router, prefix="/db-connections", tags=["Database Connections"])
-api_router.include_router(api_ingest_router, prefix="/ingest", tags=["API Ingestion"])
-api_router.include_router(api_keys_router, prefix="/api-keys", tags=["API Keys"])
 api_router.include_router(pipeline_health_router, prefix="/pipeline", tags=["Pipeline Health"])
 api_router.include_router(export_router, prefix="/export", tags=["Export"])
 api_router.include_router(notifications_router, prefix="/notifications", tags=["Notifications"])
@@ -41,3 +37,4 @@ api_router.include_router(uploads_router, prefix="/uploads", tags=["Uploads"])
 api_router.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboard"])
 api_router.include_router(data_quality_router, prefix="/data-quality", tags=["Data Quality"])
 api_router.include_router(data_quality_router, prefix="/quality", tags=["Quality"])
+api_router.include_router(audit_router, prefix="/audit", tags=["Audit"])

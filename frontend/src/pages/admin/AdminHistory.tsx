@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Search,
   Filter,
@@ -9,20 +10,30 @@ import {
   Inbox,
   Database,
   UploadCloud,
-  Key,
   UserCheck,
 } from 'lucide-react';
 import { historyService } from '@/services/historyService';
 import { AdminHistoryItem } from '@/types/history';
 import { StageStatusBadge } from '@/components/admin/StageStatusBadge';
 import { Pagination } from '@/components/ui/Pagination';
+import { SortControl, SortOption } from '@/components/ui/SortControl';
 import { usePaginatedData } from '@/hooks/usePaginatedData';
 import { formatDateTimeIN } from '@/utils/currency';
 
+const HISTORY_SORT_OPTIONS: SortOption[] = [
+  { value: 'date', label: 'Date' },
+  { value: 'organization', label: 'Organization' },
+  { value: 'source', label: 'Source' },
+  { value: 'status', label: 'Status' },
+];
+
 export const AdminHistory: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [tenantFilter, setTenantFilter] = useState<string>('');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const sortBy = searchParams.get('sort_by') || '';
+  const sortOrder = (searchParams.get('sort_order') as 'asc' | 'desc') || 'desc';
 
   const {
     data: history,
@@ -38,9 +49,11 @@ export const AdminHistory: React.FC = () => {
       historyService.getAdminHistory(
         { status: params.status, tenant: params.tenant },
         params.page,
-        params.pageSize
+        params.pageSize,
+        params.sortBy,
+        params.sortOrder
       ),
-    filters: { status: statusFilter, tenant: tenantFilter },
+    filters: { status: statusFilter, tenant: tenantFilter, sortBy, sortOrder },
     pageSize: 20,
   });
 
@@ -65,8 +78,6 @@ export const AdminHistory: React.FC = () => {
     switch (sourceType?.toLowerCase()) {
       case 'db_connection':
         return <Database className="w-4 h-4 text-emerald-500" />;
-      case 'api_push':
-        return <Key className="w-4 h-4 text-amber-500" />;
       default:
         return <UploadCloud className="w-4 h-4 text-helios-accent-blue" />;
     }
@@ -75,7 +86,6 @@ export const AdminHistory: React.FC = () => {
   const formatSourceLabel = (sourceType?: string) => {
     const norm = (sourceType || '').toLowerCase();
     if (norm === 'db_connection') return 'External Sync';
-    if (norm === 'api_push') return 'API Push';
     if (norm === 'upload') return 'File Upload';
     return sourceType?.replace(/_/g, ' ') || 'Unknown';
   };
@@ -116,26 +126,27 @@ export const AdminHistory: React.FC = () => {
           />
         </form>
 
-        <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-slate-400" />
             <span className="text-xs font-semibold text-helios-text-secondary-light dark:text-helios-text-secondary-dark uppercase tracking-wider">
               Status:
             </span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-1.5 text-xs rounded-lg border border-helios-border-light dark:border-helios-border-dark bg-helios-bg-light dark:bg-helios-bg-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
+            >
+              <option value="all">All Statuses</option>
+              <option value="success">Success</option>
+              <option value="failed">Failed</option>
+              <option value="awaiting_confirmation">Awaiting Review</option>
+              <option value="silver_running">Silver Running</option>
+              <option value="gold_running">Gold Running</option>
+              <option value="ingested">Ingested</option>
+            </select>
           </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-1.5 text-xs rounded-lg border border-helios-border-light dark:border-helios-border-dark bg-helios-bg-light dark:bg-helios-bg-dark text-helios-text-primary-light dark:text-helios-text-primary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue"
-          >
-            <option value="all">All Statuses</option>
-            <option value="success">Success</option>
-            <option value="failed">Failed</option>
-            <option value="awaiting_confirmation">Awaiting Review</option>
-            <option value="silver_running">Silver Running</option>
-            <option value="gold_running">Gold Running</option>
-            <option value="ingested">Ingested</option>
-          </select>
+          <SortControl options={HISTORY_SORT_OPTIONS} defaultSortOrder="desc" />
         </div>
       </div>
 

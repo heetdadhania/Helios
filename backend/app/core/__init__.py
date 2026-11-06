@@ -24,13 +24,6 @@ from app.core.secrets_manager import (
     sanitize_error_message,
     store_db_credential,
 )
-from app.core.api_key_security import (
-    generate_api_key,
-    hash_api_key,
-    mask_api_key,
-    verify_api_key,
-)
-
 __all__ = [
     "settings",
     "HeliosException",
@@ -50,8 +43,4 @@ __all__ = [
     "sanitize_error_message",
     "decode_secret_value",
     "get_databricks_workspace_client",
-    "generate_api_key",
-    "hash_api_key",
-    "verify_api_key",
-    "mask_api_key",
 ]

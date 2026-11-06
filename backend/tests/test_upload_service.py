@@ -125,6 +125,13 @@ class TestUploadAPIEndpoints(unittest.TestCase):
             role=UserRole.TEAM_MEMBER,
             tenant_id=None,
         )
+        self.admin_user = UserOut(
+            id=1,
+            name="Admin System",
+            email="admin@helios.io",
+            role=UserRole.ADMIN,
+            tenant_id=None,
+        )
 
     def tearDown(self):
         app.dependency_overrides.clear()

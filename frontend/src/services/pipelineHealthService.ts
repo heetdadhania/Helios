@@ -19,7 +19,9 @@ export const pipelineHealthService = {
     status?: string,
     tenantId?: string,
     page: number = 1,
-    pageSize: number = 20
+    pageSize: number = 20,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
   ): Promise<PaginatedResponse<PipelineRun>> {
     const params: Record<string, any> = { page, page_size: pageSize };
     if (status && status !== 'all') {
@@ -27,6 +29,12 @@ export const pipelineHealthService = {
     }
     if (tenantId && tenantId !== 'all') {
       params.tenant_id = tenantId;
+    }
+    if (sortBy && sortBy.trim()) {
+      params.sort_by = sortBy.trim();
+    }
+    if (sortOrder) {
+      params.sort_order = sortOrder;
     }
     const response = await api.get<PaginatedResponse<PipelineRun>>(`${PIPELINE_BASE}/runs`, { params });
     return response.data;

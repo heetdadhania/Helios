@@ -96,13 +96,6 @@ def create_application() -> FastAPI:
     from app.api.db_connections import router as db_connections_router
     app.include_router(db_connections_router, prefix="/api/db-connections", tags=["Database Connections"])
 
-    # Include API Push Ingestion Router (/api/ingest)
-    from app.api.api_ingest import router as api_ingest_router
-    app.include_router(api_ingest_router, prefix="/api/ingest", tags=["API Ingestion"])
-
-    # Include API Keys Management Router (/api/api-keys)
-    from app.api.api_keys import router as api_keys_router
-    app.include_router(api_keys_router, prefix="/api/api-keys", tags=["API Keys"])
 
     # Include Customer Analytics Dashboard Router (/api/dashboard)
     from app.api.dashboard import router as dashboard_router
@@ -152,6 +145,10 @@ def create_application() -> FastAPI:
     # Include User Profile Router (/api/profile)
     from app.api.profile import router as profile_router
     app.include_router(profile_router, prefix="/api/profile", tags=["Profile"])
+
+    # Include Audit Trail Router (/api/audit)
+    from app.api.audit import router as audit_router
+    app.include_router(audit_router, prefix="/api/audit", tags=["Audit"])
 
     # Include Versioned API Routers
     app.include_router(api_router, prefix=settings.API_V1_STR)

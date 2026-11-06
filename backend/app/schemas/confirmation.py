@@ -10,7 +10,7 @@ class PendingUploadOut(BaseModel):
     tenant_id: int = Field(..., description="ID of the tenant data owner")
     tenant_name: Optional[str] = Field(None, description="Display name of the tenant")
     upload_id: Optional[int] = Field(None, description="Optional foreign key to platform.pending_uploads")
-    source_type: str = Field("upload", description="Ingestion channel: upload, db_connection, api_push")
+    source_type: str = Field("upload", description="Ingestion channel: upload, db_connection")
     filename: Optional[str] = Field("upload.data", description="Original filename")
     file_size_bytes: Optional[int] = Field(None, description="Size of file in bytes")
     row_count: Optional[int] = Field(0, description="Estimated or loaded row count")
@@ -31,7 +31,7 @@ class SchemaPreviewOut(BaseModel):
     tenant_id: int = Field(..., description="ID of the tenant data owner")
     detected_template: str = Field(..., description="Inferred canonical template name")
     confidence_score: float = Field(..., description="Inference engine confidence score")
-    source_type: str = Field("upload", description="Ingestion channel (upload, db_connection, api_push)")
+    source_type: str = Field("upload", description="Ingestion channel (upload, db_connection)")
     column_mapping: Dict[str, Any] = Field(
         default_factory=dict,
         description="Detailed mapping of source columns to canonical target fields and inferred data types",

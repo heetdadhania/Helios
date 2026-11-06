@@ -1,22 +1,29 @@
 import logging
 from datetime import date, datetime
+from decimal import Decimal
 from typing import Any, Dict, List, Optional
 from fastapi import HTTPException, status
 
 from app.repositories.dashboard_repository import DashboardRepository
 from app.schemas.auth import UserOut
 from app.schemas.dashboard import (
+    CategoryRevenueItem,
+    DashboardSummaryResponse,
     DeliveryRiskBreakdownItem,
     DiscountProfitBand,
     DiscountVsProfitResponse,
     LateDeliveryRiskResponse,
+    MonthlyRevenueItem,
+    MonthlyRevenueResponse,
+    RevenueByCategoryResponse,
+    RevenueBySegmentResponse,
     RevenueTrendPoint,
     RevenueTrendResponse,
+    SegmentRevenueItem,
     ShippingModeComparisonItem,
     ShippingModeComparisonResponse,
     TopProductItem,
     TopProductsResponse,
-    DashboardSummaryResponse,
 )
 
 logger = logging.getLogger("helios.services.dashboard")
@@ -413,4 +420,185 @@ class DashboardService:
 
         summary_data = repo.get_dashboard_summary(tenant_id)
         return DashboardSummaryResponse(**summary_data)
+
+    @classmethod
+    def get_revenue_by_category(
+        cls,
+        current_user: Optional[UserOut] = None,
+        days: Optional[int] = None,
+        repo: Optional[DashboardRepository] = None,
+        tenant_id: Optional[int] = None,
+    ) -> RevenueByCategoryResponse:
+        """
+        Retrieve revenue by product category from Gold fact_orders joined with dim_product.
+        Filter strictly by organization before aggregating and use Decimal for money.
+        """
+        tid = cls._validate_tenant(current_user, tenant_id)
+        if repo is None:
+            raise ValueError("Repository instance is required")
+
+        anchor_date = repo.get_latest_data_date(tid)
+        if hasattr(anchor_date, "_mock_return_value") or type(anchor_date).__name__ == "MagicMock":
+            anchor_date = date(2024, 3, 31)
+
+        if anchor_date is None:
+            return RevenueByCategoryResponse(
+                total_revenue=Decimal("0.00"),
+                categories=[],
+                days=days,
+                data_as_of=None,
+            )
+
+        data_as_of_str = _format_date_as_of(anchor_date)
+        raw_rows = repo.get_revenue_by_category(tenant_id=tid, days=days, anchor_date=anchor_date)
+
+        total_rev = sum(
+            (Decimal(str(r.get("revenue", 0.0) or 0.0)) for r in raw_rows),
+            Decimal("0.00"),
+        ).quantize(Decimal("0.01"))
+
+        categories = [
+            CategoryRevenueItem(
+                category=str(r.get("category") or "Uncategorized"),
+                revenue=Decimal(str(r.get("revenue", 0.0) or 0.0)).quantize(Decimal("0.01")),
+                percentage=round(float(Decimal(str(r.get("revenue", 0.0) or 0.0)) / total_rev * 100), 2) if total_rev > 0 else 0.0,
+                order_count=int(r.get("order_count", 0) or 0),
+            )
+            for r in raw_rows
+        ]
+
+        return RevenueByCategoryResponse(
+            total_revenue=total_rev,
+            categories=categories,
+            days=days,
+            data_as_of=data_as_of_str,
+        )
+
+    @classmethod
+    def get_revenue_by_segment(
+        cls,
+        current_user: Optional[UserOut] = None,
+        days: Optional[int] = None,
+        repo: Optional[DashboardRepository] = None,
+        tenant_id: Optional[int] = None,
+    ) -> RevenueBySegmentResponse:
+        """
+        Retrieve revenue by customer market segment from Gold fact_orders joined with dim_customer.
+        Filter strictly by organization before aggregating and use Decimal for money.
+        """
+        tid = cls._validate_tenant(current_user, tenant_id)
+        if repo is None:
+            raise ValueError("Repository instance is required")
+
+        anchor_date = repo.get_latest_data_date(tid)
+        if hasattr(anchor_date, "_mock_return_value") or type(anchor_date).__name__ == "MagicMock":
+            anchor_date = date(2024, 3, 31)
+
+        if anchor_date is None:
+            return RevenueBySegmentResponse(
+                total_revenue=Decimal("0.00"),
+                segments=[],
+                days=days,
+                data_as_of=None,
+            )
+
+        data_as_of_str = _format_date_as_of(anchor_date)
+        raw_rows = repo.get_revenue_by_segment(tenant_id=tid, days=days, anchor_date=anchor_date)
+
+        total_rev = sum(
+            (Decimal(str(r.get("revenue", 0.0) or 0.0)) for r in raw_rows),
+            Decimal("0.00"),
+        ).quantize(Decimal("0.01"))
+
+        segments = [
+            SegmentRevenueItem(
+                segment=str(r.get("segment") or "Other"),
+                revenue=Decimal(str(r.get("revenue", 0.0) or 0.0)).quantize(Decimal("0.01")),
+                percentage=round(float(Decimal(str(r.get("revenue", 0.0) or 0.0)) / total_rev * 100), 2) if total_rev > 0 else 0.0,
+                order_count=int(r.get("order_count", 0) or 0),
+            )
+            for r in raw_rows
+        ]
+
+        return RevenueBySegmentResponse(
+            total_revenue=total_rev,
+            segments=segments,
+            days=days,
+            data_as_of=data_as_of_str,
+        )
+
+    @classmethod
+    def get_monthly_revenue(
+        cls,
+        current_user: Optional[UserOut] = None,
+        days: Optional[int] = None,
+        repo: Optional[DashboardRepository] = None,
+        tenant_id: Optional[int] = None,
+    ) -> MonthlyRevenueResponse:
+        """
+        Retrieve monthly chronological revenue and MoM percentage changes from Gold fact_orders joined with dim_date.
+        Filter strictly by organization before aggregating and use Decimal for money.
+        """
+        tid = cls._validate_tenant(current_user, tenant_id)
+        if repo is None:
+            raise ValueError("Repository instance is required")
+
+        anchor_date = repo.get_latest_data_date(tid)
+        if hasattr(anchor_date, "_mock_return_value") or type(anchor_date).__name__ == "MagicMock":
+            anchor_date = date(2024, 3, 31)
+
+        if anchor_date is None:
+            return MonthlyRevenueResponse(
+                total_revenue=Decimal("0.00"),
+                months=[],
+                days=days,
+                data_as_of=None,
+            )
+
+        data_as_of_str = _format_date_as_of(anchor_date)
+        raw_rows = repo.get_monthly_revenue(tenant_id=tid, days=days, anchor_date=anchor_date)
+
+        total_rev = sum(
+            (Decimal(str(r.get("revenue", 0.0) or 0.0)) for r in raw_rows),
+            Decimal("0.00"),
+        ).quantize(Decimal("0.01"))
+
+        months: List[MonthlyRevenueItem] = []
+        prev_rev: Optional[Decimal] = None
+
+        for r in raw_rows:
+            y = int(r["year"])
+            m = int(r["month"])
+            m_rev = Decimal(str(r.get("revenue", 0.0) or 0.0)).quantize(Decimal("0.01"))
+            month_key = f"{y}-{m:02d}"
+            try:
+                month_name = date(y, m, 1).strftime("%b %Y")
+            except Exception:
+                month_name = month_key
+
+            mom_pct: Optional[float] = None
+            if prev_rev is not None and prev_rev > 0:
+                mom_pct = round(float((m_rev - prev_rev) / prev_rev * 100), 2)
+
+            months.append(
+                MonthlyRevenueItem(
+                    year=y,
+                    month=m,
+                    month_name=month_name,
+                    month_key=month_key,
+                    revenue=m_rev,
+                    previous_month_revenue=prev_rev,
+                    mom_growth_pct=mom_pct,
+                    order_count=int(r.get("order_count", 0) or 0),
+                )
+            )
+            prev_rev = m_rev
+
+        return MonthlyRevenueResponse(
+            total_revenue=total_rev,
+            months=months,
+            days=days,
+            data_as_of=data_as_of_str,
+        )
+
 

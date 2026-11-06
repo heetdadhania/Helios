@@ -1,11 +1,24 @@
 import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { CheckCircle2, AlertTriangle, RefreshCw, Inbox, Loader2 } from 'lucide-react';
 import { historyService } from '@/services/historyService';
 import { SmbHistoryItem } from '@/types/history';
 import { Pagination } from '@/components/ui/Pagination';
+import { SortControl, SortOption } from '@/components/ui/SortControl';
 import { usePaginatedData } from '@/hooks/usePaginatedData';
 
+const HISTORY_SORT_OPTIONS: SortOption[] = [
+  { value: 'date', label: 'Date' },
+  { value: 'organization', label: 'Organization' },
+  { value: 'source', label: 'Source' },
+  { value: 'status', label: 'Status' },
+];
+
 export const SubmissionHistory: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const sortBy = searchParams.get('sort_by') || '';
+  const sortOrder = (searchParams.get('sort_order') as 'asc' | 'desc') || 'desc';
+
   const {
     data: history,
     total,
@@ -16,7 +29,8 @@ export const SubmissionHistory: React.FC = () => {
     setPage,
     refetch: fetchHistory,
   } = usePaginatedData<SmbHistoryItem>({
-    fetchFn: (params) => historyService.getMyHistory(params.page, params.pageSize),
+    fetchFn: (params) => historyService.getMyHistory(params.page, params.pageSize, params.sortBy, params.sortOrder),
+    filters: { sortBy, sortOrder },
     pageSize: 20,
   });
 
@@ -58,15 +72,18 @@ export const SubmissionHistory: React.FC = () => {
             Track the status of your data submissions and processing readiness.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={fetchHistory}
-          disabled={loading}
-          className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-50 self-start sm:self-auto shadow-xs"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-helios-accent-blue' : ''}`} />
-          <span>Refresh</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <SortControl options={HISTORY_SORT_OPTIONS} defaultSortOrder="desc" />
+          <button
+            type="button"
+            onClick={fetchHistory}
+            disabled={loading}
+            className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-50 self-start sm:self-auto shadow-xs"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-helios-accent-blue' : ''}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       {/* Error alert */}

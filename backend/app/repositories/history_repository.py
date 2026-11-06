@@ -66,6 +66,7 @@ class HistoryRepository:
         tenant_id: int,
         page: int = 1,
         page_size: int = 20,
+        order_by: str = "ps.created_at DESC",
     ) -> Tuple[List[Dict[str, Any]], int]:
         """
         Fetch submission history strictly scoped to the authenticated tenant with pagination.
@@ -87,8 +88,10 @@ class HistoryRepository:
                 ps.stage,
                 ps.created_at
             FROM {self.pipeline_table} ps
+            LEFT JOIN {self.tenants_table} t ON ps.tenant_id = t.tenant_id
+            LEFT JOIN {self.pending_table} pu ON ps.upload_id = pu.upload_id
             WHERE ps.tenant_id = :tenant_id
-            ORDER BY ps.created_at DESC
+            ORDER BY {order_by}
             LIMIT :limit OFFSET :offset
         """
         raw_rows = self._fetch_all(query, {"tenant_id": tenant_id, "limit": page_size, "offset": offset})
@@ -115,6 +118,7 @@ class HistoryRepository:
         tenant_filter: Optional[str] = None,
         page: int = 1,
         page_size: int = 20,
+        order_by: str = "ps.created_at DESC",
     ) -> Tuple[List[Dict[str, Any]], int]:
         """
         Fetch operational submission history with server-side pagination.
@@ -179,7 +183,7 @@ class HistoryRepository:
                 GROUP BY batch_id
             ) al ON ps.batch_id = al.batch_id
             {where_sql}
-            ORDER BY ps.created_at DESC
+            ORDER BY {order_by}
             LIMIT :limit OFFSET :offset
         """
         items = self._fetch_all(query, item_params)
@@ -193,6 +197,7 @@ class HistoryRepository:
         tenant_filter: Optional[str] = None,
         page: int = 1,
         page_size: int = 20,
+        order_by: str = "ps.created_at DESC",
     ) -> Tuple[List[Dict[str, Any]], int]:
         """
         Fetch system-wide submission history including the handling Team Member identity with server-side pagination.
@@ -254,7 +259,7 @@ class HistoryRepository:
                 GROUP BY batch_id
             ) al ON ps.batch_id = al.batch_id
             {where_sql}
-            ORDER BY ps.created_at DESC
+            ORDER BY {order_by}
             LIMIT :limit OFFSET :offset
         """
         items = self._fetch_all(query, item_params)

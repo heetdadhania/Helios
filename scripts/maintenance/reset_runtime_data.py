@@ -47,7 +47,6 @@ KEEP_TABLES: List[str] = [
     "platform.tenants",
     "platform.users",
     "platform.team_assignments",
-    "platform.api_keys",
     "platform.db_connections",
     "gold.dim_date",
     "gold.dim_shipping_mode",
@@ -150,12 +149,12 @@ def delete_volume_files(file_paths: List[str]) -> None:
     print(f"Volume files deleted: {deleted_count}, Already absent on disk: {not_found_count}")
 
 
-def cleanup_verification_credentials(cur) -> Tuple[int, int, int]:
+def cleanup_verification_credentials(cur) -> Tuple[int, int]:
     """
-    Deactivates verification database connections and API keys, and deletes
+    Deactivates verification database connections, and deletes
     ephemeral verification credentials from Databricks Secrets.
-    Strictly preserves seed connections and seed API keys.
-    Returns: (deactivated_db_conns, deleted_secrets, deactivated_api_keys)
+    Strictly preserves seed connections.
+    Returns: (deactivated_db_conns, deleted_secrets)
     """
     try:
         from app.core.secrets_manager import get_databricks_workspace_client
@@ -166,7 +165,6 @@ def cleanup_verification_credentials(cur) -> Tuple[int, int, int]:
 
     deleted_secrets_count = 0
     deactivated_conns_count = 0
-    deactivated_keys_count = 0
 
     # 1. Verification DB Connections: connection_id != 1 (seed connection is connection_id 1)
     try:
@@ -199,39 +197,16 @@ def cleanup_verification_credentials(cur) -> Tuple[int, int, int]:
     except Exception as exc:
         print(f"Warning during DB connections verification cleanup: {exc}")
 
-    # 2. Verification API Keys: api_key_id NOT IN (1, 2, 3, 4) (seed keys are 1, 2, 3, 4)
-    try:
-        cur.execute(
-            f"SELECT api_key_id, is_active FROM `{CATALOG}`.`platform`.`api_keys` "
-            "WHERE api_key_id NOT IN (1, 2, 3, 4)"
-        )
-        verif_keys = cur.fetchall()
-        for row in verif_keys:
-            kid = row[0]
-            is_active = row[1]
-            if is_active:
-                cur.execute(
-                    f"UPDATE `{CATALOG}`.`platform`.`api_keys` SET is_active = false WHERE api_key_id = :kid",
-                    {"kid": kid},
-                )
-                deactivated_keys_count += 1
-    except Exception as exc:
-        print(f"Warning during API keys verification cleanup: {exc}")
-
-    return deactivated_conns_count, deleted_secrets_count, deactivated_keys_count
+    return deactivated_conns_count, deleted_secrets_count
 
 
 def get_credentials_counts(cur) -> Dict[str, Dict[str, int]]:
-    """Retrieve total and active counts for db_connections and api_keys."""
+    """Retrieve total and active counts for db_connections."""
     cur.execute(f"SELECT count(*), sum(case when is_active then 1 else 0 end) FROM `{CATALOG}`.`platform`.`db_connections`")
     db_row = cur.fetchone() or (0, 0)
     
-    cur.execute(f"SELECT count(*), sum(case when is_active then 1 else 0 end) FROM `{CATALOG}`.`platform`.`api_keys`")
-    api_row = cur.fetchone() or (0, 0)
-    
     return {
         "platform.db_connections": {"total": db_row[0] or 0, "active": db_row[1] or 0},
-        "platform.api_keys": {"total": api_row[0] or 0, "active": api_row[1] or 0},
     }
 
 

@@ -219,22 +219,3 @@ WHEN MATCHED THEN
 WHEN NOT MATCHED THEN
   INSERT (tenant_id, db_type, host, port, database_name, username, encrypted_credential_ref, table_or_query, is_active)
   VALUES (source.tenant_id, source.db_type, source.host, source.port, source.database_name, source.username, source.encrypted_credential_ref, source.table_or_query, source.is_active);
-
-MERGE INTO helios_catalog.platform.api_keys AS target
-USING (
-  SELECT 
-    t.tenant_id,
-    '3837fdf31054d3137cabe83084aa3a12ac62864398667bfd444c451a3982272c' AS key_hash,
-    'helios_live_••••2026' AS key_prefix,
-    true AS is_active
-  FROM helios_catalog.platform.tenants t
-  WHERE t.contact_email = 'owner@vanguardhome.com'
-) AS source
-ON target.tenant_id = source.tenant_id AND target.key_prefix = source.key_prefix
-WHEN MATCHED THEN
-  UPDATE SET 
-    key_hash = source.key_hash,
-    is_active = source.is_active
-WHEN NOT MATCHED THEN
-  INSERT (tenant_id, key_hash, key_prefix, is_active)
-  VALUES (source.tenant_id, source.key_hash, source.key_prefix, source.is_active);

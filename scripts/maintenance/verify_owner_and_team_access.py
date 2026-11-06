@@ -26,8 +26,6 @@ checks = [
     ('GET', 'http://localhost:8000/api/v1/db-connections?tenant_id=1', {}),
     ('POST', 'http://localhost:8000/api/v1/db-connections/test', {'json': {'db_type': 'postgresql', 'host': 'localhost', 'port': 5432, 'database_name': 'test', 'username': 'u', 'password': 'p', 'table_or_query': 't'}}),
     ('POST', 'http://localhost:8000/api/v1/db-connections/1/sync', {'json': {'tenant_id': 1}}),
-    ('GET', 'http://localhost:8000/api/v1/api-keys', {}),
-    ('POST', 'http://localhost:8000/api/v1/api-keys/regenerate', {}),
 ]
 
 all_passed = True

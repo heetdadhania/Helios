@@ -1,0 +1,94 @@
+# INVENTORY OF API PUSH / API KEY REFERENCES
+Total classified occurrences: 26
+
+## ROUTES (0 occurrences)
+  (None)
+
+## SERVICES (0 occurrences)
+  (None)
+
+## SCHEMAS (0 occurrences)
+  (None)
+
+## REPOSITORIES (0 occurrences)
+  (None)
+
+## MODELS (0 occurrences)
+  (None)
+
+## SECURITY HELPERS (0 occurrences)
+  (None)
+
+## FRONTEND PAGES (0 occurrences)
+  (None)
+
+## FRONTEND ROUTES (3 occurrences)
+- **frontend/src/routes/index.tsx** (3 lines):
+  - Line 19: `const IngestUpload = lazy(() => import('@/pages/team/IngestUpload').then((m) => ({ default: m.IngestUpload })));`
+  - Line 20: `const IngestDatabaseConnection = lazy(() => import('@/pages/team/IngestDatabaseConnection').then((m) => ({ default: m.IngestDatabaseConnection })));`
+  - Line 171: `<Route path="/ingest-database-connection" element={<RootRedirect />} />`
+
+## FRONTEND SERVICES (0 occurrences)
+  (None)
+
+## FRONTEND TYPES (0 occurrences)
+  (None)
+
+## FRONTEND SIDEBAR ITEMS (2 occurrences)
+- **frontend/src/layouts/AdminLayout.tsx** (1 lines):
+  - Line 31: `if (normalized === '/upload' || normalized === '/ingest-upload') return 'Ingest File Upload';`
+- **frontend/src/layouts/TeamLayout.tsx** (1 lines):
+  - Line 25: `if (normalized === '/upload' || normalized === '/ingest-upload') return 'Ingest File Upload';`
+
+## ENV SETTINGS (0 occurrences)
+  (None)
+
+## DOCKER SETTINGS (0 occurrences)
+  (None)
+
+## SCRIPTS (0 occurrences)
+  (None)
+
+## TESTS (0 occurrences)
+  (None)
+
+## DOCUMENTS (17 occurrences)
+- **README.md** (1 lines):
+  - Line 478: `> External Database Connection synchronization (PostgreSQL, MySQL, SQL Server) and High-Throughput REST API push are **implemented; to be demonstrated in the external viva**. This documentation and standard evaluation demo cover the end-to-end verified CSV and Excel ingestion pipelines.`
+- **backend/pipeline/LAKEFLOW_JOB.md** (1 lines):
+  - Line 41: `| **1** | `ingest_bronze` | Module 6 | Python Task (`pipeline/ingestion/run_bronze.py`) | 3 retries (10s backoff) | 60 min | None (Root task) |`
+- **backend/pipeline/demo/README.md** (6 lines):
+  - Line 18: `| **Org 3** | **Nilgiri Home & Decor** | South Asia | Home Office | Home Goods & Living | REST API Push | `data/demo/tenant_3_vanguard_home.csv` |`
+  - Line 65: `### Method 3: Programmatic API Push (REST Ingestion)`
+  - Line 68: `- **Raw API Key**: `helios_live_vanguard_demo_api_key_2026``
+  - Line 75: `curl -X POST "http://localhost:8000/api/v1/ingest/push" \`
+  - Line 77: `-H "X-Helios-Api-Key: helios_live_vanguard_demo_api_key_2026" \`
+  - Line 95: `2. The endpoint authenticates against `platform.api_keys`, applies rate limiting (60 req/min), stamps `tenant_id = 3`, and appends the payload into `helios.bronze.raw_orders`.`
+- **backend/pipeline/schema_inference/README.md** (1 lines):
+  - Line 3: `A lightweight, rule-based, and explainable schema detection engine that inspects ingested Bronze batches (from file uploads, database connections, or API pushes), classifies the batch into a canonical template (`template_orders` or `template_shipping`), and maps source column names to standardized Silver-layer fields.`
+- **pipeline/LAKEFLOW_JOB.md** (1 lines):
+  - Line 41: `| **1** | `ingest_bronze` | Module 6 | Python Task (`pipeline/ingestion/run_bronze.py`) | 3 retries (10s backoff) | 60 min | None (Root task) |`
+- **pipeline/demo/README.md** (6 lines):
+  - Line 18: `| **Org 3** | **Nilgiri Home & Decor** | South Asia | Home Office | Home Goods & Living | REST API Push | `data/demo/tenant_3_vanguard_home.csv` |`
+  - Line 65: `### Method 3: Programmatic API Push (REST Ingestion)`
+  - Line 68: `- **Raw API Key**: `helios_live_vanguard_demo_api_key_2026``
+  - Line 75: `curl -X POST "http://localhost:8000/api/v1/ingest/push" \`
+  - Line 77: `-H "X-Helios-Api-Key: helios_live_vanguard_demo_api_key_2026" \`
+  - Line 95: `2. The endpoint authenticates against `platform.api_keys`, applies rate limiting (60 req/min), stamps `tenant_id = 3`, and appends the payload into `helios.bronze.raw_orders`.`
+- **pipeline/schema_inference/README.md** (1 lines):
+  - Line 3: `A lightweight, rule-based, and explainable schema detection engine that inspects ingested Bronze batches (from file uploads, database connections, or API pushes), classifies the batch into a canonical template (`template_orders` or `template_shipping`), and maps source column names to standardized Silver-layer fields.`
+
+## DATABASE (0 occurrences)
+  (None)
+
+## PIPELINE (3 occurrences)
+- **backend/pipeline/helios_lakeflow_job.json** (1 lines):
+  - Line 33: `"python_file": "/Workspace/Shared/helios/pipeline/ingestion/run_bronze.py",`
+- **pipeline/helios_lakeflow_job.json** (1 lines):
+  - Line 33: `"python_file": "/Workspace/Shared/helios/pipeline/ingestion/run_bronze.py",`
+- **resources/helios_lakeflow_pipeline.job.yml** (1 lines):
+  - Line 65: `python_file: "pipeline/ingestion/run_bronze.py"`
+
+## OTHER (1 occurrences)
+- **frontend/tsconfig.tsbuildinfo** (1 lines):
+  - Line 1: `{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/components/helioslogo.tsx","./src/components/kpicard.tsx","./src/components/linechartcard.tsx","./src/components/sidebar.tsx","./src/components/themetoggle.tsx","./src/components/topbar.tsx","./src/components/admin/pipelinesection.tsx","./src/components/admin/stagestatusbadge.tsx","./src/components/client/contactsupportbutton.tsx","./src/components/client/exportbutton.tsx","./src/components/dashboard/discountprofitwidget.tsx","./src/components/dashboard/latedeliverywidget.tsx","./src/components/dashboard/revenuetrendchart.tsx","./src/components/dashboard/shippingmodewidget.tsx","./src/components/dashboard/topproductswidget.tsx","./src/components/shared/duplicateconflictdialog.tsx","./src/components/shared/notificationbell.tsx","./src/components/team/flagforadminbutton.tsx","./src/components/team/sessionprogresslist.tsx","./src/components/ui/loadingskeleton.tsx","./src/components/ui/pagination.tsx","./src/components/ui/sortcontrol.tsx","./src/components/ui/toast.tsx","./src/config/features.ts","./src/hooks/useauth.tsx","./src/hooks/usebasepath.ts","./src/hooks/useorganizations.ts","./src/hooks/usepaginateddata.ts","./src/hooks/usetheme.ts","./src/layouts/adminlayout.tsx","./src/layouts/authlayout.tsx","./src/layouts/clientlayout.tsx","./src/layouts/teamlayout.tsx","./src/pages/login.tsx","./src/pages/admin/adminhistory.tsx","./src/pages/admin/adminhome.tsx","./src/pages/admin/audittrail.tsx","./src/pages/admin/confirmschema.tsx","./src/pages/admin/dataqualitylog.tsx","./src/pages/admin/dataqualitypage.tsx","./src/pages/admin/pendinguploads.tsx","./src/pages/admin/pendinguploadspage.tsx","./src/pages/admin/pipelinehealth.tsx","./src/pages/admin/teammembers.tsx","./src/pages/admin/teampage.tsx","./src/pages/admin/tenantcomparison.tsx","./src/pages/admin/tenantdashboardview.tsx","./src/pages/admin/tenanthealth.tsx","./src/pages/admin/tenants.tsx","./src/pages/admin/usagedashboard.tsx","./src/pages/auth/changepassword.tsx","./src/pages/auth/loginpage.tsx","./src/pages/client/clienthome.tsx","./src/pages/client/clientnotifications.tsx","./src/pages/client/clientsupport.tsx","./src/pages/client/connectdatabase.tsx","./src/pages/client/dashboard.tsx","./src/pages/client/dashboardpage.tsx","./src/pages/client/datasourceselect.tsx","./src/pages/client/exportdatapage.tsx","./src/pages/client/submissionhistory.tsx","./src/pages/profile/profile.tsx","./src/pages/team/ingestdatabaseconnection.tsx","./src/pages/team/ingestupload.tsx","./src/pages/team/supportinbox.tsx","./src/pages/team/teamhistory.tsx","./src/pages/team/teamhome.tsx","./src/routes/protectedroute.tsx","./src/routes/index.tsx","./src/services/adminhomeservice.ts","./src/services/adminservice.ts","./src/services/api.ts","./src/services/apiclient.ts","./src/services/auditservice.ts","./src/services/authservice.ts","./src/services/dashboardservice.ts","./src/services/datasetservice.ts","./src/services/dbconnectionservice.ts","./src/services/exportservice.ts","./src/services/historyservice.ts","./src/services/notificationservice.ts","./src/services/oversightservice.ts","./src/services/pipelinehealthservice.ts","./src/services/profileservice.ts","./src/services/supportservice.ts","./src/services/teamhomeservice.ts","./src/types/admin.ts","./src/types/adminhome.ts","./src/types/audit.ts","./src/types/auth.ts","./src/types/dashboard.ts","./src/types/data.ts","./src/types/dbconnection.ts","./src/types/history.ts","./src/types/notification.ts","./src/types/oversight.ts","./src/types/pagination.ts","./src/types/pipelinehealth.ts","./src/types/profile.ts","./src/types/support.ts","./src/types/teamhome.ts","./src/utils/currency.ts","./src/utils/formatters.ts"],"version":"5.6.3"}`

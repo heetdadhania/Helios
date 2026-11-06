@@ -87,6 +87,51 @@ export interface SimplifiedUploadStatus {
   updated_at: string;
 }
 
+export interface CategoryRevenueItem {
+  category: string;
+  revenue: number;
+  percentage: number;
+  order_count: number;
+}
+
+export interface RevenueByCategoryResponse {
+  days: number | null;
+  total_revenue: number;
+  categories: CategoryRevenueItem[];
+  data_as_of?: string | null;
+}
+
+export interface SegmentRevenueItem {
+  segment: string;
+  revenue: number;
+  percentage: number;
+  order_count: number;
+}
+
+export interface RevenueBySegmentResponse {
+  days: number | null;
+  total_revenue: number;
+  segments: SegmentRevenueItem[];
+  data_as_of?: string | null;
+}
+
+export interface MonthlyRevenueItem {
+  year: number;
+  month: number;
+  month_name: string;
+  month_key: string;
+  revenue: number;
+  previous_month_revenue: number | null;
+  mom_growth_pct: number | null;
+  order_count: number;
+}
+
+export interface MonthlyRevenueResponse {
+  total_revenue: number;
+  months: MonthlyRevenueItem[];
+  data_as_of?: string | null;
+}
+
 export interface DashboardData {
   revenueTrend: RevenueTrendResponse | null;
   topProducts: TopProductsResponse | null;
@@ -94,6 +139,9 @@ export interface DashboardData {
   discountVsProfit: DiscountVsProfitResponse | null;
   shippingModes: ShippingModeComparisonResponse | null;
   uploadStatus: SimplifiedUploadStatus | null;
+  revenueByCategory: RevenueByCategoryResponse | null;
+  revenueBySegment: RevenueBySegmentResponse | null;
+  monthlyRevenue: MonthlyRevenueResponse | null;
 }
 
 export interface DashboardSummaryResponse {

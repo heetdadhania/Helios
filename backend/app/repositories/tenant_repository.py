@@ -194,12 +194,13 @@ class TenantRepository(BaseRepository):
         limit: int = 20,
         offset: int = 0,
         search: Optional[str] = None,
+        order_by: str = "t.tenant_id ASC",
     ) -> Tuple[List[Dict[str, Any]], int]:
         """
         Retrieve organizations scoped by caller role directly in SQL with server-side pagination:
           - admin: all organizations
           - team_member: active organizations assigned via platform.team_assignments
-        Always ordered ascending by tenant_id.
+        Ordered by validated order_by parameter.
         """
         if role == "team_member":
             where_clauses = ["ta.user_id = :user_id", "coalesce(t.is_active, true) = true"]
@@ -221,7 +222,7 @@ class TenantRepository(BaseRepository):
                 SELECT t.* FROM {self.table} t
                 INNER JOIN {self.team_assignments_table} ta ON t.tenant_id = ta.tenant_id
                 WHERE {where_sql}
-                ORDER BY t.tenant_id ASC
+                ORDER BY {order_by}
                 LIMIT :limit OFFSET :offset
             """
             raw = self.execute_query(query, params)
@@ -234,21 +235,21 @@ class TenantRepository(BaseRepository):
         where_clauses = []
         params = {"limit": limit, "offset": offset}
         if search and search.strip():
-            where_clauses.append("(lower(name) LIKE :search OR lower(coalesce(business_name, '')) LIKE :search OR lower(coalesce(contact_email, '')) LIKE :search)")
+            where_clauses.append("(lower(t.name) LIKE :search OR lower(coalesce(t.business_name, '')) LIKE :search OR lower(coalesce(t.contact_email, '')) LIKE :search)")
             params["search"] = f"%{search.strip().lower()}%"
         where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
 
         count_query = f"""
-            SELECT COUNT(*) AS total FROM {self.table}
+            SELECT COUNT(*) AS total FROM {self.table} t
             {where_sql}
         """
         count_res = self.execute_query(count_query, params)
         total = int(count_res[0]["total"]) if count_res and "total" in count_res[0] and count_res[0]["total"] is not None else 0
 
         query = f"""
-            SELECT * FROM {self.table}
+            SELECT t.* FROM {self.table} t
             {where_sql}
-            ORDER BY tenant_id ASC
+            ORDER BY {order_by}
             LIMIT :limit OFFSET :offset
         """
         raw = self.execute_query(query, params)

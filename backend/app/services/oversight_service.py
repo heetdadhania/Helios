@@ -148,6 +148,9 @@ class OversightService:
         late_delivery_risk = DashboardService.get_late_delivery_risk(tenant_id=tenant_id, days=days, repo=dashboard_repo)
         discount_vs_profit = DashboardService.get_discount_vs_profit(tenant_id=tenant_id, days=days, repo=dashboard_repo)
         shipping_modes = DashboardService.get_shipping_mode_comparison(tenant_id=tenant_id, days=days, repo=dashboard_repo)
+        revenue_by_category = DashboardService.get_revenue_by_category(tenant_id=tenant_id, days=days, repo=dashboard_repo)
+        revenue_by_segment = DashboardService.get_revenue_by_segment(tenant_id=tenant_id, days=days, repo=dashboard_repo)
+        monthly_revenue = DashboardService.get_monthly_revenue(tenant_id=tenant_id, days=days, repo=dashboard_repo)
 
         return TenantDashboardViewAs(
             tenant_id=tenant_id,
@@ -159,6 +162,9 @@ class OversightService:
             late_delivery_risk=late_delivery_risk,
             discount_vs_profit=discount_vs_profit,
             shipping_modes=shipping_modes,
+            revenue_by_category=revenue_by_category,
+            revenue_by_segment=revenue_by_segment,
+            monthly_revenue=monthly_revenue,
         )
 
     @classmethod

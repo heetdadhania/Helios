@@ -3,7 +3,6 @@ import {
   Activity,
   ArrowRight,
   Database,
-  Radio,
   UploadCloud,
   XCircle,
 } from 'lucide-react';
@@ -18,14 +17,6 @@ export const SourceTypeIcon: React.FC<{ type: IngestionSourceType }> = ({ type }
       <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
         <Database className="w-3 h-3 flex-shrink-0" />
         <span>DB Sync</span>
-      </span>
-    );
-  }
-  if (norm === 'api_push' || norm.includes('api')) {
-    return (
-      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-        <Radio className="w-3 h-3 flex-shrink-0" />
-        <span>API Push</span>
       </span>
     );
   }

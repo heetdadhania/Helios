@@ -1,6 +1,9 @@
 import {
   DiscountVsProfitResponse,
   LateDeliveryRiskResponse,
+  MonthlyRevenueResponse,
+  RevenueByCategoryResponse,
+  RevenueBySegmentResponse,
   RevenueTrendResponse,
   ShippingModeComparisonResponse,
   TopProductsResponse,
@@ -17,6 +20,9 @@ export interface TenantDashboardViewAs {
   late_delivery_risk: LateDeliveryRiskResponse;
   discount_vs_profit: DiscountVsProfitResponse;
   shipping_modes: ShippingModeComparisonResponse;
+  revenue_by_category?: RevenueByCategoryResponse;
+  revenue_by_segment?: RevenueBySegmentResponse;
+  monthly_revenue?: MonthlyRevenueResponse;
 }
 
 // --- Tenant Health ---

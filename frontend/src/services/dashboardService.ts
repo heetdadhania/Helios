@@ -4,6 +4,9 @@ import {
   DashboardSummaryResponse,
   DiscountVsProfitResponse,
   LateDeliveryRiskResponse,
+  MonthlyRevenueResponse,
+  RevenueByCategoryResponse,
+  RevenueBySegmentResponse,
   RevenueTrendResponse,
   ShippingModeComparisonResponse,
   SimplifiedUploadStatus,
@@ -50,6 +53,27 @@ export const dashboardService = {
     return response.data;
   },
 
+  async getRevenueByCategory(days?: number | null): Promise<RevenueByCategoryResponse> {
+    const params: Record<string, any> = {};
+    if (days && days > 0) params.days = days;
+    const response = await api.get<RevenueByCategoryResponse>('/dashboard/revenue-by-category', { params });
+    return response.data;
+  },
+
+  async getRevenueBySegment(days?: number | null): Promise<RevenueBySegmentResponse> {
+    const params: Record<string, any> = {};
+    if (days && days > 0) params.days = days;
+    const response = await api.get<RevenueBySegmentResponse>('/dashboard/revenue-by-segment', { params });
+    return response.data;
+  },
+
+  async getMonthlyRevenue(days?: number | null): Promise<MonthlyRevenueResponse> {
+    const params: Record<string, any> = {};
+    if (days && days > 0) params.days = days;
+    const response = await api.get<MonthlyRevenueResponse>('/dashboard/monthly-revenue', { params });
+    return response.data;
+  },
+
   async getLatestUploadStatus(): Promise<SimplifiedUploadStatus | null> {
     const lastUploadId = localStorage.getItem('helios_last_upload_id');
     if (!lastUploadId) {
@@ -78,6 +102,9 @@ export const dashboardService = {
       discountVsProfit,
       shippingModes,
       uploadStatus,
+      revenueByCategory,
+      revenueBySegment,
+      monthlyRevenue,
     ] = await Promise.all([
       this.getRevenueTrend(days),
       this.getTopProducts(10, days),
@@ -85,6 +112,9 @@ export const dashboardService = {
       this.getDiscountVsProfit(days),
       this.getShippingModeComparison(days),
       this.getLatestUploadStatus(),
+      this.getRevenueByCategory(days),
+      this.getRevenueBySegment(days),
+      this.getMonthlyRevenue(days),
     ]);
 
     return {
@@ -94,6 +124,9 @@ export const dashboardService = {
       discountVsProfit,
       shippingModes,
       uploadStatus,
+      revenueByCategory,
+      revenueBySegment,
+      monthlyRevenue,
     };
   },
 };

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   UploadCloud,
   Database,
-  Key,
   ArrowRight,
   Sparkles,
   LayoutDashboard,
@@ -55,23 +54,6 @@ export const DataSourceSelect: React.FC = () => {
           },
         ]
       : []),
-    {
-      id: 'api',
-      title: 'Use API',
-      subtitle: 'Stream events directly into your Unity Catalog schema',
-      description:
-        'Push transactions, order updates, and customer events programmatically via REST. Generate encrypted API keys with per-organization isolation.',
-      route: '/client/api-access',
-      icon: Key,
-      color: 'purple',
-      badge: 'Programmatic',
-      features: [
-        'REST JSON push endpoints',
-        'Cryptographic API key isolation',
-        'Real-time streaming ingestion',
-      ],
-      buttonText: 'Manage API Access',
-    },
   ];
 
   return (

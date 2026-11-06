@@ -41,6 +41,7 @@ class DataQualityRepository:
         batch_filter: Optional[str] = None,
         page: int = 1,
         page_size: int = 20,
+        order_by: str = "d.logged_at DESC",
     ) -> Tuple[List[Dict[str, Any]], int]:
         """Retrieve rejected data quality logs scoped by RBAC and optional filters with pagination."""
         where_clauses: List[str] = []
@@ -95,7 +96,7 @@ class DataQualityRepository:
             FROM {self.dq_table} d
             LEFT JOIN {self.tenants_table} t ON d.tenant_id = t.tenant_id
             {where_sql}
-            ORDER BY d.logged_at DESC
+            ORDER BY {order_by}
             LIMIT :limit OFFSET :offset
         """
 

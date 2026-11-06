@@ -32,6 +32,7 @@ class PipelineHealthService:
         tenant_filter: Optional[str] = None,
         page: int = 1,
         page_size: int = 20,
+        order_by: str = "ps.created_at DESC",
     ) -> PaginatedResponse[PipelineRunOut]:
         """
         List all pipeline runs with server-side pagination.
@@ -44,6 +45,7 @@ class PipelineHealthService:
             tenant_filter=tenant_filter,
             page=page,
             page_size=page_size,
+            order_by=order_by,
         )
         if isinstance(raw_res, tuple) and len(raw_res) == 2:
             rows, total = raw_res

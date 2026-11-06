@@ -33,6 +33,7 @@ const TenantHealth = lazy(() => import('@/pages/admin/TenantHealth').then((m) =>
 const TenantComparison = lazy(() => import('@/pages/admin/TenantComparison').then((m) => ({ default: m.TenantComparison })));
 const UsageDashboard = lazy(() => import('@/pages/admin/UsageDashboard').then((m) => ({ default: m.UsageDashboard })));
 const AdminHome = lazy(() => import('@/pages/admin/AdminHome').then((m) => ({ default: m.AdminHome })));
+const AuditTrail = lazy(() => import('@/pages/admin/AuditTrail').then((m) => ({ default: m.AuditTrail })));
 const ChangePassword = lazy(() => import('@/pages/auth/ChangePassword').then((m) => ({ default: m.ChangePassword })));
 const Profile = lazy(() => import('@/pages/profile/Profile').then((m) => ({ default: m.Profile })));
 
@@ -70,6 +71,7 @@ const ADMIN_ONLY_PREFIXES = [
   '/admin/tenant-health',
   '/admin/tenant-compare',
   '/admin/usage',
+  '/admin/audit',
 ];
 
 const AdminPrefixGuard: React.FC = () => {
@@ -187,11 +189,9 @@ export const AppRoutes: React.FC = () => {
             <Route path="profile" element={<Profile />} />
             <Route path="notifications" element={<ClientNotifications />} />
 
-            {/* Ingestion, file, database-connection and API-access routes redirect to Home */}
+            {/* Ingestion, file, and database-connection routes redirect to Home */}
             <Route path="connect-db" element={<Navigate to="/client/home" replace />} />
             <Route path="connect-database" element={<Navigate to="/client/home" replace />} />
-            <Route path="api-access" element={<Navigate to="/client/home" replace />} />
-            <Route path="api-keys" element={<Navigate to="/client/home" replace />} />
             <Route path="select-source" element={<Navigate to="/client/home" replace />} />
             <Route path="data-sources" element={<Navigate to="/client/home" replace />} />
             <Route path="upload" element={<Navigate to="/client/home" replace />} />
@@ -219,6 +219,7 @@ export const AppRoutes: React.FC = () => {
             <Route path="tenant-compare" element={<TenantComparison />} />
             <Route path="oversight/usage" element={<UsageDashboard />} />
             <Route path="usage" element={<UsageDashboard />} />
+            <Route path="audit" element={<AuditTrail />} />
           </Route>
         </Route>
 

@@ -3,9 +3,14 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 from app.schemas.dashboard import (
+    CategoryRevenueItem,
     DiscountVsProfitResponse,
     LateDeliveryRiskResponse,
+    MonthlyRevenueResponse,
+    RevenueByCategoryResponse,
+    RevenueBySegmentResponse,
     RevenueTrendResponse,
+    SegmentRevenueItem,
     ShippingModeComparisonResponse,
     TopProductsResponse,
 )
@@ -24,6 +29,9 @@ class TenantDashboardViewAs(BaseModel):
     late_delivery_risk: LateDeliveryRiskResponse = Field(..., description="Fulfillment SLA and delivery metrics")
     discount_vs_profit: DiscountVsProfitResponse = Field(..., description="Discount sensitivity and margins")
     shipping_modes: ShippingModeComparisonResponse = Field(..., description="Shipping channel comparisons")
+    revenue_by_category: Optional[RevenueByCategoryResponse] = Field(None, description="Product category revenue")
+    revenue_by_segment: Optional[RevenueBySegmentResponse] = Field(None, description="Customer segment revenue")
+    monthly_revenue: Optional[MonthlyRevenueResponse] = Field(None, description="Month-over-month revenue")
 
 
 # --- 2. Tenant Health Schemas ---

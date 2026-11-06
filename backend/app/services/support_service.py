@@ -128,6 +128,7 @@ class SupportService:
         repo: SupportRepository,
         page: int = 1,
         page_size: int = 20,
+        order_by: str = "sm.created_at DESC",
     ) -> PaginatedResponse[SupportMessageOut]:
         """
         List support messages with server-side pagination:
@@ -140,6 +141,7 @@ class SupportService:
             status_filter=status_filter,
             page=page,
             page_size=page_size,
+            order_by=order_by,
         )
         if isinstance(raw_res, tuple) and len(raw_res) == 2:
             raw_list, total = raw_res

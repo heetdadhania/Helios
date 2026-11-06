@@ -17,12 +17,28 @@ import { DashboardData } from '@/types/dashboard';
 import { formatDateAsOf } from '@/utils/formatters';
 import { ContactSupportButton } from '@/components/client/ContactSupportButton';
 
+// Lazy-loaded analytical widgets to ensure initial dashboard bundle and warm load time remain optimal
+const CategoryRevenueWidget = React.lazy(() => import('@/components/dashboard/CategoryRevenueWidget'));
+const CustomerSegmentWidget = React.lazy(() => import('@/components/dashboard/CustomerSegmentWidget'));
+const MonthlyRevenueWidget = React.lazy(() => import('@/components/dashboard/MonthlyRevenueWidget'));
+
+const ChartCardSkeleton: React.FC = () => (
+  <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark animate-pulse">
+    <div className="h-5 w-48 bg-slate-200 dark:bg-slate-800 rounded mb-2" />
+    <div className="h-3 w-64 bg-slate-200 dark:bg-slate-800 rounded mb-6" />
+    <div className="h-64 w-full bg-slate-100 dark:bg-slate-900 rounded" />
+  </div>
+);
+
 interface WidgetLoadingStates {
   revenueTrend: boolean;
   topProducts: boolean;
   lateDeliveryRisk: boolean;
   discountVsProfit: boolean;
   shippingModes: boolean;
+  revenueByCategory: boolean;
+  revenueBySegment: boolean;
+  monthlyRevenue: boolean;
 }
 
 export const Dashboard: React.FC = () => {
@@ -36,6 +52,9 @@ export const Dashboard: React.FC = () => {
     discountVsProfit: null,
     shippingModes: null,
     uploadStatus: null,
+    revenueByCategory: null,
+    revenueBySegment: null,
+    monthlyRevenue: null,
   });
 
   // Granular per-widget loading states so skeletons render immediately
@@ -46,6 +65,9 @@ export const Dashboard: React.FC = () => {
     lateDeliveryRisk: true,
     discountVsProfit: true,
     shippingModes: true,
+    revenueByCategory: true,
+    revenueBySegment: true,
+    monthlyRevenue: true,
   });
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +75,8 @@ export const Dashboard: React.FC = () => {
   // Request race-condition guard ref to prevent out-of-order state updates
   const currentRequestIdRef = useRef<number>(0);
 
-  // Parallel data fetching across all Gold dashboard endpoints with progressive resolution
+  // Parallel data fetching across initial 5 Gold dashboard endpoints,
+  // followed sequentially by the 3 new analytical charts to preserve fast warm load times.
   const loadDashboardData = useCallback(async (lookbackDays: number, isBackground: boolean = false) => {
     const requestId = ++currentRequestIdRef.current;
 
@@ -67,11 +90,14 @@ export const Dashboard: React.FC = () => {
         lateDeliveryRisk: true,
         discountVsProfit: true,
         shippingModes: true,
+        revenueByCategory: true,
+        revenueBySegment: true,
+        monthlyRevenue: true,
       });
     }
     setError(null);
 
-    // Fire all 5 dashboard chart requests and upload status in PARALLEL simultaneously
+    // Fire the initial 5 dashboard chart requests and upload status in parallel
     const pTrend = dashboardService.getRevenueTrend(lookbackDays)
       .then((res) => {
         if (currentRequestIdRef.current === requestId) {
@@ -146,7 +172,52 @@ export const Dashboard: React.FC = () => {
       .catch(() => {});
 
     try {
+      // Await initial 5 charts
       await Promise.allSettled([pTrend, pProducts, pLate, pDiscount, pShipping, pStatus]);
+
+      // Sequentially load the 3 new charts after initial 5
+      if (currentRequestIdRef.current === requestId) {
+        const pCategory = dashboardService.getRevenueByCategory(lookbackDays)
+          .then((res) => {
+            if (currentRequestIdRef.current === requestId) {
+              setData((prev) => ({ ...prev, revenueByCategory: res }));
+              setLoadingStates((prev) => ({ ...prev, revenueByCategory: false }));
+            }
+          })
+          .catch(() => {
+            if (currentRequestIdRef.current === requestId) {
+              setLoadingStates((prev) => ({ ...prev, revenueByCategory: false }));
+            }
+          });
+
+        const pSegment = dashboardService.getRevenueBySegment(lookbackDays)
+          .then((res) => {
+            if (currentRequestIdRef.current === requestId) {
+              setData((prev) => ({ ...prev, revenueBySegment: res }));
+              setLoadingStates((prev) => ({ ...prev, revenueBySegment: false }));
+            }
+          })
+          .catch(() => {
+            if (currentRequestIdRef.current === requestId) {
+              setLoadingStates((prev) => ({ ...prev, revenueBySegment: false }));
+            }
+          });
+
+        const pMonthly = dashboardService.getMonthlyRevenue(lookbackDays)
+          .then((res) => {
+            if (currentRequestIdRef.current === requestId) {
+              setData((prev) => ({ ...prev, monthlyRevenue: res }));
+              setLoadingStates((prev) => ({ ...prev, monthlyRevenue: false }));
+            }
+          })
+          .catch(() => {
+            if (currentRequestIdRef.current === requestId) {
+              setLoadingStates((prev) => ({ ...prev, monthlyRevenue: false }));
+            }
+          });
+
+        await Promise.allSettled([pCategory, pSegment, pMonthly]);
+      }
     } catch (err: any) {
       if (currentRequestIdRef.current === requestId) {
         setError(err.message || 'Failed to load dashboard telemetry.');
@@ -180,6 +251,9 @@ export const Dashboard: React.FC = () => {
       data.lateDeliveryRisk?.data_as_of ??
       data.discountVsProfit?.data_as_of ??
       data.shippingModes?.data_as_of ??
+      data.revenueByCategory?.data_as_of ??
+      data.revenueBySegment?.data_as_of ??
+      data.monthlyRevenue?.data_as_of ??
       null
     );
   }, [data]);
@@ -192,7 +266,10 @@ export const Dashboard: React.FC = () => {
     const hasProducts = (data.topProducts?.products || []).length > 0;
     const hasShipments = (data.lateDeliveryRisk?.total_shipments || 0) > 0;
     const hasBands = (data.discountVsProfit?.bands || []).length > 0;
-    return hasTrend || hasProducts || hasShipments || hasBands;
+    const hasCategories = (data.revenueByCategory?.categories || []).length > 0;
+    const hasSegments = (data.revenueBySegment?.segments || []).length > 0;
+    const hasMonths = (data.monthlyRevenue?.months || []).length > 0;
+    return hasTrend || hasProducts || hasShipments || hasBands || hasCategories || hasSegments || hasMonths;
   }, [data]);
 
   // Simplified status formatting (never exposes pipeline internals)
@@ -351,6 +428,32 @@ export const Dashboard: React.FC = () => {
             data={data.shippingModes}
             isLoading={loadingStates.shippingModes}
           />
+        </div>
+
+        {/* ROW 4: Revenue by Category (50%) | Revenue by Customer Segment (50%) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <React.Suspense fallback={<ChartCardSkeleton />}>
+            <CategoryRevenueWidget
+              data={data.revenueByCategory}
+              isLoading={loadingStates.revenueByCategory}
+            />
+          </React.Suspense>
+          <React.Suspense fallback={<ChartCardSkeleton />}>
+            <CustomerSegmentWidget
+              data={data.revenueBySegment}
+              isLoading={loadingStates.revenueBySegment}
+            />
+          </React.Suspense>
+        </div>
+
+        {/* ROW 5: Month-over-Month Revenue (Full Width) */}
+        <div>
+          <React.Suspense fallback={<ChartCardSkeleton />}>
+            <MonthlyRevenueWidget
+              data={data.monthlyRevenue}
+              isLoading={loadingStates.monthlyRevenue}
+            />
+          </React.Suspense>
         </div>
       </div>
     </div>

@@ -135,7 +135,7 @@ class TeamRepository(BaseRepository):
         rows = self.execute_query(query, {"user_id": user_id})
         return [int(r["tenant_id"]) for r in rows if r.get("tenant_id") is not None]
 
-    def list_team_members(self, page: int = 1, page_size: int = 20) -> Tuple[List[Dict[str, Any]], int]:
+    def list_team_members(self, page: int = 1, page_size: int = 20, order_by: str = "u.user_id ASC") -> Tuple[List[Dict[str, Any]], int]:
         """List team members and admins with server-side pagination, including assigned tenant IDs."""
         count_query = f"""
             SELECT COUNT(*) AS total FROM {self.users_table}
@@ -146,9 +146,31 @@ class TeamRepository(BaseRepository):
 
         offset = max(0, (page - 1) * page_size)
         users_query = f"""
-            SELECT {self.USER_COLUMNS} FROM {self.users_table}
-            WHERE role IN ('team_member', 'admin')
-            ORDER BY user_id ASC
+            SELECT 
+                u.user_id,
+                u.tenant_id,
+                u.name,
+                u.email,
+                u.password_hash,
+                u.role,
+                coalesce(u.is_active, true) as is_active,
+                u.created_at,
+                u.phone_number,
+                u.staff_id,
+                u.designation,
+                coalesce(u.must_change_password, false) as must_change_password,
+                u.last_login_at,
+                coalesce(u.failed_login_count, 0) as failed_login_count,
+                u.locked_until,
+                u.password_changed_at
+            FROM {self.users_table} u
+            LEFT JOIN (
+                SELECT user_id, COUNT(*) AS cnt
+                FROM {self.team_assignments_table}
+                GROUP BY user_id
+            ) ta_cnt ON u.user_id = ta_cnt.user_id
+            WHERE u.role IN ('team_member', 'admin')
+            ORDER BY {order_by}
             LIMIT :limit OFFSET :offset
         """
         users = self.execute_query(users_query, {"limit": page_size, "offset": offset})

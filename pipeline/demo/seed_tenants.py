@@ -30,7 +30,6 @@ logging.basicConfig(
 logger = logging.getLogger("helios.demo.seed_tenants")
 
 try:
-    from app.core.api_key_security import hash_api_key, mask_api_key
     from app.core.config import settings
     from app.core.security import get_password_hash
     from app.db.base import get_databricks_connection
@@ -43,7 +42,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DEMO_PASSWORD_PLAIN = os.environ.get("TEST_ACCOUNT_PASSWORD") or os.environ.get("ADMIN_PASSWORD")
-DEMO_API_KEY_PLAIN = os.environ.get("DEMO_API_KEY_PLAIN", "helios_live_vanguard_demo_api_key_2026")
 
 DEMO_TENANTS: List[Dict[str, Any]] = [
     {
@@ -115,8 +113,6 @@ DEMO_DB_CONNECTION: Dict[str, Any] = {
 def build_seed_sql_statements(catalog: str = "helios") -> List[str]:
     """Generate SQL statements required to seed demo tenants, users, and credentials."""
     password_hash = get_password_hash(DEMO_PASSWORD_PLAIN)
-    api_key_hash = hash_api_key(DEMO_API_KEY_PLAIN)
-    api_key_prefix = mask_api_key(DEMO_API_KEY_PLAIN)
 
     statements: List[str] = [
         f"USE CATALOG {catalog};",
@@ -235,29 +231,6 @@ WHEN NOT MATCHED THEN
 """.strip()
     statements.append(db_stmt)
 
-    # Seed Demo API Key for Tenant 3 (Module 5)
-    api_key_stmt = f"""
-MERGE INTO {catalog}.platform.api_keys AS target
-USING (
-  SELECT 
-    t.tenant_id,
-    '{api_key_hash}' AS key_hash,
-    '{api_key_prefix}' AS key_prefix,
-    true AS is_active
-  FROM {catalog}.platform.tenants t
-  WHERE t.contact_email = 'owner@vanguardhome.com'
-) AS source
-ON target.tenant_id = source.tenant_id AND target.key_prefix = source.key_prefix
-WHEN MATCHED THEN
-  UPDATE SET 
-    key_hash = source.key_hash,
-    is_active = source.is_active
-WHEN NOT MATCHED THEN
-  INSERT (tenant_id, key_hash, key_prefix, is_active)
-  VALUES (source.tenant_id, source.key_hash, source.key_prefix, source.is_active);
-""".strip()
-    statements.append(api_key_stmt)
-
     return statements
 
 
@@ -327,8 +300,6 @@ def main() -> None:
                 print(stmt + "\n")
 
     logger.info("Demo seeding script complete!")
-    logger.info("Demo password: %s", DEMO_PASSWORD_PLAIN)
-    logger.info("Demo API key (Tenant 3): %s", DEMO_API_KEY_PLAIN)
 
 
 if __name__ == "__main__":

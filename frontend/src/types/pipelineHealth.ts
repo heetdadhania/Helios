@@ -1,4 +1,4 @@
-export type IngestionSourceType = 'upload' | 'db_connection' | 'api_push' | string;
+export type IngestionSourceType = 'upload' | 'db_connection' | string;
 
 export type PipelineStage =
   | 'bronze_ingest'

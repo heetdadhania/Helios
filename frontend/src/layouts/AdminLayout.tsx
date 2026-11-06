@@ -14,6 +14,7 @@ import {
   BarChart3,
   TrendingUp,
   ShieldAlert,
+  Shield,
   User,
 } from 'lucide-react';
 import { Sidebar, NavItem } from '@/components/Sidebar';
@@ -40,6 +41,7 @@ const getPageTitle = (pathname: string): string => {
   if (normalized === '/oversight/health' || normalized === '/tenant-health') return 'Organization Health & SLA Oversight';
   if (normalized === '/oversight/compare' || normalized === '/tenant-compare') return 'Cross-Organization Comparison';
   if (normalized === '/oversight/usage' || normalized === '/usage') return 'Platform Usage & Telemetry';
+  if (normalized === '/admin/audit' || normalized === '/audit') return 'System Audit Trail';
   return 'Operations Console';
 };
 
@@ -70,7 +72,8 @@ export const AdminLayout: React.FC = () => {
         { label: 'Organization Health', to: '/admin/oversight/health', icon: ShieldAlert },
         { label: 'Compare Organizations', to: '/admin/oversight/compare', icon: BarChart3 },
         { label: 'Platform Usage', to: '/admin/oversight/usage', icon: TrendingUp },
-        { label: 'Team', to: '/admin/team', icon: Users }
+        { label: 'Team', to: '/admin/team', icon: Users },
+        { label: 'Audit Trail', to: '/admin/audit', icon: Shield }
       );
     }
 

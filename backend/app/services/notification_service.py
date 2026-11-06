@@ -47,7 +47,7 @@ class NotificationService:
         cursor: Optional[Cursor] = None,
     ) -> Optional[Dict[str, Any]]:
         """
-        Triggered when upload, DB sync, or API push is received.
+        Triggered when upload or DB sync is received.
         Notifies SMB Owner: 'Your data is being processed'.
         """
         message = "Your data is being processed"

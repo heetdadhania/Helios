@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -30,8 +31,19 @@ import { adminService } from '@/services/adminService';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/Toast';
 import { Pagination } from '@/components/ui/Pagination';
+import { SortControl, SortOption } from '@/components/ui/SortControl';
 import { formatDateIN } from '@/utils/currency';
 import { usePaginatedData } from '@/hooks/usePaginatedData';
+
+const ORGANIZATION_SORT_OPTIONS: SortOption[] = [
+  { value: 'id', label: 'ID' },
+  { value: 'name', label: 'Name' },
+  { value: 'industry', label: 'Industry' },
+  { value: 'state', label: 'State' },
+  { value: 'created', label: 'Created' },
+  { value: 'last_data', label: 'Last Data' },
+  { value: 'status', label: 'Status' },
+];
 
 const INDUSTRY_OPTIONS = [
   'Apparel & Fashion',
@@ -158,7 +170,10 @@ export const Tenants: React.FC = () => {
   const isAdmin = user?.role === 'admin';
   const toast = useToast();
 
+  const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const sortBy = searchParams.get('sort_by') || '';
+  const sortOrder = (searchParams.get('sort_order') as 'asc' | 'desc') || 'asc';
 
   const {
     data: tenants,
@@ -170,8 +185,8 @@ export const Tenants: React.FC = () => {
     setPage: setCurrentPage,
     refetch: loadTenants,
   } = usePaginatedData<Tenant>({
-    fetchFn: (params) => adminService.getTenants(params.page, params.pageSize, params.search),
-    filters: { search: searchQuery },
+    fetchFn: (params) => adminService.getTenants(params.page, params.pageSize, params.search, params.sortBy, params.sortOrder),
+    filters: { search: searchQuery, sortBy, sortOrder },
     pageSize: 20,
   });
 
@@ -630,16 +645,19 @@ export const Tenants: React.FC = () => {
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="relative max-w-md">
-        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-helios-text-secondary-light dark:text-helios-text-secondary-dark" />
-        <input
-          type="text"
-          placeholder="Search by business name or email"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark placeholder:text-helios-text-secondary-light dark:placeholder:text-helios-text-secondary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue transition-all"
-        />
+      {/* Search Bar & Sort Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="relative max-w-md flex-1">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-helios-text-secondary-light dark:text-helios-text-secondary-dark" />
+          <input
+            type="text"
+            placeholder="Search by business name or email"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark text-helios-text-primary-light dark:text-helios-text-primary-dark placeholder:text-helios-text-secondary-light dark:placeholder:text-helios-text-secondary-dark focus:outline-none focus:ring-1 focus:ring-helios-accent-blue transition-all"
+          />
+        </div>
+        <SortControl options={ORGANIZATION_SORT_OPTIONS} />
       </div>
 
       {/* Organizations Table */}

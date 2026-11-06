@@ -324,7 +324,7 @@ def _run_scenarios():
     assert final_retry_ps[0] == "success", f"Retry did not succeed: {final_retry_ps}"
 
     # =========================================================================
-    # 7.5: Database Sync and API Push
+    # 7.5: Database Sync
     # =========================================================================
     print("\n--- 7.5 LIVE DATABASE SYNC ---")
     # 1. Ensure Postgres demo table has fresh rows
@@ -373,30 +373,6 @@ def _run_scenarios():
     requests.post(f"{BASE_URL}/api/v1/uploads/{batch_db}/confirm", json={"confirmed_template": "template_orders"}, headers=headers_team1)
     wait_for_status(batch_db, ["success"])
     print(f"DB Sync batch {batch_db} reached SUCCESS!")
-
-    print("\n--- 7.5 LIVE API PUSH ---")
-    ts_api = int(time.time())
-    api_records = [
-        {"order_id": f"ORD-API-{ts_api}-{i:03d}", "customer_id": f"CUST-API-{i}", "product_id": f"SKU-{i}", "order_date": "2026-09-18 14:00:00", "quantity": 1, "unit_price": 20.0, "total": 20.0, "discount": 0.0}
-        for i in range(1, 6)
-    ]
-    key_resp = requests.post(f"{BASE_URL}/api/v1/api-keys/regenerate", headers={"Authorization": f"Bearer {owner1_token}"})
-    print(f"Key generate response: {key_resp.status_code}")
-    assert key_resp.status_code in (200, 201), f"Key generation failed: {key_resp.text}"
-    raw_api_key = key_resp.json()["api_key"]
-    
-    api_headers = {"X-Helios-Api-Key": raw_api_key, "Content-Type": "application/json"}
-    push_resp = requests.post(f"{BASE_URL}/api/v1/ingest", json={"records": api_records}, headers=api_headers)
-    print(f"API Push response: {push_resp.status_code} {push_resp.text}")
-    assert push_resp.status_code in (200, 201)
-    batch_api = push_resp.json()["batch_id"]
-    print(f"API Batch ID: {batch_api}")
-
-    wait_for_status(batch_api, ["pending_review"])
-    print(f"API Batch {batch_api} reached pending_review. Approving...")
-    requests.post(f"{BASE_URL}/api/v1/uploads/{batch_api}/confirm", json={"confirmed_template": "template_orders"}, headers=headers_team1)
-    wait_for_status(batch_api, ["success"])
-    print(f"API Push batch {batch_api} reached SUCCESS!")
 
 def verify_step_7():
     print("=" * 80)

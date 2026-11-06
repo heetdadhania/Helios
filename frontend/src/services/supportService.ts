@@ -31,11 +31,19 @@ export const supportService = {
   async getMessages(
     status?: string,
     page: number = 1,
-    pageSize: number = 20
+    pageSize: number = 20,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
   ): Promise<PaginatedResponse<SupportMessage>> {
     const params: Record<string, any> = { page, page_size: pageSize };
     if (status && status !== 'all') {
       params.status = status;
+    }
+    if (sortBy && sortBy.trim()) {
+      params.sort_by = sortBy.trim();
+    }
+    if (sortOrder) {
+      params.sort_order = sortOrder;
     }
     const response = await api.get<PaginatedResponse<SupportMessage>>('/support/messages', { params });
     return response.data;

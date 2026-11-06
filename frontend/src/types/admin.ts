@@ -1,4 +1,4 @@
-export type SourceType = 'upload' | 'db_connection' | 'api_push';
+export type SourceType = 'upload' | 'db_connection';
 
 export interface PendingUpload {
   batch_id: string;

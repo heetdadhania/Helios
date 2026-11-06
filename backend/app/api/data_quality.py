@@ -7,6 +7,7 @@ except ImportError:
 from fastapi import APIRouter, Depends, Query, Response, status
 
 from app.core.dependencies import get_db_cursor, require_team_or_admin
+from app.core.sorting import DATA_QUALITY_SORT_FIELDS, validate_and_resolve_sort
 from app.repositories.data_quality_repository import DataQualityRepository
 from app.schemas.auth import UserOut
 from app.schemas.common import PaginatedResponse
@@ -25,12 +26,20 @@ router = APIRouter()
 def get_data_quality_logs(
     tenant_id: Optional[str] = Query(None, description="Optional tenant ID or name filter"),
     batch_id: Optional[str] = Query(None, description="Optional batch UUID filter"),
+    sort_by: Optional[str] = Query(None, description="Field to sort by"),
+    sort_order: Optional[str] = Query(None, description="Sort direction: asc or desc"),
     page: int = Query(1, ge=1, description="Page number (1-based)"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page (max 100)"),
     current_user: UserOut = Depends(require_team_or_admin),
     cursor: Cursor = Depends(get_db_cursor),
 ) -> PaginatedResponse[DataQualityLogOut]:
     """Retrieve operational data quality rejection logs scoped to caller authorization with server-side pagination."""
+    order_by = validate_and_resolve_sort(
+        sort_by=sort_by,
+        sort_order=sort_order,
+        allowed_fields=DATA_QUALITY_SORT_FIELDS,
+        default_clause="d.logged_at DESC",
+    )
     repo = DataQualityRepository(cursor)
     raw_res = repo.list_logs(
         user_id=current_user.id,
@@ -39,6 +48,7 @@ def get_data_quality_logs(
         batch_filter=batch_id,
         page=page,
         page_size=page_size,
+        order_by=order_by,
     )
     if isinstance(raw_res, tuple) and len(raw_res) == 2:
         raw_logs, total = raw_res

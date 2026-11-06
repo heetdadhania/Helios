@@ -52,7 +52,7 @@ def _resolve_local_file_path(tenant_id: int, batch_id: str, file_path_or_name: s
 def ingest_and_infer(tenant_id: int, batch_id: str) -> Dict[str, Any]:
     """
     Shared entrypoint orchestrating Bronze Ingestion and Schema Inference.
-    Used by File Upload, Database Replication Sync, and API Push.
+    Used by File Upload and Database Replication Sync.
 
     1. Sets platform.pipeline_status status='ingesting', stage='bronze_ingest'.
     2. Reads raw data from disk.
