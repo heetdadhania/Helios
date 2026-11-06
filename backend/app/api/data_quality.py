@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import Any, Optional
 try:
     from databricks.sql.client import Cursor
 except ImportError:

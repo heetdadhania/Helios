@@ -2,7 +2,7 @@ import logging
 import re
 import secrets
 import string
-from typing import List, Optional
+from typing import Optional
 
 from databricks.sql.client import Cursor
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -11,7 +11,7 @@ from app.core.dependencies import get_current_user, get_db_cursor, require_admin
 from app.core.security import get_password_hash
 from app.core.sorting import TEAM_MEMBER_SORT_FIELDS, validate_and_resolve_sort
 from app.repositories.team_repository import TeamRepository
-from app.schemas.auth import UserOut, UserRole
+from app.schemas.auth import UserOut
 from app.schemas.common import PaginatedResponse
 from app.schemas.team import (
     ReplaceAssignmentsRequest,

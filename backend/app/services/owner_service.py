@@ -2,7 +2,7 @@ import json
 import logging
 import secrets
 import string
-from typing import Any, Dict, Optional
+from typing import Optional
 from fastapi import HTTPException, status
 from databricks.sql.client import Cursor
 

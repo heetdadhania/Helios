@@ -1,4 +1,3 @@
-import base64
 import csv
 import io
 import logging
@@ -15,8 +14,6 @@ from fastapi import HTTPException, status
 
 from app.core.config import settings
 from app.core.secrets_manager import (
-    decode_secret_value,
-    get_databricks_workspace_client,
     retrieve_db_credential,
     sanitize_error_message,
     store_db_credential,

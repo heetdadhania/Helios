@@ -1,7 +1,7 @@
 """Service layer for recording and querying operational and security audit events."""
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
 try:
     from databricks.sql.client import Cursor

@@ -113,7 +113,7 @@ def _acquire_cursor_context(cursor: Optional[Cursor], catalog: str) -> tuple[Cur
         return conn.cursor(), conn
     except Exception as exc:
         logger.error("Failed to establish default Databricks connection: %s", exc)
-        raise RuntimeError(f"Catalog connection could not be established: {exc}") from exc
+        raise RuntimeError(f"Database connection could not be established: {exc}") from exc
 
 
 def run_bronze_ingestion(
@@ -232,6 +232,12 @@ def run_bronze_ingestion(
             )
         except Exception as update_err:
             logger.error("Failed to persist failure status for batch %s: %s", batch_id, update_err)
+
+        try:
+            from app.services.oversight_service import OversightService
+            OversightService.clear_cache()
+        except Exception:
+            pass
 
         raise exc
 

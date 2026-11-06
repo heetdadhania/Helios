@@ -3,14 +3,12 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 from app.schemas.dashboard import (
-    CategoryRevenueItem,
     DiscountVsProfitResponse,
     LateDeliveryRiskResponse,
     MonthlyRevenueResponse,
     RevenueByCategoryResponse,
     RevenueBySegmentResponse,
     RevenueTrendResponse,
-    SegmentRevenueItem,
     ShippingModeComparisonResponse,
     TopProductsResponse,
 )

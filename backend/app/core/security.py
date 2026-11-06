@@ -2,7 +2,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional, Union
 import jwt
 from passlib.context import CryptContext
-from cryptography.fernet import Fernet
 from app.core.config import settings
 
 # Passlib CryptContext using standard bcrypt hashing scheme

@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from fastapi import HTTPException, status
 from databricks.sql.client import Cursor
 from app.core import security

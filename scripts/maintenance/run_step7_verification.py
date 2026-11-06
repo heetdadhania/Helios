@@ -332,7 +332,7 @@ def _run_scenarios():
         host="localhost",
         port=5433,
         user="helios_pg",
-        password="helios_demo_pg_secret",
+        password=os.environ.get("DEMO_PG_PASSWORD", "demo_pg_secret"),
         database="helios_demo_orders"
     )
     pg_cur = pg_conn.cursor()
@@ -352,7 +352,7 @@ def _run_scenarios():
         "port": 5433,
         "database_name": "helios_demo_orders",
         "username": "helios_pg",
-        "password": "helios_demo_pg_secret",
+        "password": os.environ.get("DEMO_PG_PASSWORD", "demo_pg_secret"),
         "table_or_query": "SELECT * FROM orders",
         "tenant_id": 1,
     }

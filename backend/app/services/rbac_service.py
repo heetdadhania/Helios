@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any
 from fastapi import HTTPException, status
 from app.schemas.user import UserRole
 

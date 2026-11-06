@@ -3,7 +3,6 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from fastapi import HTTPException, status
 
-from app.core.config import settings
 from app.repositories.pipeline_health_repository import PipelineHealthRepository
 from app.schemas.auth import UserOut
 from app.schemas.common import PaginatedResponse

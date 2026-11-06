@@ -9,18 +9,6 @@ from fastapi import HTTPException, status
 
 from app.repositories.dashboard_repository import DashboardRepository
 from app.repositories.oversight_repository import OversightRepository
-from app.schemas.dashboard import (
-    DeliveryRiskBreakdownItem,
-    DiscountProfitBand,
-    DiscountVsProfitResponse,
-    LateDeliveryRiskResponse,
-    RevenueTrendPoint,
-    RevenueTrendResponse,
-    ShippingModeComparisonItem,
-    ShippingModeComparisonResponse,
-    TopProductItem,
-    TopProductsResponse,
-)
 from app.schemas.oversight import (
     DailyPipelineRunUsage,
     DailyRowsIngestedUsage,

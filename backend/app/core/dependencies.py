@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Callable, Dict, Generator, Optional, Sequence
+from typing import Any, Callable, Generator, Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 import jwt

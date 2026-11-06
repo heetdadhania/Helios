@@ -1,4 +1,3 @@
-import re
 from typing import Any, List, Optional, Union
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 

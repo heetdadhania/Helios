@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Optional
 from fastapi import HTTPException, status
 
 from app.repositories.notification_repository import NotificationRepository

@@ -8,7 +8,6 @@ except ImportError:
 
 from fastapi import HTTPException, status
 
-from app.core.config import settings
 from app.repositories.notification_repository import NotificationRepository
 from app.schemas.auth import UserOut
 from app.schemas.common import PaginatedResponse

@@ -14,16 +14,13 @@ from app.core.dependencies import get_db_cursor, require_role
 from app.repositories.dashboard_repository import DashboardRepository
 from app.schemas.auth import UserOut
 from app.schemas.dashboard import (
-    CategoryRevenueItem,
     DashboardSummaryResponse,
     DiscountVsProfitResponse,
     LateDeliveryRiskResponse,
-    MonthlyRevenueItem,
     MonthlyRevenueResponse,
     RevenueByCategoryResponse,
     RevenueBySegmentResponse,
     RevenueTrendResponse,
-    SegmentRevenueItem,
     ShippingModeComparisonResponse,
     TopProductsResponse,
 )

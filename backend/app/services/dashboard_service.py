@@ -1,7 +1,7 @@
 import logging
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 from fastapi import HTTPException, status
 
 from app.repositories.dashboard_repository import DashboardRepository

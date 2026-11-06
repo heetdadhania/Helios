@@ -3,7 +3,7 @@ import logging
 import re
 import secrets
 import string
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 try:
     from databricks.sql.client import Cursor
