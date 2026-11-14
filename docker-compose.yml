@@ -27,6 +27,7 @@ services:
       args:
         VITE_API_BASE_URL: /api/v1
         VITE_API_URL: http://backend:8000
+        VITE_ENABLE_DB_CONNECTION: ${VITE_ENABLE_DB_CONNECTION:-false}
     container_name: helios-frontend
     restart: unless-stopped
     env_file: .env

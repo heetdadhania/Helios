@@ -20,6 +20,7 @@ import { LateDeliveryWidget } from '@/components/dashboard/LateDeliveryWidget';
 import { DiscountProfitWidget } from '@/components/dashboard/DiscountProfitWidget';
 import { ShippingModeWidget } from '@/components/dashboard/ShippingModeWidget';
 import { formatDateAsOf } from '@/utils/formatters';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 // Lazy-loaded analytical widgets
 const CategoryRevenueWidget = React.lazy(() => import('@/components/dashboard/CategoryRevenueWidget'));
@@ -394,62 +395,76 @@ export const TenantDashboardView: React.FC = () => {
           {/* REUSED CANONICAL DASHBOARD CHART GRID */}
           <div className="space-y-6">
             {/* 1. Daily Revenue Trend Chart */}
-            <RevenueTrendChart
-              data={data?.revenue_trend || null}
-              isLoading={isLoading}
-              selectedDays={selectedDays}
-              onDaysChange={handleDaysChange}
-            />
+            <ErrorBoundary sectionName="Daily Revenue Trend">
+              <RevenueTrendChart
+                data={data?.revenue_trend || null}
+                isLoading={isLoading}
+                selectedDays={selectedDays}
+                onDaysChange={handleDaysChange}
+              />
+            </ErrorBoundary>
 
             {/* 2. Top Products & Late Delivery Risks */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <TopProductsWidget
-                data={data?.top_products || null}
-                isLoading={isLoading}
-              />
-              <LateDeliveryWidget
-                data={data?.late_delivery_risk || null}
-                isLoading={isLoading}
-              />
+              <ErrorBoundary sectionName="Top Performing Products">
+                <TopProductsWidget
+                  data={data?.top_products || null}
+                  isLoading={isLoading}
+                />
+              </ErrorBoundary>
+              <ErrorBoundary sectionName="Late Delivery SLA Risk">
+                <LateDeliveryWidget
+                  data={data?.late_delivery_risk || null}
+                  isLoading={isLoading}
+                />
+              </ErrorBoundary>
             </div>
 
             {/* 3. Discount vs Profit & Shipping Mode Comparison */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <DiscountProfitWidget
-                data={data?.discount_vs_profit || null}
-                isLoading={isLoading}
-              />
-              <ShippingModeWidget
-                data={data?.shipping_modes || null}
-                isLoading={isLoading}
-              />
+              <ErrorBoundary sectionName="Discount vs Profit Elasticity">
+                <DiscountProfitWidget
+                  data={data?.discount_vs_profit || null}
+                  isLoading={isLoading}
+                />
+              </ErrorBoundary>
+              <ErrorBoundary sectionName="Shipping Mode Comparison">
+                <ShippingModeWidget
+                  data={data?.shipping_modes || null}
+                  isLoading={isLoading}
+                />
+              </ErrorBoundary>
             </div>
 
             {/* 4. Revenue by Category & Revenue by Customer Segment */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <React.Suspense fallback={<ChartCardSkeleton />}>
-                <CategoryRevenueWidget
-                  data={data?.revenue_by_category || null}
-                  isLoading={isLoading}
-                />
-              </React.Suspense>
-              <React.Suspense fallback={<ChartCardSkeleton />}>
-                <CustomerSegmentWidget
-                  data={data?.revenue_by_segment || null}
-                  isLoading={isLoading}
-                />
-              </React.Suspense>
+              <ErrorBoundary sectionName="Revenue by Category">
+                <React.Suspense fallback={<ChartCardSkeleton />}>
+                  <CategoryRevenueWidget
+                    data={data?.revenue_by_category || null}
+                    isLoading={isLoading}
+                  />
+                </React.Suspense>
+              </ErrorBoundary>
+              <ErrorBoundary sectionName="Revenue by Customer Segment">
+                <React.Suspense fallback={<ChartCardSkeleton />}>
+                  <CustomerSegmentWidget
+                    data={data?.revenue_by_segment || null}
+                    isLoading={isLoading}
+                  />
+                </React.Suspense>
+              </ErrorBoundary>
             </div>
 
             {/* 5. Month-over-Month Revenue */}
-            <div>
+            <ErrorBoundary sectionName="Month-over-Month Revenue">
               <React.Suspense fallback={<ChartCardSkeleton />}>
                 <MonthlyRevenueWidget
                   data={data?.monthly_revenue || null}
                   isLoading={isLoading}
                 />
               </React.Suspense>
-            </div>
+            </ErrorBoundary>
           </div>
         </>
       )}

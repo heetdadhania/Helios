@@ -13,6 +13,7 @@ import { RevenueByCategoryResponse } from '@/types/dashboard';
 import { useTheme } from '@/hooks/useTheme';
 import { Tag } from 'lucide-react';
 import { formatINR, formatINRCompact, formatCountIN } from '@/utils/currency';
+import { unwrapItems } from '@/utils/unwrapList';
 
 interface CategoryRevenueWidgetProps {
   data: RevenueByCategoryResponse | null;
@@ -54,7 +55,7 @@ export const CategoryRevenueWidget: React.FC<CategoryRevenueWidgetProps> = React
     );
   }
 
-  const categories = data?.categories || [];
+  const categories = unwrapItems<any>(data?.categories);
   const hasData = categories.length > 0;
 
   const chartItems = useMemo(

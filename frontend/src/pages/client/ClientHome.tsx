@@ -19,6 +19,7 @@ import { DashboardSummaryResponse } from '@/types/dashboard';
 import { formatINR, formatCountIN } from '@/utils/currency';
 import { ContactSupportButton } from '@/components/client/ContactSupportButton';
 import { useAuth } from '@/hooks/useAuth';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 export const ClientHome: React.FC = () => {
   const { user } = useAuth();
@@ -179,7 +180,8 @@ export const ClientHome: React.FC = () => {
 
       {/* Four KPI Figures */}
       {!loading && !error && data?.has_data && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <ErrorBoundary sectionName="Organization Overview KPIs" compact onRetry={fetchSummary}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {/* 1. Total Revenue */}
           <div className="p-5 rounded-2xl bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-xs transition hover:shadow-soft">
             <div className="flex items-center justify-between">
@@ -261,7 +263,8 @@ export const ClientHome: React.FC = () => {
               </p>
             </div>
           </div>
-        </div>
+          </div>
+        </ErrorBoundary>
       )}
 
       {/* Navigation Card to Full Dashboard */}

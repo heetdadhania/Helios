@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Tenant } from '@/types/admin';
 import { adminService } from '@/services/adminService';
+import { unwrapList } from '@/utils/unwrapList';
 
 export interface UseOrganizationsReturn {
   organizations: Tenant[];
@@ -23,7 +24,7 @@ export function useOrganizations(): UseOrganizationsReturn {
     setError(null);
     try {
       const res = await adminService.getTenants(1, 100);
-      const data = Array.isArray(res) ? res : (res?.items || []);
+      const data = unwrapList<Tenant>(res).items;
       setOrganizations(data);
       if (data.length === 1) {
         // Preselect the organization if there is only one

@@ -11,6 +11,7 @@ import { RevenueBySegmentResponse } from '@/types/dashboard';
 import { useTheme } from '@/hooks/useTheme';
 import { Users2 } from 'lucide-react';
 import { formatINR, formatINRCompact, formatCountIN } from '@/utils/currency';
+import { unwrapItems } from '@/utils/unwrapList';
 
 interface CustomerSegmentWidgetProps {
   data: RevenueBySegmentResponse | null;
@@ -47,7 +48,7 @@ export const CustomerSegmentWidget: React.FC<CustomerSegmentWidgetProps> = React
     );
   }
 
-  const segments = data?.segments || [];
+  const segments = unwrapItems<any>(data?.segments);
   const hasData = segments.length > 0;
 
   const chartData = useMemo(

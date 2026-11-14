@@ -145,7 +145,7 @@ export const PendingUploads: React.FC = () => {
             >
               <option value="all">All Sources</option>
               <option value="upload">File Uploads</option>
-              {ENABLE_DB_CONNECTION && (
+              {ENABLE_DB_CONNECTION === true && (
                 <option value="db_connection">Database Connectors</option>
               )}
             </select>

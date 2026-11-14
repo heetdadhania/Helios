@@ -14,6 +14,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { oversightService } from '@/services/oversightService';
+import { unwrapItems } from '@/utils/unwrapList';
 import { TenantHealthItem, TenantHealthListResponse, HealthStatusType } from '@/types/oversight';
 import { formatCountIN } from '@/utils/currency';
 
@@ -54,8 +55,9 @@ export const TenantHealth: React.FC = () => {
   }, []);
 
   const filteredTenants = useMemo(() => {
-    if (!healthData || !Array.isArray(healthData.tenants)) return [];
-    return healthData.tenants.filter((tenant) => {
+    const list = unwrapItems<TenantHealthItem>(healthData?.tenants ?? healthData);
+    if (list.length === 0) return [];
+    return list.filter((tenant) => {
       const name = tenant.tenant_name || '';
       const slug = tenant.slug || '';
       const idStr = String(tenant.tenant_id ?? '');
@@ -438,7 +440,7 @@ export const TenantHealth: React.FC = () => {
                         </span>
                       ) : (
                         <div className="space-y-0.5">
-                          {(t.issues ?? []).slice(0, 1).map((issue, idx) => (
+                          {(t.issues ?? []).slice(0, 1).map((issue: string, idx: number) => (
                             <div
                               key={idx}
                               className="text-[11px] text-slate-600 dark:text-slate-300 truncate"

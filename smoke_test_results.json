@@ -1,0 +1,281 @@
+[
+  {
+    "role": "admin",
+    "page": "/admin/home",
+    "loaded_without_error": "yes",
+    "fix": "Replaced direct .map on organizations and recent_activity with unwrapItems; wrapped chart & table widgets in ErrorBoundary; fixed table-row DOM nesting",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "admin_admin_home.png"
+  },
+  {
+    "role": "admin",
+    "page": "/admin/tenants",
+    "loaded_without_error": "yes",
+    "fix": "Normalized tenants list endpoint with unwrapList in useOrganizations hook and guarded table rows",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "admin_admin_tenants.png"
+  },
+  {
+    "role": "admin",
+    "page": "/admin/team",
+    "loaded_without_error": "yes",
+    "fix": "Safely unwrapped organizations and team members lists with unwrapItems; guarded table rendering",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "admin_admin_team.png"
+  },
+  {
+    "role": "admin",
+    "page": "/admin/uploads",
+    "loaded_without_error": "yes",
+    "fix": "Normalized pending uploads list with unwrapList; strictly hid Connect Database when ENABLE_DB_CONNECTION=false",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "admin_admin_uploads.png"
+  },
+  {
+    "role": "admin",
+    "page": "/admin/upload",
+    "loaded_without_error": "yes",
+    "fix": "Guarded organizations dropdown and file selection with unwrapItems",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "admin_admin_upload.png"
+  },
+  {
+    "role": "admin",
+    "page": "/admin/pipeline-health",
+    "loaded_without_error": "yes",
+    "fix": "Normalized pipeline run logs and stages through unwrapList with fallback empty states",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "admin_admin_pipeline-health.png"
+  },
+  {
+    "role": "admin",
+    "page": "/admin/history",
+    "loaded_without_error": "yes",
+    "fix": "Applied unwrapList to paginated submission history; protected pagination controls",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "admin_admin_history.png"
+  },
+  {
+    "role": "admin",
+    "page": "/admin/data-quality",
+    "loaded_without_error": "yes",
+    "fix": "Normalized data quality rule breaches through unwrapList; guarded rejection details",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "admin_admin_data-quality.png"
+  },
+  {
+    "role": "admin",
+    "page": "/admin/audit",
+    "loaded_without_error": "yes",
+    "fix": "Wrapped audit trail rows in unwrapList; protected payload modal",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "admin_admin_audit.png"
+  },
+  {
+    "role": "admin",
+    "page": "/admin/support",
+    "loaded_without_error": "yes",
+    "fix": "Normalized open support tickets and messages with unwrapItems; protected ticket view",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "admin_admin_support.png"
+  },
+  {
+    "role": "admin",
+    "page": "/admin/profile",
+    "loaded_without_error": "yes",
+    "fix": "Normalized admin team members and organization assignments through unwrapItems",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "admin_admin_profile.png"
+  },
+  {
+    "role": "admin",
+    "page": "/admin/oversight/health",
+    "loaded_without_error": "yes",
+    "fix": "Unwrapped tenants list via unwrapItems; wrapped health status tables in ErrorBoundary",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "admin_admin_oversight_health.png"
+  },
+  {
+    "role": "admin",
+    "page": "/admin/oversight/compare",
+    "loaded_without_error": "yes",
+    "fix": "Unwrapped comparison metrics array via unwrapItems; wrapped comparison charts and metrics table in ErrorBoundary",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "admin_admin_oversight_compare.png"
+  },
+  {
+    "role": "admin",
+    "page": "/admin/oversight/usage",
+    "loaded_without_error": "yes",
+    "fix": "Unwrapped pipelineRuns, rowsIngested, batchesPerTenant via unwrapItems; wrapped 3 usage charts in ErrorBoundary",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "admin_admin_oversight_usage.png"
+  },
+  {
+    "role": "admin",
+    "page": "/admin/oversight/dashboard/1",
+    "loaded_without_error": "yes",
+    "fix": "Unwrapped all 8 analytics charts via unwrapItems; wrapped each chart in ErrorBoundary",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "admin_admin_oversight_dashboard_1.png"
+  },
+  {
+    "role": "team_member",
+    "page": "/team/home",
+    "loaded_without_error": "yes",
+    "fix": "Unwrapped assigned organizations, open messages, and activity via unwrapItems; wrapped all 4 sections in ErrorBoundary",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "team_member_team_home.png"
+  },
+  {
+    "role": "team_member",
+    "page": "/team/uploads",
+    "loaded_without_error": "yes",
+    "fix": "Guarded team pending uploads through unwrapList; hid Connect Database",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "team_member_team_uploads.png"
+  },
+  {
+    "role": "team_member",
+    "page": "/team/upload",
+    "loaded_without_error": "yes",
+    "fix": "Guarded file upload target organization selector via unwrapItems",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "team_member_team_upload.png"
+  },
+  {
+    "role": "team_member",
+    "page": "/team/history",
+    "loaded_without_error": "yes",
+    "fix": "Guarded team paginated history through unwrapList",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "team_member_team_history.png"
+  },
+  {
+    "role": "team_member",
+    "page": "/team/support",
+    "loaded_without_error": "yes",
+    "fix": "Guarded support messages through unwrapItems",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "team_member_team_support.png"
+  },
+  {
+    "role": "team_member",
+    "page": "/team/pipeline-health",
+    "loaded_without_error": "yes",
+    "fix": "Guarded team pipeline health through unwrapList",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "team_member_team_pipeline-health.png"
+  },
+  {
+    "role": "team_member",
+    "page": "/team/data-quality",
+    "loaded_without_error": "yes",
+    "fix": "Guarded data quality view through unwrapList",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "team_member_team_data-quality.png"
+  },
+  {
+    "role": "team_member",
+    "page": "/team/tenants",
+    "loaded_without_error": "yes",
+    "fix": "Guarded assigned tenants through unwrapList in useOrganizations",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "team_member_team_tenants.png"
+  },
+  {
+    "role": "team_member",
+    "page": "/team/profile",
+    "loaded_without_error": "yes",
+    "fix": "Unwrapped assigned team organizations with unwrapItems",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "team_member_team_profile.png"
+  },
+  {
+    "role": "smb_owner",
+    "page": "/client/home",
+    "loaded_without_error": "yes",
+    "fix": "Wrapped 4 KPI widgets and navigation card in ErrorBoundary with unwrapList guards",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "smb_owner_client_home.png"
+  },
+  {
+    "role": "smb_owner",
+    "page": "/client/dashboard",
+    "loaded_without_error": "yes",
+    "fix": "Unwrapped all 8 client analytics widgets via unwrapItems; wrapped each chart row in ErrorBoundary",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "smb_owner_client_dashboard.png"
+  },
+  {
+    "role": "smb_owner",
+    "page": "/client/history",
+    "loaded_without_error": "yes",
+    "fix": "Normalized client submission history through unwrapList",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "smb_owner_client_history.png"
+  },
+  {
+    "role": "smb_owner",
+    "page": "/client/export",
+    "loaded_without_error": "yes",
+    "fix": "Guarded client export options and report generation",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "smb_owner_client_export.png"
+  },
+  {
+    "role": "smb_owner",
+    "page": "/client/notifications",
+    "loaded_without_error": "yes",
+    "fix": "Unwrapped client notifications via unwrapItems; protected bell badge",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "smb_owner_client_notifications.png"
+  },
+  {
+    "role": "smb_owner",
+    "page": "/client/support",
+    "loaded_without_error": "yes",
+    "fix": "Unwrapped client support messages with unwrapItems",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "smb_owner_client_support.png"
+  },
+  {
+    "role": "smb_owner",
+    "page": "/client/profile",
+    "loaded_without_error": "yes",
+    "fix": "Guarded client organization details update form",
+    "page_errors": [],
+    "console_errors": [],
+    "screenshot": "smb_owner_client_profile.png"
+  }
+]

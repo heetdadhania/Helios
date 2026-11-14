@@ -37,6 +37,7 @@ import {
 } from '@/types/profile';
 import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton';
 import { formatDateIN, formatDateTimeIN, formatCountIN } from '@/utils/currency';
+import { unwrapItems } from '@/utils/unwrapList';
 
 export const INDIAN_STATES_AND_UTS = [
   'Andhra Pradesh',
@@ -416,6 +417,9 @@ export const Profile: React.FC = () => {
         return null;
     }
   };
+
+  const teamMemberOrgs = unwrapItems((profile as TeamMemberProfileData)?.assigned_organizations);
+  const adminTeamMembers = unwrapItems((profile as AdminProfileData)?.team_members);
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
@@ -1155,13 +1159,13 @@ export const Profile: React.FC = () => {
                     </h2>
                   </div>
                   <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                    {(profile as TeamMemberProfileData).assigned_organizations.length} Assigned
+                    {teamMemberOrgs.length} Assigned
                   </span>
                 </div>
 
-                {(profile as TeamMemberProfileData).assigned_organizations.length > 0 ? (
+                {teamMemberOrgs.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {(profile as TeamMemberProfileData).assigned_organizations.map((org) => (
+                    {teamMemberOrgs.map((org) => (
                       <div
                         key={org.tenant_id}
                         className="p-5 rounded-xl bg-helios-bg-light dark:bg-helios-bg-dark border border-helios-border-light dark:border-helios-border-dark space-y-3"
@@ -1357,15 +1361,15 @@ export const Profile: React.FC = () => {
                     </h2>
                   </div>
                   <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400">
-                    {(profile as AdminProfileData).team_members.length} Total
+                    {adminTeamMembers.length} Total
                   </span>
                 </div>
 
-                {(profile as AdminProfileData).team_members.length > 0 ? (
+                {adminTeamMembers.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs border-collapse">
                       <thead>
-                        <tr className="border-b border-helios-border-light dark:border-helios-border-dark text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-semibold">
+                        <tr className="border-b border-helios-border-light dark:border-helios-border-light text-helios-text-secondary-light dark:text-helios-text-secondary-dark font-semibold">
                           <th className="py-3 px-4">Name</th>
                           <th className="py-3 px-4">Designation</th>
                           <th className="py-3 px-4">Email</th>
@@ -1374,7 +1378,7 @@ export const Profile: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark">
-                        {(profile as AdminProfileData).team_members.map((tm) => (
+                        {adminTeamMembers.map((tm) => (
                           <tr
                             key={tm.user_id}
                             className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors"

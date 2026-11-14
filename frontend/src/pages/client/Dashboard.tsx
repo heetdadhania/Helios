@@ -16,6 +16,7 @@ import { dashboardService } from '@/services/dashboardService';
 import { DashboardData } from '@/types/dashboard';
 import { formatDateAsOf } from '@/utils/formatters';
 import { ContactSupportButton } from '@/components/client/ContactSupportButton';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 // Lazy-loaded analytical widgets to ensure initial dashboard bundle and warm load time remain optimal
 const CategoryRevenueWidget = React.lazy(() => import('@/components/dashboard/CategoryRevenueWidget'));
@@ -397,64 +398,76 @@ export const Dashboard: React.FC = () => {
       {/* DASHBOARD LAYOUT */}
       <div className="space-y-6">
         {/* ROW 1: Revenue Trend (Full Width) with Export button nearby */}
-        <div>
+        <ErrorBoundary sectionName="Daily Revenue Trend">
           <RevenueTrendChart
             data={data.revenueTrend}
             isLoading={loadingStates.revenueTrend}
             selectedDays={days}
             onDaysChange={handleDaysChange}
           />
-        </div>
+        </ErrorBoundary>
 
         {/* ROW 2: Top Products (50%) | Late Delivery Risk (50%) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <TopProductsWidget
-            data={data.topProducts}
-            isLoading={loadingStates.topProducts}
-          />
-          <LateDeliveryWidget
-            data={data.lateDeliveryRisk}
-            isLoading={loadingStates.lateDeliveryRisk}
-          />
+          <ErrorBoundary sectionName="Top Performing Products">
+            <TopProductsWidget
+              data={data.topProducts}
+              isLoading={loadingStates.topProducts}
+            />
+          </ErrorBoundary>
+          <ErrorBoundary sectionName="Late Delivery SLA Risk">
+            <LateDeliveryWidget
+              data={data.lateDeliveryRisk}
+              isLoading={loadingStates.lateDeliveryRisk}
+            />
+          </ErrorBoundary>
         </div>
 
         {/* ROW 3: Discount vs Profit (50%) | Shipping Mode Comparison (50%) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <DiscountProfitWidget
-            data={data.discountVsProfit}
-            isLoading={loadingStates.discountVsProfit}
-          />
-          <ShippingModeWidget
-            data={data.shippingModes}
-            isLoading={loadingStates.shippingModes}
-          />
+          <ErrorBoundary sectionName="Discount vs Profit Elasticity">
+            <DiscountProfitWidget
+              data={data.discountVsProfit}
+              isLoading={loadingStates.discountVsProfit}
+            />
+          </ErrorBoundary>
+          <ErrorBoundary sectionName="Shipping Mode Comparison">
+            <ShippingModeWidget
+              data={data.shippingModes}
+              isLoading={loadingStates.shippingModes}
+            />
+          </ErrorBoundary>
         </div>
 
         {/* ROW 4: Revenue by Category (50%) | Revenue by Customer Segment (50%) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <React.Suspense fallback={<ChartCardSkeleton />}>
-            <CategoryRevenueWidget
-              data={data.revenueByCategory}
-              isLoading={loadingStates.revenueByCategory}
-            />
-          </React.Suspense>
-          <React.Suspense fallback={<ChartCardSkeleton />}>
-            <CustomerSegmentWidget
-              data={data.revenueBySegment}
-              isLoading={loadingStates.revenueBySegment}
-            />
-          </React.Suspense>
+          <ErrorBoundary sectionName="Revenue by Category">
+            <React.Suspense fallback={<ChartCardSkeleton />}>
+              <CategoryRevenueWidget
+                data={data.revenueByCategory}
+                isLoading={loadingStates.revenueByCategory}
+              />
+            </React.Suspense>
+          </ErrorBoundary>
+          <ErrorBoundary sectionName="Revenue by Customer Segment">
+            <React.Suspense fallback={<ChartCardSkeleton />}>
+              <CustomerSegmentWidget
+                data={data.revenueBySegment}
+                isLoading={loadingStates.revenueBySegment}
+              />
+            </React.Suspense>
+          </ErrorBoundary>
         </div>
 
         {/* ROW 5: Month-over-Month Revenue (Full Width) */}
-        <div>
+        <ErrorBoundary sectionName="Month-over-Month Revenue">
           <React.Suspense fallback={<ChartCardSkeleton />}>
             <MonthlyRevenueWidget
               data={data.monthlyRevenue}
               isLoading={loadingStates.monthlyRevenue}
             />
           </React.Suspense>
-        </div>
+        </ErrorBoundary>
       </div>
     </div>
   );

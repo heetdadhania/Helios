@@ -133,7 +133,7 @@ const renderOperationalRoutes = (prefix: 'admin' | 'team') => [
   <Route key="pending-uploads" path="pending-uploads" element={<PendingUploads />} />,
   <Route key="upload" path="upload" element={<IngestUpload />} />,
   <Route key="ingest-upload" path="ingest-upload" element={<IngestUpload />} />,
-  ...(ENABLE_DB_CONNECTION
+  ...(ENABLE_DB_CONNECTION === true
     ? [
         <Route key="connect-db" path="connect-db" element={<IngestDatabaseConnection />} />,
         <Route key="connect-database" path="connect-database" element={<IngestDatabaseConnection />} />,

@@ -12,6 +12,7 @@ import {
 import { ShippingModeComparisonResponse } from '@/types/dashboard';
 import { useTheme } from '@/hooks/useTheme';
 import { Navigation } from 'lucide-react';
+import { unwrapItems } from '@/utils/unwrapList';
 
 interface ShippingModeWidgetProps {
   data: ShippingModeComparisonResponse | null;
@@ -42,7 +43,7 @@ export const ShippingModeWidget: React.FC<ShippingModeWidgetProps> = React.memo(
     );
   }
 
-  const modes = data?.modes || [];
+  const modes = unwrapItems<any>(data?.modes);
   const hasData = modes.length > 0;
 
   return (

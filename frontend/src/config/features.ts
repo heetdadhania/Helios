@@ -1,6 +1,12 @@
 /**
- * Application-wide feature flags derived from Vite environment variables.
+ * Application-wide feature flags derived from environment variables.
+ * Missing or unset variables strictly default to FALSE (hidden).
+ * A feature is only enabled if the environment variable is explicitly string "true".
  */
-export const ENABLE_DB_CONNECTION: boolean =
-  import.meta.env.VITE_ENABLE_DB_CONNECTION === 'true';
+const rawDbEnv =
+  typeof import.meta !== 'undefined' && import.meta.env
+    ? (import.meta.env.VITE_ENABLE_DB_CONNECTION ?? (import.meta.env as any).ENABLE_DB_CONNECTION)
+    : undefined;
 
+export const ENABLE_DB_CONNECTION: boolean =
+  String(rawDbEnv ?? '').toLowerCase().trim() === 'true';

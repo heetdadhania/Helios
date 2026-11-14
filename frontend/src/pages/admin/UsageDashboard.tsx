@@ -28,6 +28,8 @@ import { oversightService } from '@/services/oversightService';
 import { PlatformUsageResponse } from '@/types/oversight';
 import { useTheme } from '@/hooks/useTheme';
 import { formatCountIN } from '@/utils/currency';
+import { unwrapItems } from '@/utils/unwrapList';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 interface EmptyChartStateProps {
   title?: string;
@@ -111,6 +113,10 @@ export const UsageDashboard: React.FC = () => {
   const textColor = isDark ? '#A3A3A3' : '#6B7280';
   const tooltipBg = isDark ? '#161616' : '#FFFFFF';
   const tooltipBorder = isDark ? '#262626' : '#E5E7EB';
+
+  const pipelineRuns = unwrapItems(usage?.pipeline_runs_per_day);
+  const rowsIngested = unwrapItems(usage?.total_rows_ingested_over_time);
+  const batchesPerTenant = unwrapItems(usage?.batches_per_tenant);
 
   return (
     <div className="space-y-6">
@@ -217,7 +223,8 @@ export const UsageDashboard: React.FC = () => {
       {/* Main Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 1. Pipeline Runs Over Time (Area Chart with Success vs Fail) */}
-        <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm">
+        <ErrorBoundary sectionName="Daily Pipeline Runs Chart">
+          <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
@@ -233,7 +240,7 @@ export const UsageDashboard: React.FC = () => {
                 <RefreshCw className="w-5 h-5 animate-spin mr-2 text-helios-accent-blue" />
                 Loading pipeline history...
               </div>
-            ) : (usage?.pipeline_runs_per_day || []).length === 0 ? (
+            ) : pipelineRuns.length === 0 ? (
               <EmptyChartState
                 title="Not enough activity yet to show usage trends"
                 description="Daily execution volume and success rates will appear here as pipeline runs occur."
@@ -242,7 +249,7 @@ export const UsageDashboard: React.FC = () => {
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={usage?.pipeline_runs_per_day}
+                  data={pipelineRuns}
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                 >
                   <defs>
@@ -303,8 +310,10 @@ export const UsageDashboard: React.FC = () => {
             )}
           </div>
         </div>
+      </ErrorBoundary>
 
-        {/* 2. Rows Ingested Over Time (Area Chart) */}
+      {/* 2. Rows Ingested Over Time (Area Chart) */}
+      <ErrorBoundary sectionName="Bronze Ingestion Volume Chart">
         <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -321,7 +330,7 @@ export const UsageDashboard: React.FC = () => {
                 <RefreshCw className="w-5 h-5 animate-spin mr-2 text-helios-accent-blue" />
                 Loading ingestion history...
               </div>
-            ) : (usage?.total_rows_ingested_over_time || []).length === 0 ? (
+            ) : rowsIngested.length === 0 ? (
               <EmptyChartState
                 title="Not enough activity yet to show usage trends"
                 description="Bronze stage row volume will populate here as data files are uploaded and ingested."
@@ -330,7 +339,7 @@ export const UsageDashboard: React.FC = () => {
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={usage?.total_rows_ingested_over_time}
+                  data={rowsIngested}
                   margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
                 >
                   <defs>
@@ -381,64 +390,67 @@ export const UsageDashboard: React.FC = () => {
             )}
           </div>
         </div>
+      </ErrorBoundary>
       </div>
 
       {/* 3. Batches Processed per Organization (Bar Chart) */}
-      <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
-              <Layers className="w-4 h-4 text-purple-500" />
-              <span>Ingestion Batches Distribution by Organization</span>
-            </h3>
-            <p className="text-xs text-slate-400 mt-0.5">Completed batch uploads and sync executions per organization</p>
+      <ErrorBoundary sectionName="Ingestion Batches Distribution Chart">
+        <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
+                <Layers className="w-4 h-4 text-purple-500" />
+                <span>Ingestion Batches Distribution by Organization</span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">Completed batch uploads and sync executions per organization</p>
+            </div>
+          </div>
+          <div className="h-64 w-full">
+            {isLoading ? (
+              <div className="h-full flex items-center justify-center text-xs text-slate-400">
+                <RefreshCw className="w-5 h-5 animate-spin mr-2 text-helios-accent-blue" />
+                Loading organization batch distribution...
+              </div>
+            ) : batchesPerTenant.length === 0 ? (
+              <EmptyChartState
+                title="Not enough activity yet to show usage trends"
+                description="Ingestion batches per organization will appear here once organizations begin uploading telemetry."
+                icon={<Layers className="w-5 h-5 text-purple-500" />}
+              />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={batchesPerTenant}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
+                  <XAxis
+                    dataKey="tenant_name"
+                    stroke={textColor}
+                    fontSize={11}
+                    tickLine={false}
+                    interval={0}
+                  />
+                  <YAxis stroke={textColor} fontSize={11} tickLine={false} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: tooltipBg,
+                      borderColor: tooltipBorder,
+                      color: isDark ? '#F5F5F5' : '#111827',
+                      borderRadius: '0.75rem',
+                      fontSize: '12px',
+                    }}
+                    itemStyle={{ color: isDark ? '#F5F5F5' : '#111827' }}
+                    labelStyle={{ color: isDark ? '#A3A3A3' : '#6B7280' }}
+                    formatter={(val: number) => [`${val} batches`, 'Total Batches']}
+                  />
+                  <Bar dataKey="batch_count" name="Batches" fill="#8B5CF6" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
-        <div className="h-64 w-full">
-          {isLoading ? (
-            <div className="h-full flex items-center justify-center text-xs text-slate-400">
-              <RefreshCw className="w-5 h-5 animate-spin mr-2 text-helios-accent-blue" />
-              Loading organization batch distribution...
-            </div>
-          ) : (usage?.batches_per_tenant || []).length === 0 ? (
-            <EmptyChartState
-              title="Not enough activity yet to show usage trends"
-              description="Ingestion batches per organization will appear here once organizations begin uploading telemetry."
-              icon={<Layers className="w-5 h-5 text-purple-500" />}
-            />
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={usage?.batches_per_tenant}
-                margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-                <XAxis
-                  dataKey="tenant_name"
-                  stroke={textColor}
-                  fontSize={11}
-                  tickLine={false}
-                  interval={0}
-                />
-                <YAxis stroke={textColor} fontSize={11} tickLine={false} allowDecimals={false} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: tooltipBg,
-                    borderColor: tooltipBorder,
-                    color: isDark ? '#F5F5F5' : '#111827',
-                    borderRadius: '0.75rem',
-                    fontSize: '12px',
-                  }}
-                  itemStyle={{ color: isDark ? '#F5F5F5' : '#111827' }}
-                  labelStyle={{ color: isDark ? '#A3A3A3' : '#6B7280' }}
-                  formatter={(val: number) => [`${val} batches`, 'Total Batches']}
-                />
-                <Bar dataKey="batch_count" name="Batches" fill="#8B5CF6" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </div>
+      </ErrorBoundary>
 
       {/* Export Audit Log Modal */}
       {showExportModal && (

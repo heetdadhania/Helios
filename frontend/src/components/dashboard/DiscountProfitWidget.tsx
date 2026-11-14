@@ -13,6 +13,7 @@ import { DiscountVsProfitResponse } from '@/types/dashboard';
 import { useTheme } from '@/hooks/useTheme';
 import { Percent } from 'lucide-react';
 import { formatINR, formatINRCompact, formatCountIN } from '@/utils/currency';
+import { unwrapItems } from '@/utils/unwrapList';
 
 interface DiscountProfitWidgetProps {
   data: DiscountVsProfitResponse | null;
@@ -43,7 +44,7 @@ export const DiscountProfitWidget: React.FC<DiscountProfitWidgetProps> = React.m
     );
   }
 
-  const bands = data?.bands || [];
+  const bands = unwrapItems<any>(data?.bands);
   const hasData = bands.length > 0;
 
   return (

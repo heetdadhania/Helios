@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { BatchCompleteness, DataQualityLogItem, SchemaPreview, SourceType } from '@/types/admin';
 import { adminService } from '@/services/adminService';
+import { unwrapItems } from '@/utils/unwrapList';
 import { FlagForAdminButton } from '@/components/team/FlagForAdminButton';
 import { useBasePath } from '@/hooks/useBasePath';
 
@@ -130,7 +131,7 @@ export const ConfirmSchema: React.FC = () => {
       adminService
         .getDataQualityLogs(undefined, batchId)
         .then((res: any) => {
-          const list = Array.isArray(res) ? res : (res?.items || []);
+          const list = unwrapItems(res);
           const matched = list.filter(
             (log: any) => log.batch_id === batchId || String(log.batch_id).toLowerCase().includes(batchId.toLowerCase())
           );

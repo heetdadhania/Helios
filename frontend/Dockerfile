@@ -18,8 +18,10 @@ COPY . .
 # Build-time environment arguments (configurable via docker-compose)
 ARG VITE_API_BASE_URL=/api/v1
 ARG VITE_API_URL=http://backend:8000
+ARG VITE_ENABLE_DB_CONNECTION=false
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 ENV VITE_API_URL=${VITE_API_URL}
+ENV VITE_ENABLE_DB_CONNECTION=${VITE_ENABLE_DB_CONNECTION}
 
 # Compile TypeScript and build production assets
 RUN npm run build

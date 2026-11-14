@@ -13,6 +13,7 @@ import { MonthlyRevenueResponse } from '@/types/dashboard';
 import { useTheme } from '@/hooks/useTheme';
 import { CalendarDays, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { formatINR, formatINRCompact, formatCountIN } from '@/utils/currency';
+import { unwrapItems } from '@/utils/unwrapList';
 
 interface MonthlyRevenueWidgetProps {
   data: MonthlyRevenueResponse | null;
@@ -43,7 +44,7 @@ export const MonthlyRevenueWidget: React.FC<MonthlyRevenueWidgetProps> = React.m
     );
   }
 
-  const months = data?.months || [];
+  const months = unwrapItems<any>(data?.months);
   const hasData = months.length > 0;
 
   const chartData = useMemo(

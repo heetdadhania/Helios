@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   BarChart3,
   Building2,
@@ -21,6 +21,8 @@ import {
   Cell,
 } from 'recharts';
 import { oversightService } from '@/services/oversightService';
+import { unwrapItems } from '@/utils/unwrapList';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import {
   TenantCompareResponse,
   TenantHealthItem,
@@ -42,16 +44,19 @@ export const TenantComparison: React.FC = () => {
   const [isComparing, setIsComparing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  const comparisonTenants = useMemo(() => unwrapItems(comparisonData?.tenants), [comparisonData]);
+
   // Load available tenants on mount
   useEffect(() => {
     const fetchTenants = async () => {
       setIsLoadingTenants(true);
       try {
         const res = await oversightService.getTenantHealth();
-        setAvailableTenants(res.tenants);
+        const healthTenants = unwrapItems(res?.tenants ?? res);
+        setAvailableTenants(healthTenants);
         // Pre-select first 2-3 tenants if available
-        if (res.tenants.length >= 2) {
-          setSelectedIds([res.tenants[0].tenant_id, res.tenants[1].tenant_id]);
+        if (healthTenants.length >= 2) {
+          setSelectedIds([healthTenants[0].tenant_id, healthTenants[1].tenant_id]);
         }
       } catch (err: any) {
         setError(err?.message || 'Could not load tenant directory.');
@@ -293,235 +298,241 @@ export const TenantComparison: React.FC = () => {
           {/* Side-by-Side Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Revenue Comparison Bar Chart */}
-            <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
-                    <IndianRupee className="w-4 h-4 text-emerald-500" />
-                    <span>Gross Revenue by Organization (INR)</span>
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Total completed revenue in selected timeframe</p>
+            <ErrorBoundary sectionName="Gross Revenue Comparison Chart">
+              <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
+                      <IndianRupee className="w-4 h-4 text-emerald-500" />
+                      <span>Gross Revenue by Organization (INR)</span>
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Total completed revenue in selected timeframe</p>
+                  </div>
+                </div>
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={comparisonTenants}
+                      margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
+                      <XAxis
+                        dataKey="tenant_name"
+                        stroke={textColor}
+                        fontSize={11}
+                        tickLine={false}
+                        interval={0}
+                        tick={{ fill: textColor }}
+                      />
+                      <YAxis
+                        stroke={textColor}
+                        fontSize={11}
+                        tickLine={false}
+                        tickFormatter={(val) => formatINRCompact(val)}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: tooltipBg,
+                          borderColor: tooltipBorder,
+                          color: isDark ? '#F5F5F5' : '#111827',
+                          borderRadius: '0.75rem',
+                          fontSize: '12px',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                        }}
+                        itemStyle={{ color: isDark ? '#F5F5F5' : '#111827' }}
+                        labelStyle={{ color: isDark ? '#A3A3A3' : '#6B7280' }}
+                        formatter={(val: number) => [formatINR(val), 'Total Revenue']}
+                      />
+                      <Bar dataKey="total_revenue" radius={[6, 6, 0, 0]}>
+                        {comparisonTenants.map((_entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={chartColors[index % chartColors.length]}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={comparisonData.tenants}
-                    margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-                    <XAxis
-                      dataKey="tenant_name"
-                      stroke={textColor}
-                      fontSize={11}
-                      tickLine={false}
-                      interval={0}
-                      tick={{ fill: textColor }}
-                    />
-                    <YAxis
-                      stroke={textColor}
-                      fontSize={11}
-                      tickLine={false}
-                      tickFormatter={(val) => formatINRCompact(val)}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: tooltipBg,
-                        borderColor: tooltipBorder,
-                        color: isDark ? '#F5F5F5' : '#111827',
-                        borderRadius: '0.75rem',
-                        fontSize: '12px',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                      }}
-                      itemStyle={{ color: isDark ? '#F5F5F5' : '#111827' }}
-                      labelStyle={{ color: isDark ? '#A3A3A3' : '#6B7280' }}
-                      formatter={(val: number) => [formatINR(val), 'Total Revenue']}
-                    />
-                    <Bar dataKey="total_revenue" radius={[6, 6, 0, 0]}>
-                      {comparisonData.tenants.map((_entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={chartColors[index % chartColors.length]}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+            </ErrorBoundary>
 
             {/* Late Delivery Rate Comparison Bar Chart */}
-            <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
-                    <Percent className="w-4 h-4 text-amber-500" />
-                    <span>Late Delivery Breach Rate (%)</span>
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">SLA delivery delay percentage (lower is better)</p>
+            <ErrorBoundary sectionName="Late Delivery Comparison Chart">
+              <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
+                      <Percent className="w-4 h-4 text-amber-500" />
+                      <span>Late Delivery Breach Rate (%)</span>
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">SLA delivery delay percentage (lower is better)</p>
+                  </div>
+                </div>
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={comparisonTenants}
+                      margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
+                      <XAxis
+                        dataKey="tenant_name"
+                        stroke={textColor}
+                        fontSize={11}
+                        tickLine={false}
+                        interval={0}
+                        tick={{ fill: textColor }}
+                      />
+                      <YAxis
+                        stroke={textColor}
+                        fontSize={11}
+                        tickLine={false}
+                        tickFormatter={(val) => `${val}%`}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: tooltipBg,
+                          borderColor: tooltipBorder,
+                          color: isDark ? '#F5F5F5' : '#111827',
+                          borderRadius: '0.75rem',
+                          fontSize: '12px',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                        }}
+                        itemStyle={{ color: isDark ? '#F5F5F5' : '#111827' }}
+                        labelStyle={{ color: isDark ? '#A3A3A3' : '#6B7280' }}
+                        formatter={(val: number) => [`${val.toFixed(1)}%`, 'Late Delivery Rate']}
+                      />
+                      <Bar dataKey="late_delivery_pct" radius={[6, 6, 0, 0]}>
+                        {comparisonTenants.map((entry, index) => (
+                          <Cell
+                            key={`cell-late-${index}`}
+                            fill={
+                              entry.late_delivery_pct >= 25
+                                ? '#EF4444'
+                                : entry.late_delivery_pct >= 10
+                                ? '#F59E0B'
+                                : '#10B981'
+                            }
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={comparisonData.tenants}
-                    margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-                    <XAxis
-                      dataKey="tenant_name"
-                      stroke={textColor}
-                      fontSize={11}
-                      tickLine={false}
-                      interval={0}
-                      tick={{ fill: textColor }}
-                    />
-                    <YAxis
-                      stroke={textColor}
-                      fontSize={11}
-                      tickLine={false}
-                      tickFormatter={(val) => `${val}%`}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: tooltipBg,
-                        borderColor: tooltipBorder,
-                        color: isDark ? '#F5F5F5' : '#111827',
-                        borderRadius: '0.75rem',
-                        fontSize: '12px',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                      }}
-                      itemStyle={{ color: isDark ? '#F5F5F5' : '#111827' }}
-                      labelStyle={{ color: isDark ? '#A3A3A3' : '#6B7280' }}
-                      formatter={(val: number) => [`${val.toFixed(1)}%`, 'Late Delivery Rate']}
-                    />
-                    <Bar dataKey="late_delivery_pct" radius={[6, 6, 0, 0]}>
-                      {comparisonData.tenants.map((entry, index) => (
-                        <Cell
-                          key={`cell-late-${index}`}
-                          fill={
-                            entry.late_delivery_pct >= 25
-                              ? '#EF4444'
-                              : entry.late_delivery_pct >= 10
-                              ? '#F59E0B'
-                              : '#10B981'
-                          }
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+            </ErrorBoundary>
           </div>
 
           {/* Detailed Side-by-Side Comparison Metrics Table */}
-          <div className="rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-helios-border-light dark:border-helios-border-dark flex items-center justify-between">
-              <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
-                <Layers className="w-4 h-4 text-helios-accent-blue" />
-                <span>Side-by-Side Metrics Matrix</span>
-              </h3>
-              <span className="text-[11px] text-slate-400 font-mono">
-                Compared at {formatDateTimeIN(comparisonData.compared_at)}
-              </span>
-            </div>
+          <ErrorBoundary sectionName="Side-by-Side Metrics Matrix">
+            <div className="rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm overflow-hidden">
+              <div className="p-4 border-b border-helios-border-light dark:border-helios-border-dark flex items-center justify-between">
+                <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-helios-accent-blue" />
+                  <span>Side-by-Side Metrics Matrix</span>
+                </h3>
+                <span className="text-[11px] text-slate-400 font-mono">
+                  Compared at {formatDateTimeIN(comparisonData.compared_at)}
+                </span>
+              </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="border-b border-helios-border-light dark:border-helios-border-light dark:border-helios-border-dark bg-black/[0.02] dark:bg-white/[0.02] text-slate-400 uppercase font-semibold text-[11px] tracking-wider">
-                    <th className="py-3 px-4">Metric</th>
-                    {comparisonData.tenants.map((t) => {
-                      const asOfStr = formatDateAsOf(t.data_as_of);
-                      return (
-                        <th key={t.tenant_id} className="py-3 px-4 font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span>{t.tenant_name}</span>
-                            {asOfStr ? (
-                              <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500 whitespace-nowrap">
-                                (Data as of {asOfStr})
-                              </span>
-                            ) : (
-                              <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500 whitespace-nowrap">
-                                (No data)
-                              </span>
-                            )}
-                          </div>
-                          <span className="block text-[10px] text-slate-400 font-normal uppercase mt-0.5">
-                            Tier: {t.tier}
-                          </span>
-                        </th>
-                      );
-                    })}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark">
-                  <tr>
-                    <td className="py-3 px-4 font-semibold text-slate-500">Gross Revenue</td>
-                    {comparisonData.tenants.map((t) => (
-                      <td key={t.tenant_id} className="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-                        {formatINR(t.total_revenue ?? 0)}
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="py-3 px-4 font-semibold text-slate-500">Total Order Volume</td>
-                    {comparisonData.tenants.map((t) => (
-                      <td key={t.tenant_id} className="py-3 px-4 font-mono text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                        {formatCountIN(t.total_orders ?? 0)}
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="py-3 px-4 font-semibold text-slate-500">Average Order Value (AOV)</td>
-                    {comparisonData.tenants.map((t) => (
-                      <td key={t.tenant_id} className="py-3 px-4 font-mono font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                        {formatINR(t.avg_order_value ?? 0)}
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="py-3 px-4 font-semibold text-slate-500">Shipment Volume</td>
-                    {comparisonData.tenants.map((t) => (
-                      <td key={t.tenant_id} className="py-3 px-4 font-mono text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                        {formatCountIN(t.total_shipments ?? 0)}
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="py-3 px-4 font-semibold text-slate-500">Late Delivery Rate</td>
-                    {comparisonData.tenants.map((t) => {
-                      const latePct = t.late_delivery_pct ?? 0;
-                      return (
-                        <td key={t.tenant_id} className="py-3 px-4">
-                          <span
-                            className={`font-mono font-bold ${
-                              latePct >= 25
-                                ? 'text-rose-600 dark:text-rose-400'
-                                : latePct >= 10
-                                ? 'text-amber-600 dark:text-amber-400'
-                                : 'text-emerald-600 dark:text-emerald-400'
-                            }`}
-                          >
-                            {latePct.toFixed(1)}%
-                          </span>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="border-b border-helios-border-light dark:border-helios-border-light dark:border-helios-border-dark bg-black/[0.02] dark:bg-white/[0.02] text-slate-400 uppercase font-semibold text-[11px] tracking-wider">
+                      <th className="py-3 px-4">Metric</th>
+                      {comparisonTenants.map((t) => {
+                        const asOfStr = formatDateAsOf(t.data_as_of);
+                        return (
+                          <th key={t.tenant_id} className="py-3 px-4 font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span>{t.tenant_name}</span>
+                              {asOfStr ? (
+                                <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                                  (Data as of {asOfStr})
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                                  (No data)
+                                </span>
+                              )}
+                            </div>
+                            <span className="block text-[10px] text-slate-400 font-normal uppercase mt-0.5">
+                              Tier: {t.tier}
+                            </span>
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark">
+                    <tr>
+                      <td className="py-3 px-4 font-semibold text-slate-500">Gross Revenue</td>
+                      {comparisonTenants.map((t) => (
+                        <td key={t.tenant_id} className="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                          {formatINR(t.total_revenue ?? 0)}
                         </td>
-                      );
-                    })}
-                  </tr>
-                  <tr>
-                    <td className="py-3 px-4 font-semibold text-slate-500">Avg Shipping Transit Time</td>
-                    {comparisonData.tenants.map((t) => (
-                      <td key={t.tenant_id} className="py-3 px-4 font-mono text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                        {Number(t.avg_shipping_days ?? 0).toFixed(1)} days
-                      </td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
+                      ))}
+                    </tr>
+                    <tr>
+                      <td className="py-3 px-4 font-semibold text-slate-500">Total Order Volume</td>
+                      {comparisonTenants.map((t) => (
+                        <td key={t.tenant_id} className="py-3 px-4 font-mono text-helios-text-primary-light dark:text-helios-text-primary-dark">
+                          {formatCountIN(t.total_orders ?? 0)}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <td className="py-3 px-4 font-semibold text-slate-500">Average Order Value (AOV)</td>
+                      {comparisonTenants.map((t) => (
+                        <td key={t.tenant_id} className="py-3 px-4 font-mono font-semibold text-helios-text-primary-light dark:text-helios-text-primary-dark">
+                          {formatINR(t.avg_order_value ?? 0)}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <td className="py-3 px-4 font-semibold text-slate-500">Shipment Volume</td>
+                      {comparisonTenants.map((t) => (
+                        <td key={t.tenant_id} className="py-3 px-4 font-mono text-helios-text-primary-light dark:text-helios-text-primary-dark">
+                          {formatCountIN(t.total_shipments ?? 0)}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <td className="py-3 px-4 font-semibold text-slate-500">Late Delivery Rate</td>
+                      {comparisonTenants.map((t) => {
+                        const latePct = t.late_delivery_pct ?? 0;
+                        return (
+                          <td key={t.tenant_id} className="py-3 px-4">
+                            <span
+                              className={`font-mono font-bold ${
+                                latePct >= 25
+                                  ? 'text-rose-600 dark:text-rose-400'
+                                  : latePct >= 10
+                                  ? 'text-amber-600 dark:text-amber-400'
+                                  : 'text-emerald-600 dark:text-emerald-400'
+                              }`}
+                            >
+                              {latePct.toFixed(1)}%
+                            </span>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                    <tr>
+                      <td className="py-3 px-4 font-semibold text-slate-500">Avg Shipping Transit Time</td>
+                      {comparisonTenants.map((t) => (
+                        <td key={t.tenant_id} className="py-3 px-4 font-mono text-helios-text-primary-light dark:text-helios-text-primary-dark">
+                          {Number(t.avg_shipping_days ?? 0).toFixed(1)} days
+                        </td>
+                      ))}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          </ErrorBoundary>
         </div>
       ) : null}
     </div>

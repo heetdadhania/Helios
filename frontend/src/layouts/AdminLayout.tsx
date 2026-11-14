@@ -22,6 +22,7 @@ import { TopBar } from '@/components/TopBar';
 import { useAuth } from '@/hooks/useAuth';
 import { useBasePath } from '@/hooks/useBasePath';
 import { ENABLE_DB_CONNECTION } from '@/config/features';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 const getPageTitle = (pathname: string): string => {
   const normalized = pathname.replace(/^\/(admin|team)/, '');
@@ -57,7 +58,7 @@ export const AdminLayout: React.FC = () => {
       { label: 'Home', to: `${basePath}/home`, icon: Home },
       { label: 'Pending Uploads', to: `${basePath}/uploads`, icon: Clock },
       { label: 'Upload Data', to: `${basePath}/upload`, icon: UploadCloud },
-      ...(ENABLE_DB_CONNECTION
+      ...(ENABLE_DB_CONNECTION === true
         ? [{ label: 'Connect Database', to: `${basePath}/connect-db`, icon: Database }]
         : []),
       { label: 'Submission History', to: `${basePath}/history`, icon: History },
@@ -89,7 +90,9 @@ export const AdminLayout: React.FC = () => {
       <div className="flex-1 flex flex-col min-w-0">
         <TopBar title={currentTitle} />
         <main className="flex-1 p-6 overflow-y-auto">
-          <Outlet />
+          <ErrorBoundary sectionName="Page Content">
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
     </div>

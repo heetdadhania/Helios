@@ -25,7 +25,15 @@ import {
   Legend,
 } from 'recharts';
 import { adminHomeService } from '@/services/adminHomeService';
-import { AdminHomeResponse } from '@/types/adminHome';
+import {
+  AdminHomeResponse,
+  RevenueByOrganizationItem,
+  DailyPipelineRunStatus,
+  OrganizationTableRow,
+  AdminHomeActivityItem,
+} from '@/types/adminHome';
+import { unwrapItems } from '@/utils/unwrapList';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { formatINR, formatCountIN, formatDateIN, formatDateTimeIN } from '@/utils/currency';
 import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton';
 import { StageStatusBadge } from '@/components/admin/StageStatusBadge';
@@ -102,6 +110,16 @@ export const AdminHome: React.FC = () => {
     );
   }
 
+  const revenueData = unwrapItems<RevenueByOrganizationItem>(data?.charts?.revenue_by_organization)
+    .filter((r) => r && typeof r.total_revenue === 'number' && !isNaN(r.total_revenue) && Boolean(r.organization_name));
+
+  const runsData = unwrapItems<DailyPipelineRunStatus>(data?.charts?.pipeline_runs_per_day)
+    .filter((r) => r && Boolean(r.date));
+
+  const organizationsList = unwrapItems<OrganizationTableRow>(data?.tables?.organizations);
+
+  const recentActivityList = unwrapItems<AdminHomeActivityItem>(data?.tables?.recent_activity);
+
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-12">
       {/* Top Header & Quick Actions */}
@@ -161,8 +179,9 @@ export const AdminHome: React.FC = () => {
       </div>
 
       {/* Summary Cards */}
-      <div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+      <ErrorBoundary sectionName="Platform Summary Metrics" compact onRetry={() => loadData(false)}>
+        <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
           {isLoading ? (
             Array.from({ length: 7 }).map((_, idx) => (
               <LoadingSkeleton key={idx} variant="card" height={110} />
@@ -348,328 +367,341 @@ export const AdminHome: React.FC = () => {
           )}
         </div>
       </div>
+    </ErrorBoundary>
 
       {/* Two Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Chart 1: Revenue by Organization (Top 10) */}
-        <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm flex flex-col">
-          <div className="mb-4">
-            <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-emerald-500" />
-              <span>Revenue by Organization (Top 10)</span>
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Last 30 days of each organization's data
-            </p>
-          </div>
+        <ErrorBoundary sectionName="Revenue by Organization Chart" compact onRetry={() => loadData(false)}>
+          <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm flex flex-col">
+            <div className="mb-4">
+              <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-emerald-500" />
+                <span>Revenue by Organization (Top 10)</span>
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Last 30 days of each organization's data
+              </p>
+            </div>
 
-          <div className="h-72 w-full flex-1">
-            {isLoading ? (
-              <LoadingSkeleton variant="chart" height={280} />
-            ) : (data?.charts.revenue_by_organization || []).length === 0 ? (
-              <div className="h-full w-full flex flex-col items-center justify-center p-6 text-center rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-dashed border-slate-200 dark:border-slate-700/60">
-                <BarChart3 className="w-8 h-8 text-slate-300 dark:text-slate-600 mb-2" />
-                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                  No revenue data available
-                </p>
-                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
-                  Top organization revenues will appear once Gold order summaries are generated.
-                </p>
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={data?.charts.revenue_by_organization}
-                  margin={{ top: 10, right: 10, left: 15, bottom: 35 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-                  <XAxis
-                    dataKey="organization_name"
-                    stroke={textColor}
-                    fontSize={11}
-                    tickLine={false}
-                    interval={0}
-                    angle={-20}
-                    textAnchor="end"
-                    height={40}
-                  />
-                  <YAxis
-                    stroke={textColor}
-                    fontSize={11}
-                    tickLine={false}
-                    tickFormatter={(val) => {
-                      if (val >= 10000000) return `₹${(val / 10000000).toFixed(1)}Cr`;
-                      if (val >= 100000) return `₹${(val / 100000).toFixed(1)}L`;
-                      if (val >= 1000) return `₹${(val / 1000).toFixed(0)}k`;
-                      return `₹${val}`;
-                    }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: tooltipBg,
-                      borderColor: tooltipBorder,
-                      color: isDark ? '#F5F5F5' : '#111827',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                    }}
-                    formatter={(value: any) => [formatINR(value), 'Gross Revenue']}
-                    labelFormatter={(label) => `Organization: ${label}`}
-                  />
-                  <Bar
-                    dataKey="total_revenue"
-                    fill="#10B981"
-                    radius={[4, 4, 0, 0]}
-                    name="Revenue"
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
+            <div className="h-72 w-full flex-1">
+              {isLoading ? (
+                <LoadingSkeleton variant="chart" height={280} />
+              ) : revenueData.length === 0 ? (
+                <div className="h-full w-full flex flex-col items-center justify-center p-6 text-center rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-dashed border-slate-200 dark:border-slate-700/60 min-h-[220px]">
+                  <BarChart3 className="w-8 h-8 text-slate-300 dark:text-slate-600 mb-2" />
+                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                    No revenue data available
+                  </p>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                    Top organization revenues will appear once Gold order summaries are generated.
+                  </p>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={revenueData}
+                    margin={{ top: 10, right: 10, left: 15, bottom: 35 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
+                    <XAxis
+                      dataKey="organization_name"
+                      stroke={textColor}
+                      fontSize={11}
+                      tickLine={false}
+                      interval={0}
+                      angle={-20}
+                      textAnchor="end"
+                      height={40}
+                    />
+                    <YAxis
+                      stroke={textColor}
+                      fontSize={11}
+                      tickLine={false}
+                      tickFormatter={(val) => {
+                        if (val >= 10000000) return `₹${(val / 10000000).toFixed(1)}Cr`;
+                        if (val >= 100000) return `₹${(val / 100000).toFixed(1)}L`;
+                        if (val >= 1000) return `₹${(val / 1000).toFixed(0)}k`;
+                        return `₹${val}`;
+                      }}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: tooltipBg,
+                        borderColor: tooltipBorder,
+                        color: isDark ? '#F5F5F5' : '#111827',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                      }}
+                      formatter={(value: any) => [formatINR(value), 'Gross Revenue']}
+                      labelFormatter={(label) => `Organization: ${label}`}
+                    />
+                    <Bar
+                      dataKey="total_revenue"
+                      fill="#10B981"
+                      radius={[4, 4, 0, 0]}
+                      name="Revenue"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
           </div>
-        </div>
+        </ErrorBoundary>
 
         {/* Chart 2: Pipeline Runs per Day (Last 14 Days) */}
-        <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm flex flex-col">
-          <div className="mb-4">
-            <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
-              <Activity className="w-4 h-4 text-helios-accent-blue" />
-              <span>Pipeline Runs per Day</span>
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Split into success and failed for the last 14 days
-            </p>
-          </div>
+        <ErrorBoundary sectionName="Pipeline Runs per Day Chart" compact onRetry={() => loadData(false)}>
+          <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm flex flex-col">
+            <div className="mb-4">
+              <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
+                <Activity className="w-4 h-4 text-helios-accent-blue" />
+                <span>Pipeline Runs per Day</span>
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Split into success and failed for the last 14 days
+              </p>
+            </div>
 
-          <div className="h-72 w-full flex-1">
-            {isLoading ? (
-              <LoadingSkeleton variant="chart" height={280} />
-            ) : (data?.charts.pipeline_runs_per_day || []).length === 0 ? (
-              <div className="h-full w-full flex flex-col items-center justify-center p-6 text-center rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-dashed border-slate-200 dark:border-slate-700/60">
-                <Activity className="w-8 h-8 text-slate-300 dark:text-slate-600 mb-2" />
-                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                  No pipeline activity recorded
-                </p>
-                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
-                  Execution volume will populate as pipeline batches are processed.
-                </p>
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={data?.charts.pipeline_runs_per_day}
-                  margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-                  <XAxis
-                    dataKey="date"
-                    stroke={textColor}
-                    fontSize={11}
-                    tickLine={false}
-                    tickFormatter={(val) => val.slice(5)} // MM-DD
-                  />
-                  <YAxis
-                    stroke={textColor}
-                    fontSize={11}
-                    tickLine={false}
-                    allowDecimals={false}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: tooltipBg,
-                      borderColor: tooltipBorder,
-                      color: isDark ? '#F5F5F5' : '#111827',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                    }}
-                    formatter={(value: any, name: any) => [
-                      formatCountIN(value),
-                      name === 'successful_runs' ? 'Success' : 'Failed',
-                    ]}
-                    labelFormatter={(label) => `Date: ${label}`}
-                  />
-                  <Legend
-                    verticalAlign="top"
-                    align="right"
-                    wrapperStyle={{ fontSize: '11px', paddingBottom: '8px' }}
-                    formatter={(value) =>
-                      value === 'successful_runs' ? 'Success' : 'Failed'
-                    }
-                  />
-                  <Bar
-                    dataKey="successful_runs"
-                    stackId="runs"
-                    fill="#10B981"
-                    radius={[0, 0, 0, 0]}
-                    name="successful_runs"
-                  />
-                  <Bar
-                    dataKey="failed_runs"
-                    stackId="runs"
-                    fill="#F43F5E"
-                    radius={[4, 4, 0, 0]}
-                    name="failed_runs"
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
+            <div className="h-72 w-full flex-1">
+              {isLoading ? (
+                <LoadingSkeleton variant="chart" height={280} />
+              ) : runsData.length === 0 ? (
+                <div className="h-full w-full flex flex-col items-center justify-center p-6 text-center rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-dashed border-slate-200 dark:border-slate-700/60 min-h-[220px]">
+                  <Activity className="w-8 h-8 text-slate-300 dark:text-slate-600 mb-2" />
+                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                    No pipeline activity recorded
+                  </p>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                    Execution volume will populate as pipeline batches are processed.
+                  </p>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={runsData}
+                    margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
+                    <XAxis
+                      dataKey="date"
+                      stroke={textColor}
+                      fontSize={11}
+                      tickLine={false}
+                      tickFormatter={(val) => val.slice(5)} // MM-DD
+                    />
+                    <YAxis
+                      stroke={textColor}
+                      fontSize={11}
+                      tickLine={false}
+                      allowDecimals={false}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: tooltipBg,
+                        borderColor: tooltipBorder,
+                        color: isDark ? '#F5F5F5' : '#111827',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                      }}
+                      formatter={(value: any, name: any) => [
+                        formatCountIN(value),
+                        name === 'successful_runs' ? 'Success' : 'Failed',
+                      ]}
+                      labelFormatter={(label) => `Date: ${label}`}
+                    />
+                    <Legend
+                      verticalAlign="top"
+                      align="right"
+                      wrapperStyle={{ fontSize: '11px', paddingBottom: '8px' }}
+                      formatter={(value) =>
+                        value === 'successful_runs' ? 'Success' : 'Failed'
+                      }
+                    />
+                    <Bar
+                      dataKey="successful_runs"
+                      stackId="runs"
+                      fill="#10B981"
+                      radius={[0, 0, 0, 0]}
+                      name="successful_runs"
+                    />
+                    <Bar
+                      dataKey="failed_runs"
+                      stackId="runs"
+                      fill="#F43F5E"
+                      radius={[4, 4, 0, 0]}
+                      name="failed_runs"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
           </div>
-        </div>
+        </ErrorBoundary>
       </div>
 
       {/* Two Tables Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Table 1: Organizations */}
-        <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-helios-accent-blue" />
-                <span>Organizations</span>
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Overview of tenant businesses and assignments
-              </p>
+        <ErrorBoundary sectionName="Organizations Table" compact onRetry={() => loadData(false)}>
+          <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-helios-accent-blue" />
+                  <span>Organizations</span>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Overview of tenant businesses and assignments
+                </p>
+              </div>
+              <Link
+                to={`${basePath}/tenants`}
+                className="text-xs font-semibold text-helios-accent-blue hover:underline flex items-center gap-1"
+              >
+                <span>View all</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
-            <Link
-              to={`${basePath}/tenants`}
-              className="text-xs font-semibold text-helios-accent-blue hover:underline flex items-center gap-1"
-            >
-              <span>View all</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
 
-          <div className="overflow-x-auto">
-            {isLoading ? (
-              <div className="space-y-2">
-                {Array.from({ length: 5 }).map((_, idx) => (
-                  <LoadingSkeleton key={idx} variant="table-row" height={36} />
-                ))}
-              </div>
-            ) : (data?.tables.organizations || []).length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-400 dark:text-slate-500">
-                <Building2 className="w-6 h-6 mx-auto mb-1.5 opacity-40" />
-                No organizations registered yet.
-              </div>
-            ) : (
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-helios-border-light dark:border-helios-border-dark text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    <th className="pb-2.5">Organization</th>
-                    <th className="pb-2.5">Owner</th>
-                    <th className="pb-2.5">Assigned Team Member</th>
-                    <th className="pb-2.5 text-right">Last Data Date</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark">
-                  {data?.tables.organizations.map((org) => (
-                    <tr
-                      key={org.tenant_id}
-                      onClick={() => navigate(`/admin/oversight/dashboard/${org.tenant_id}`)}
-                      className="hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer transition"
-                    >
-                      <td className="py-2.5 font-medium text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-1.5">
-                        <span className="truncate max-w-[160px]">{org.name}</span>
-                        {!org.is_active && (
-                          <span className="px-1.5 py-0.5 rounded text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
-                            Inactive
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-2.5 text-slate-600 dark:text-slate-300">
-                        {org.owner}
-                      </td>
-                      <td className="py-2.5 text-slate-600 dark:text-slate-300">
-                        {org.assigned_team_member}
-                      </td>
-                      <td className="py-2.5 text-right text-slate-500 dark:text-slate-400">
-                        {org.last_data_received
-                          ? formatDateIN(org.last_data_received)
-                          : 'No data'}
-                      </td>
+            <div className="overflow-x-auto">
+              {isLoading ? (
+                <table className="w-full text-left text-xs">
+                  <tbody>
+                    {Array.from({ length: 5 }).map((_, idx) => (
+                      <LoadingSkeleton key={idx} variant="table-row" height={36} />
+                    ))}
+                  </tbody>
+                </table>
+              ) : organizationsList.length === 0 ? (
+                <div className="py-8 text-center text-xs text-slate-400 dark:text-slate-500">
+                  <Building2 className="w-6 h-6 mx-auto mb-1.5 opacity-40" />
+                  No organizations registered yet.
+                </div>
+              ) : (
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-helios-border-light dark:border-helios-border-dark text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      <th className="pb-2.5">Organization</th>
+                      <th className="pb-2.5">Owner</th>
+                      <th className="pb-2.5">Assigned Team Member</th>
+                      <th className="pb-2.5 text-right">Last Data Date</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+                  </thead>
+                  <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark">
+                    {organizationsList.map((org) => (
+                      <tr
+                        key={org.tenant_id}
+                        onClick={() => navigate(`/admin/oversight/dashboard/${org.tenant_id}`)}
+                        className="hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer transition"
+                      >
+                        <td className="py-2.5 font-medium text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-1.5">
+                          <span className="truncate max-w-[160px]">{org.name}</span>
+                          {!org.is_active && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                              Inactive
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-2.5 text-slate-600 dark:text-slate-300">
+                          {org.owner}
+                        </td>
+                        <td className="py-2.5 text-slate-600 dark:text-slate-300">
+                          {org.assigned_team_member}
+                        </td>
+                        <td className="py-2.5 text-right text-slate-500 dark:text-slate-400">
+                          {org.last_data_received
+                            ? formatDateIN(org.last_data_received)
+                            : 'No data'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
-        </div>
+        </ErrorBoundary>
 
         {/* Table 2: Recent Activity */}
-        <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
-                <Activity className="w-4 h-4 text-emerald-500" />
-                <span>Recent Activity</span>
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Latest batch transitions across all pipelines
-              </p>
+        <ErrorBoundary sectionName="Recent Activity Table" compact onRetry={() => loadData(false)}>
+          <div className="p-6 rounded-card bg-helios-card-light dark:bg-helios-card-dark border border-helios-border-light dark:border-helios-border-dark shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-sm font-bold text-helios-text-primary-light dark:text-helios-text-primary-dark flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-emerald-500" />
+                  <span>Recent Activity</span>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Latest batch transitions across all pipelines
+                </p>
+              </div>
+              <Link
+                to={`${basePath}/pipeline-health`}
+                className="text-xs font-semibold text-helios-accent-blue hover:underline flex items-center gap-1"
+              >
+                <span>View telemetry</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
-            <Link
-              to={`${basePath}/pipeline-health`}
-              className="text-xs font-semibold text-helios-accent-blue hover:underline flex items-center gap-1"
-            >
-              <span>View telemetry</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
 
-          <div className="overflow-x-auto">
-            {isLoading ? (
-              <div className="space-y-2">
-                {Array.from({ length: 5 }).map((_, idx) => (
-                  <LoadingSkeleton key={idx} variant="table-row" height={36} />
-                ))}
-              </div>
-            ) : (data?.tables.recent_activity || []).length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-400 dark:text-slate-500">
-                <Activity className="w-6 h-6 mx-auto mb-1.5 opacity-40" />
-                No pipeline activity recorded yet.
-              </div>
-            ) : (
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-helios-border-light dark:border-helios-border-dark text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    <th className="pb-2.5">Batch / Organization</th>
-                    <th className="pb-2.5">Stage</th>
-                    <th className="pb-2.5">Status</th>
-                    <th className="pb-2.5 text-right">Timestamp</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark">
-                  {data?.tables.recent_activity.map((act, idx) => (
-                    <tr
-                      key={act.batch_id || idx}
-                      onClick={() => navigate(`${basePath}/pipeline-health`)}
-                      className="hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer transition"
-                    >
-                      <td className="py-2.5">
-                        <div className="font-medium text-helios-text-primary-light dark:text-helios-text-primary-dark">
-                          {act.tenant_name || `Organization #${act.tenant_id || ''}`}
-                        </div>
-                        {act.batch_id && (
-                          <div className="text-[10px] text-slate-400 font-mono">
-                            {act.batch_id.slice(0, 8)}...
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-2.5 capitalize text-slate-600 dark:text-slate-300">
-                        {act.stage ? act.stage.replace(/_/g, ' ') : '—'}
-                      </td>
-                      <td className="py-2.5">
-                        <StageStatusBadge stage={act.stage} status={act.status} />
-                      </td>
-                      <td className="py-2.5 text-right text-slate-500 dark:text-slate-400">
-                        {act.timestamp ? formatDateTimeIN(act.timestamp) : '—'}
-                      </td>
+            <div className="overflow-x-auto">
+              {isLoading ? (
+                <table className="w-full text-left text-xs">
+                  <tbody>
+                    {Array.from({ length: 5 }).map((_, idx) => (
+                      <LoadingSkeleton key={idx} variant="table-row" height={36} />
+                    ))}
+                  </tbody>
+                </table>
+              ) : recentActivityList.length === 0 ? (
+                <div className="py-8 text-center text-xs text-slate-400 dark:text-slate-500">
+                  <Activity className="w-6 h-6 mx-auto mb-1.5 opacity-40" />
+                  No pipeline activity recorded yet.
+                </div>
+              ) : (
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-helios-border-light dark:border-helios-border-dark text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      <th className="pb-2.5">Batch / Organization</th>
+                      <th className="pb-2.5">Stage</th>
+                      <th className="pb-2.5">Status</th>
+                      <th className="pb-2.5 text-right">Timestamp</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+                  </thead>
+                  <tbody className="divide-y divide-helios-border-light dark:divide-helios-border-dark">
+                    {recentActivityList.map((act, idx) => (
+                      <tr
+                        key={act.batch_id || idx}
+                        onClick={() => navigate(`${basePath}/pipeline-health`)}
+                        className="hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer transition"
+                      >
+                        <td className="py-2.5">
+                          <div className="font-medium text-helios-text-primary-light dark:text-helios-text-primary-dark">
+                            {act.tenant_name || `Organization #${act.tenant_id || ''}`}
+                          </div>
+                          {act.batch_id && (
+                            <div className="text-[10px] text-slate-400 font-mono">
+                              {act.batch_id.slice(0, 8)}...
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-2.5 capitalize text-slate-600 dark:text-slate-300">
+                          {act.stage ? act.stage.replace(/_/g, ' ') : '—'}
+                        </td>
+                        <td className="py-2.5">
+                          <StageStatusBadge stage={act.stage} status={act.status} />
+                        </td>
+                        <td className="py-2.5 text-right text-slate-500 dark:text-slate-400">
+                          {act.timestamp ? formatDateTimeIN(act.timestamp) : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
-        </div>
+        </ErrorBoundary>
       </div>
     </div>
   );

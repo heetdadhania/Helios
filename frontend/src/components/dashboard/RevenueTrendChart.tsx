@@ -13,6 +13,7 @@ import { RevenueTrendResponse, RevenueTrendPoint } from '@/types/dashboard';
 import { useTheme } from '@/hooks/useTheme';
 import { TrendingUp, Calendar } from 'lucide-react';
 import { formatINR, formatINRCompact, formatCountIN } from '@/utils/currency';
+import { unwrapItems } from '@/utils/unwrapList';
 
 interface RevenueTrendChartProps {
   data: RevenueTrendResponse | null;
@@ -104,7 +105,7 @@ export const RevenueTrendChart: React.FC<RevenueTrendChartProps> = React.memo(({
   const tooltipBorder = isDark ? '#262626' : '#E5E7EB';
 
   const { chartPoints, revenueTicks, maxRevenueTick, orderTicks, maxOrderTick } = useMemo(() => {
-    const points = fillDailyPoints(data?.points || [], selectedDays, data?.data_as_of);
+    const points = fillDailyPoints(unwrapItems<RevenueTrendPoint>(data?.points), selectedDays, data?.data_as_of);
 
     if (points.length === 0) {
       return {

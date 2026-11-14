@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Sidebar, NavItem } from '@/components/Sidebar';
 import { TopBar } from '@/components/TopBar';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 const clientNavItems: NavItem[] = [
   { label: 'Home', to: '/client/home', icon: Home },
@@ -43,7 +44,9 @@ export const ClientLayout: React.FC = () => {
       <div className="flex-1 flex flex-col min-w-0">
         <TopBar title={currentTitle} />
         <main className="flex-1 p-6 overflow-y-auto">
-          <Outlet />
+          <ErrorBoundary sectionName="Page Content">
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
     </div>

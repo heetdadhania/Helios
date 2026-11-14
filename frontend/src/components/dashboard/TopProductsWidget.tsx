@@ -13,6 +13,7 @@ import { TopProductsResponse } from '@/types/dashboard';
 import { useTheme } from '@/hooks/useTheme';
 import { Package, Award } from 'lucide-react';
 import { formatINR, formatINRCompact, formatCountIN } from '@/utils/currency';
+import { unwrapItems } from '@/utils/unwrapList';
 
 interface TopProductsWidgetProps {
   data: TopProductsResponse | null;
@@ -45,7 +46,7 @@ export const TopProductsWidget: React.FC<TopProductsWidgetProps> = React.memo(({
     );
   }
 
-  const products = data?.products || [];
+  const products = unwrapItems<any>(data?.products);
   const hasData = products.length > 0;
 
   // Format data for horizontal bar display (take top 6 for clean visual fit)

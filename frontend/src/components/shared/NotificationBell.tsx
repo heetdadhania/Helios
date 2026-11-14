@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Notification } from '@/types/notification';
 import { notificationService } from '@/services/notificationService';
+import { unwrapItems } from '@/utils/unwrapList';
 
 const POLL_INTERVAL_MS = 30000;
 
@@ -112,7 +113,7 @@ export const NotificationBell: React.FC = () => {
   const fetchNotifications = useCallback(async () => {
     try {
       const res = await notificationService.getNotifications({ pageSize: 40 });
-      setNotifications(Array.isArray(res) ? res : res.items || []);
+      setNotifications(unwrapItems<Notification>(res));
     } catch {
       // Silently catch network/polling errors so UI remains stable
     }

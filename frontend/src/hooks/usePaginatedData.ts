@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { PaginatedResponse } from '@/types/pagination';
+import { unwrapList } from '@/utils/unwrapList';
 
 export interface UsePaginatedDataOptions<T, F extends Record<string, any> = Record<string, any>> {
   fetchFn: (params: { page: number; pageSize: number } & F) => Promise<PaginatedResponse<T> | T[]>;
@@ -98,17 +99,9 @@ export function usePaginatedData<T, F extends Record<string, any> = Record<strin
         ...activeFilters,
       });
 
-      if (res && typeof res === 'object' && 'items' in res && Array.isArray((res as any).items)) {
-        const paginated = res as PaginatedResponse<T>;
-        setData(paginated.items);
-        setTotal(typeof paginated.total === 'number' ? paginated.total : paginated.items.length);
-      } else if (Array.isArray(res)) {
-        setData(res);
-        setTotal(res.length);
-      } else {
-        setData([]);
-        setTotal(0);
-      }
+      const unwrapped = unwrapList<T>(res);
+      setData(unwrapped.items);
+      setTotal(unwrapped.total);
     } catch (err: any) {
       const errorMsg =
         err?.response?.data?.detail ||
