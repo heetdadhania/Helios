@@ -563,7 +563,7 @@ class OversightRepository:
                 (SELECT count(*) FROM {self.tenants_table}) AS total_orgs,
                 (SELECT count(*) FROM {self.users_table} WHERE role = 'smb_owner' AND is_active = true) AS active_owners,
                 (SELECT count(*) FROM {self.users_table} WHERE role = 'team_member' AND is_active = true) AS team_members,
-                (SELECT count(DISTINCT coalesce(pu.upload_id, ps.upload_id, ps.batch_id))
+                (SELECT count(DISTINCT coalesce(cast(pu.upload_id AS string), cast(ps.upload_id AS string), cast(ps.batch_id AS string)))
                  FROM {self.pipeline_table} ps
                  FULL OUTER JOIN {self.pending_table} pu ON ps.upload_id = pu.upload_id
                  WHERE lower(coalesce(pu.status, '')) = 'pending'

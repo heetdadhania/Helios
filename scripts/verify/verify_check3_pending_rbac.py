@@ -120,8 +120,12 @@ def main():
             res_tm1 = requests.get(f"{BASE_URL}/uploads/pending", headers=tm1_headers)
             res_admin = requests.get(f"{BASE_URL}/uploads/pending", headers=admin_headers)
             if res_tm1.status_code == 200 and res_admin.status_code == 200:
-                tm1_batches = [item["batch_id"] for item in res_tm1.json()]
-                admin_batches = [item["batch_id"] for item in res_admin.json()]
+                data_tm1 = res_tm1.json()
+                items_tm1 = data_tm1.get("items", data_tm1) if isinstance(data_tm1, dict) else data_tm1
+                data_admin = res_admin.json()
+                items_admin = data_admin.get("items", data_admin) if isinstance(data_admin, dict) else data_admin
+                tm1_batches = [item["batch_id"] for item in items_tm1 if isinstance(item, dict)]
+                admin_batches = [item["batch_id"] for item in items_admin if isinstance(item, dict)]
                 if csv_batch_id in tm1_batches and xlsx_batch_id in tm1_batches and csv_batch_id in admin_batches and xlsx_batch_id in admin_batches:
                     print(f"Batches visible in Pending after attempt {attempt}")
                     break
@@ -144,7 +148,9 @@ def main():
         res_tm2 = requests.get(f"{BASE_URL}/uploads/pending", headers=tm2_headers)
         print(f"GET /uploads/pending (TM2 Unassigned) Status: {res_tm2.status_code}")
         assert res_tm2.status_code == 200
-        tm2_batches = [item["batch_id"] for item in res_tm2.json()]
+        data_tm2 = res_tm2.json()
+        items_tm2 = data_tm2.get("items", data_tm2) if isinstance(data_tm2, dict) else data_tm2
+        tm2_batches = [item["batch_id"] for item in items_tm2 if isinstance(item, dict)]
         print(f"Total Pending Batches visible to TM2: {len(tm2_batches)}")
         assert csv_batch_id not in tm2_batches, f"Security Violation: CSV batch {csv_batch_id} visible to unassigned TM2!"
         assert xlsx_batch_id not in tm2_batches, f"Security Violation: Excel batch {xlsx_batch_id} visible to unassigned TM2!"
