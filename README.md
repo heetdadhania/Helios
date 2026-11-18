@@ -669,6 +669,6 @@ Visual proof of the core user interfaces across all platform roles is preserved 
 ## 18. Team and Academic Information
 
 * **Institution**: Chhotubhai Gopalbhai Patel Institute of Technology / CMPICA, CHARUSAT University, 2026
-* **Academic Program**: Master of Computer Applications (MCA) / Data Warehouse Engineering
-* **Project Team**: [Full Name], Meet Gol, Aryan Jivani
+* **Academic Program**: Master of Science in Information Technology (MSc.IT) / Data Warehouse Engineering
+* **Project Team**: Heet Dadhaniya, Meet Gol, Aryan Jivani
 * **Project Guide**: Ms. Meshwa Maheshwari
