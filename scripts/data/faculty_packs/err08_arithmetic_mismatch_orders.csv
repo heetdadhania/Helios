@@ -1,0 +1,16 @@
+order_id,order_date,customer_id,customer_name,segment,product_id,product_name,category,quantity,unit_price,discount,total,profit
+ORD-FAC-00001,2026-08-02,C-FAC-003,Vikramaditya Iyer,Consumer,P-FAC-01,Handloom Silk Saree,Ethnic Wear,2,3499.00,699.80,6298.20,2015.42
+ORD-FAC-00002,2026-08-03,C-FAC-007,Ananya Kulkarni,Consumer,P-FAC-02,Block Print Cotton Kurta,Ethnic Wear,2,999.00,199.80,1798.20,503.50
+ORD-FAC-00003,2026-08-04,C-FAC-002,Pooja Deshmukh,Corporate,P-FAC-05,Hardcover Research Journal,Stationery,3,299.00,134.55,9999.00,266.86
+ORD-FAC-00004,2026-08-05,C-FAC-003,Vikramaditya Iyer,Consumer,P-FAC-07,Leather Laptop Briefcase,Accessories,3,2499.00,0.00,7497.00,2249.10
+ORD-FAC-00005,2026-08-06,C-FAC-005,Prof. Sneha Patel,Consumer,P-FAC-07,Leather Laptop Briefcase,Accessories,3,2499.00,374.85,7122.15,2136.65
+ORD-FAC-00006,2026-08-07,C-FAC-005,Prof. Sneha Patel,Consumer,P-FAC-05,Hardcover Research Journal,Stationery,3,299.00,0.00,897.00,313.95
+ORD-FAC-00007,2026-08-08,C-FAC-004,Meera Sundaram,Home Office,P-FAC-06,Organic Assam Tea 500g,Groceries,3,399.00,0.00,50000.00,299.25
+ORD-FAC-00008,2026-08-09,C-FAC-007,Ananya Kulkarni,Consumer,P-FAC-08,Ceramic Artisan Coffee Mug,Home & Kitchen,4,349.00,0.00,1396.00,418.80
+ORD-FAC-00009,2026-08-10,C-FAC-007,Ananya Kulkarni,Consumer,P-FAC-08,Ceramic Artisan Coffee Mug,Home & Kitchen,3,349.00,157.05,889.95,266.99
+ORD-FAC-00010,2026-08-11,C-FAC-006,Rohan Bhattacharya,Corporate,P-FAC-07,Leather Laptop Briefcase,Accessories,3,2499.00,749.70,6747.30,2024.19
+ORD-FAC-00011,2026-08-12,C-FAC-007,Ananya Kulkarni,Consumer,P-FAC-08,Ceramic Artisan Coffee Mug,Home & Kitchen,1,349.00,0.00,1.00,104.70
+ORD-FAC-00012,2026-08-13,C-FAC-001,Dr. Alok Verma,Consumer,P-FAC-02,Block Print Cotton Kurta,Ethnic Wear,3,999.00,449.55,2547.45,713.29
+ORD-FAC-00013,2026-08-14,C-FAC-005,Prof. Sneha Patel,Consumer,P-FAC-01,Handloom Silk Saree,Ethnic Wear,2,3499.00,349.90,6648.10,2127.39
+ORD-FAC-00014,2026-08-15,C-FAC-003,Vikramaditya Iyer,Consumer,P-FAC-01,Handloom Silk Saree,Ethnic Wear,3,3499.00,1574.55,8922.45,2855.18
+ORD-FAC-00015,2026-08-16,C-FAC-001,Dr. Alok Verma,Consumer,P-FAC-05,Hardcover Research Journal,Stationery,2,299.00,0.00,598.00,209.30

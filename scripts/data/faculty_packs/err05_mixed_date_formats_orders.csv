@@ -1,0 +1,16 @@
+order_id,order_date,customer_id,customer_name,segment,product_id,product_name,category,quantity,unit_price,discount,total,profit
+ORD-FAC-00001,2026-08-02,C-FAC-006,Rohan Bhattacharya,Corporate,P-FAC-05,Hardcover Research Journal,Stationery,4,299.00,0.00,1196.00,418.60
+ORD-FAC-00002,03/08/2026,C-FAC-003,Vikramaditya Iyer,Consumer,P-FAC-02,Block Print Cotton Kurta,Ethnic Wear,3,999.00,149.85,2847.15,797.20
+ORD-FAC-00003,2026-08-04,C-FAC-008,Manish Malhotra,Home Office,P-FAC-07,Leather Laptop Briefcase,Accessories,1,2499.00,0.00,2499.00,749.70
+ORD-FAC-00004,05/08/2026,C-FAC-001,Dr. Alok Verma,Consumer,P-FAC-04,Ayurvedic Face Oil,Beauty & Wellness,2,449.00,0.00,898.00,359.20
+ORD-FAC-00005,2026-08-06,C-FAC-003,Vikramaditya Iyer,Consumer,P-FAC-05,Hardcover Research Journal,Stationery,3,299.00,0.00,897.00,313.95
+ORD-FAC-00006,07/08/2026,C-FAC-001,Dr. Alok Verma,Consumer,P-FAC-04,Ayurvedic Face Oil,Beauty & Wellness,1,449.00,67.35,381.65,152.66
+ORD-FAC-00007,2026-08-08,C-FAC-008,Manish Malhotra,Home Office,P-FAC-01,Handloom Silk Saree,Ethnic Wear,2,3499.00,1049.70,5948.30,1903.46
+ORD-FAC-00008,09/08/2026,C-FAC-003,Vikramaditya Iyer,Consumer,P-FAC-02,Block Print Cotton Kurta,Ethnic Wear,3,999.00,149.85,2847.15,797.20
+ORD-FAC-00009,2026-08-10,C-FAC-001,Dr. Alok Verma,Consumer,P-FAC-08,Ceramic Artisan Coffee Mug,Home & Kitchen,3,349.00,0.00,1047.00,314.10
+ORD-FAC-00010,11/08/2026,C-FAC-004,Meera Sundaram,Home Office,P-FAC-08,Ceramic Artisan Coffee Mug,Home & Kitchen,1,349.00,34.90,314.10,94.23
+ORD-FAC-00011,2026-08-12,C-FAC-008,Manish Malhotra,Home Office,P-FAC-02,Block Print Cotton Kurta,Ethnic Wear,2,999.00,0.00,1998.00,559.44
+ORD-FAC-00012,13/08/2026,C-FAC-002,Pooja Deshmukh,Corporate,P-FAC-08,Ceramic Artisan Coffee Mug,Home & Kitchen,2,349.00,34.90,663.10,198.93
+ORD-FAC-00013,2026-08-14,C-FAC-004,Meera Sundaram,Home Office,P-FAC-06,Organic Assam Tea 500g,Groceries,4,399.00,159.60,1436.40,359.10
+ORD-FAC-00014,15/08/2026,C-FAC-001,Dr. Alok Verma,Consumer,P-FAC-06,Organic Assam Tea 500g,Groceries,1,399.00,19.95,379.05,94.76
+ORD-FAC-00015,2026-08-16,C-FAC-008,Manish Malhotra,Home Office,P-FAC-03,Wireless Ergonomic Mouse,Electronics,3,799.00,119.85,2277.15,500.97

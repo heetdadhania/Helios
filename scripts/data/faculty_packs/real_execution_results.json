@@ -1,0 +1,290 @@
+[
+  {
+    "file_name": "clean_10_orders.csv",
+    "upload_status_code": 201,
+    "batch_id": "b54a8868-5de4-49fd-bcda-d3f370029b3a",
+    "bronze_rows": 10,
+    "silver_valid_rows": 10,
+    "rejected_rows": 0,
+    "rejection_reasons": [],
+    "gold_rows": 10,
+    "pipeline_status": "success",
+    "pipeline_message": "Pipeline finished at stage gold_transform with status success"
+  },
+  {
+    "file_name": "clean_10_shipping.csv",
+    "upload_status_code": 201,
+    "batch_id": "168a2042-b0a0-43bf-9b48-c4dc5178ade7",
+    "bronze_rows": 10,
+    "silver_valid_rows": 10,
+    "rejected_rows": 0,
+    "rejection_reasons": [],
+    "gold_rows": 0,
+    "pipeline_status": "success",
+    "pipeline_message": "Pipeline finished at stage gold_transform with status success"
+  },
+  {
+    "file_name": "clean_50_orders.csv",
+    "upload_status_code": 201,
+    "batch_id": "b11999a3-3b9a-4d64-b506-788e4ca8cf78",
+    "bronze_rows": 50,
+    "silver_valid_rows": 50,
+    "rejected_rows": 0,
+    "rejection_reasons": [],
+    "gold_rows": 50,
+    "pipeline_status": "success",
+    "pipeline_message": "Pipeline finished at stage gold_transform with status success"
+  },
+  {
+    "file_name": "clean_50_shipping.csv",
+    "upload_status_code": 201,
+    "batch_id": "43617d6c-de60-4962-9ded-6497d4a89c8f",
+    "bronze_rows": 50,
+    "silver_valid_rows": 50,
+    "rejected_rows": 0,
+    "rejection_reasons": [],
+    "gold_rows": 0,
+    "pipeline_status": "success",
+    "pipeline_message": "Pipeline finished at stage gold_transform with status success"
+  },
+  {
+    "file_name": "clean_50_orders.xlsx",
+    "upload_status_code": 201,
+    "batch_id": "2b9eac36-4c8a-42b1-8cf6-4abb5943c9c3",
+    "bronze_rows": 50,
+    "silver_valid_rows": 50,
+    "rejected_rows": 0,
+    "rejection_reasons": [],
+    "gold_rows": 50,
+    "pipeline_status": "success",
+    "pipeline_message": "Pipeline finished at stage gold_transform with status success"
+  },
+  {
+    "file_name": "clean_50_shipping.xlsx",
+    "upload_status_code": 201,
+    "batch_id": "434be08a-5561-4a4a-ba19-3ba4a1ec7eac",
+    "bronze_rows": 50,
+    "silver_valid_rows": 50,
+    "rejected_rows": 0,
+    "rejection_reasons": [],
+    "gold_rows": 0,
+    "pipeline_status": "success",
+    "pipeline_message": "Pipeline finished at stage gold_transform with status success"
+  },
+  {
+    "file_name": "err01_blank_quantity_orders.csv",
+    "upload_status_code": 201,
+    "batch_id": "3fdc5e93-b36c-44c3-b9a1-6deef42c06a0",
+    "bronze_rows": 15,
+    "silver_valid_rows": 12,
+    "rejected_rows": 3,
+    "rejection_reasons": [
+      "ORD-FAC-00007: missing_required_key: quantity (original_value: )",
+      "ORD-FAC-00011: missing_required_key: quantity (original_value: )",
+      "ORD-FAC-00003: missing_required_key: quantity (original_value: )"
+    ],
+    "gold_rows": 12,
+    "pipeline_status": "success",
+    "pipeline_message": "Pipeline finished at stage gold_transform with status success"
+  },
+  {
+    "file_name": "err02_negative_quantity_orders.csv",
+    "upload_status_code": 201,
+    "batch_id": "27d4146d-2d18-46e5-ac88-05ac83dc5cb8",
+    "bronze_rows": 15,
+    "silver_valid_rows": 12,
+    "rejected_rows": 3,
+    "rejection_reasons": [
+      "ORD-FAC-00011: invalid_quantity: quantity must be greater than zero (original_value: -5)",
+      "ORD-FAC-00003: invalid_quantity: quantity must be greater than zero (original_value: -1)",
+      "ORD-FAC-00007: invalid_quantity: quantity must be greater than zero (original_value: -2)"
+    ],
+    "gold_rows": 12,
+    "pipeline_status": "success",
+    "pipeline_message": "Pipeline finished at stage gold_transform with status success"
+  },
+  {
+    "file_name": "err03_zero_or_negative_price_orders.csv",
+    "upload_status_code": 201,
+    "batch_id": "fd0857d3-2c18-4640-90bf-e9242b4c1497",
+    "bronze_rows": 15,
+    "silver_valid_rows": 12,
+    "rejected_rows": 3,
+    "rejection_reasons": [
+      "ORD-FAC-00007: invalid_unit_price: unit_price must be greater than zero (original_value: -499.00)",
+      "ORD-FAC-00003: invalid_unit_price: unit_price must be greater than zero (original_value: 0.00)",
+      "ORD-FAC-00011: invalid_unit_price: unit_price must be greater than zero (original_value: 0)"
+    ],
+    "gold_rows": 12,
+    "pipeline_status": "success",
+    "pipeline_message": "Pipeline finished at stage gold_transform with status success"
+  },
+  {
+    "file_name": "err04_unreadable_date_orders.csv",
+    "upload_status_code": 201,
+    "batch_id": "31fa24ee-1568-4d01-ae11-dfdcda6d4fae",
+    "bronze_rows": 15,
+    "silver_valid_rows": 12,
+    "rejected_rows": 3,
+    "rejection_reasons": [
+      "ORD-FAC-00003: invalid_date_fields: order_date (original_value: not-a-valid-date)",
+      "ORD-FAC-00011: invalid_date_fields: order_date (original_value: unreadable_text)",
+      "ORD-FAC-00007: invalid_date_fields: order_date (original_value: 32/13/2026)"
+    ],
+    "gold_rows": 12,
+    "pipeline_status": "success",
+    "pipeline_message": "Pipeline finished at stage gold_transform with status success"
+  },
+  {
+    "file_name": "err05_mixed_date_formats_orders.csv",
+    "upload_status_code": 201,
+    "batch_id": "56f35ced-ad5b-43ff-a409-968e8bf9a21e",
+    "bronze_rows": 15,
+    "silver_valid_rows": 15,
+    "rejected_rows": 0,
+    "rejection_reasons": [],
+    "gold_rows": 15,
+    "pipeline_status": "success",
+    "pipeline_message": "Pipeline finished at stage gold_transform with status success"
+  },
+  {
+    "file_name": "err06_duplicate_order_ids_orders.csv",
+    "upload_status_code": 201,
+    "batch_id": "5eb41678-0e8e-43f0-a5ea-3758ba672056",
+    "bronze_rows": 15,
+    "silver_valid_rows": 12,
+    "rejected_rows": 3,
+    "rejection_reasons": [
+      "ORD-FAC-00009: duplicate_order_line: duplicate line for order_id=ORD-FAC-00009, product_id=P-FAC-08 (original_value: ORD-FAC-00009_P-FAC-08)",
+      "ORD-FAC-00005: duplicate_order_line: duplicate line for order_id=ORD-FAC-00005, product_id=P-FAC-08 (original_value: ORD-FAC-00005_P-FAC-08)",
+      "ORD-FAC-00001: duplicate_order_line: duplicate line for order_id=ORD-FAC-00001, product_id=P-FAC-01 (original_value: ORD-FAC-00001_P-FAC-01)"
+    ],
+    "gold_rows": 12,
+    "pipeline_status": "success",
+    "pipeline_message": "Pipeline finished at stage gold_transform with status success"
+  },
+  {
+    "file_name": "err07_missing_customer_id_orders.csv",
+    "upload_status_code": 201,
+    "batch_id": "6559d17d-21b4-4bb0-bb0a-1080fe6086d4",
+    "bronze_rows": 15,
+    "silver_valid_rows": 12,
+    "rejected_rows": 3,
+    "rejection_reasons": [
+      "ORD-FAC-00003: missing_required_key: customer_id (original_value: )",
+      "ORD-FAC-00007: missing_required_key: customer_id (original_value: )",
+      "ORD-FAC-00011: missing_required_key: customer_id (original_value: )"
+    ],
+    "gold_rows": 12,
+    "pipeline_status": "success",
+    "pipeline_message": "Pipeline finished at stage gold_transform with status success"
+  },
+  {
+    "file_name": "err08_arithmetic_mismatch_orders.csv",
+    "upload_status_code": 201,
+    "batch_id": "592425a8-bd59-4774-8f9e-ef4f6d40891b",
+    "bronze_rows": 15,
+    "silver_valid_rows": 12,
+    "rejected_rows": 3,
+    "rejection_reasons": [
+      "ORD-FAC-00007: arithmetic_mismatch: total does not equal quantity * unit_price - discount (total=50000.0, expected=1197.0, diff=48803.0) (original_value: 50000.0)",
+      "ORD-FAC-00003: arithmetic_mismatch: total does not equal quantity * unit_price - discount (total=9999.0, expected=762.45, diff=9236.55) (original_value: 9999.0)",
+      "ORD-FAC-00011: arithmetic_mismatch: total does not equal quantity * unit_price - discount (total=1.0, expected=349.0, diff=348.0) (original_value: 1.0)"
+    ],
+    "gold_rows": 12,
+    "pipeline_status": "success",
+    "pipeline_message": "Pipeline finished at stage gold_transform with status success"
+  },
+  {
+    "file_name": "err09_currency_text_formats_orders.csv",
+    "upload_status_code": 201,
+    "batch_id": "e7dff045-a813-4238-8168-fdf2f2ffe689",
+    "bronze_rows": 15,
+    "silver_valid_rows": 12,
+    "rejected_rows": 3,
+    "rejection_reasons": [
+      "ORD-FAC-00013: invalid_currency_fields: unit_price could not be parsed as currency (original_value: Rs. INVALID_PRICE)",
+      "ORD-FAC-00015: invalid_currency_fields: unit_price could not be parsed as currency (original_value: \u20b9---)",
+      "ORD-FAC-00014: invalid_currency_fields: total could not be parsed as currency (original_value: INR N/A)"
+    ],
+    "gold_rows": 12,
+    "pipeline_status": "success",
+    "pipeline_message": "Pipeline finished at stage gold_transform with status success"
+  },
+  {
+    "file_name": "err10_renamed_headers_orders.csv",
+    "upload_status_code": 201,
+    "batch_id": "20768f5d-e765-4a58-9903-ff738e6f5db7",
+    "bronze_rows": 15,
+    "silver_valid_rows": 15,
+    "rejected_rows": 0,
+    "rejection_reasons": [],
+    "gold_rows": 15,
+    "pipeline_status": "success",
+    "pipeline_message": "Pipeline finished at stage gold_transform with status success"
+  },
+  {
+    "file_name": "err11_extra_unknown_columns_orders.csv",
+    "upload_status_code": 201,
+    "batch_id": "29106c46-5ea7-47ce-aae3-040f255f71b9",
+    "bronze_rows": 15,
+    "silver_valid_rows": 15,
+    "rejected_rows": 0,
+    "rejection_reasons": [],
+    "gold_rows": 15,
+    "pipeline_status": "success",
+    "pipeline_message": "Pipeline finished at stage gold_transform with status success"
+  },
+  {
+    "file_name": "err12_missing_required_column_orders.csv",
+    "upload_status_code": 201,
+    "batch_id": "e8050000-653d-4bf7-ab92-e488aa232e5a",
+    "bronze_rows": 15,
+    "silver_valid_rows": 0,
+    "rejected_rows": 15,
+    "rejection_reasons": [
+      "ORD-FAC-00001: missing_required_key: customer_id (original_value: None)",
+      "ORD-FAC-00002: missing_required_key: customer_id (original_value: None)",
+      "ORD-FAC-00003: missing_required_key: customer_id (original_value: None)",
+      "ORD-FAC-00004: missing_required_key: customer_id (original_value: None)",
+      "ORD-FAC-00005: missing_required_key: customer_id (original_value: None)",
+      "ORD-FAC-00006: missing_required_key: customer_id (original_value: None)",
+      "ORD-FAC-00007: missing_required_key: customer_id (original_value: None)",
+      "ORD-FAC-00011: missing_required_key: customer_id (original_value: None)",
+      "ORD-FAC-00013: missing_required_key: customer_id (original_value: None)",
+      "ORD-FAC-00012: missing_required_key: customer_id (original_value: None)",
+      "ORD-FAC-00014: missing_required_key: customer_id (original_value: None)",
+      "ORD-FAC-00009: missing_required_key: customer_id (original_value: None)",
+      "ORD-FAC-00015: missing_required_key: customer_id (original_value: None)",
+      "ORD-FAC-00010: missing_required_key: customer_id (original_value: None)",
+      "ORD-FAC-00008: missing_required_key: customer_id (original_value: None)"
+    ],
+    "gold_rows": 0,
+    "pipeline_status": "success",
+    "pipeline_message": "Pipeline finished at stage gold_transform with status success"
+  },
+  {
+    "file_name": "err13_text_spaces_and_casing_orders.csv",
+    "upload_status_code": 201,
+    "batch_id": "71188de6-846e-4003-a158-c2d3ab40a784",
+    "bronze_rows": 15,
+    "silver_valid_rows": 15,
+    "rejected_rows": 0,
+    "rejection_reasons": [],
+    "gold_rows": 15,
+    "pipeline_status": "success",
+    "pipeline_message": "Pipeline finished at stage gold_transform with status success"
+  },
+  {
+    "file_name": "err14_header_only_orders.csv",
+    "upload_status_code": 400,
+    "batch_id": null,
+    "bronze_rows": 0,
+    "silver_valid_rows": 0,
+    "rejected_rows": 0,
+    "rejection_reasons": [],
+    "gold_rows": 0,
+    "pipeline_status": "upload_rejected",
+    "pipeline_message": "File contains only headers with no data rows. At least one data row is required."
+  }
+]

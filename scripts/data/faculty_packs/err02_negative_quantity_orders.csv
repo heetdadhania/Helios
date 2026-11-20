@@ -1,0 +1,16 @@
+order_id,order_date,customer_id,customer_name,segment,product_id,product_name,category,quantity,unit_price,discount,total,profit
+ORD-FAC-00001,2026-08-02,C-FAC-008,Manish Malhotra,Home Office,P-FAC-07,Leather Laptop Briefcase,Accessories,4,2499.00,0.00,9996.00,2998.80
+ORD-FAC-00002,2026-08-03,C-FAC-006,Rohan Bhattacharya,Corporate,P-FAC-02,Block Print Cotton Kurta,Ethnic Wear,4,999.00,199.80,3796.20,1062.94
+ORD-FAC-00003,2026-08-04,C-FAC-006,Rohan Bhattacharya,Corporate,P-FAC-01,Handloom Silk Saree,Ethnic Wear,-1,3499.00,699.80,13296.20,4254.78
+ORD-FAC-00004,2026-08-05,C-FAC-005,Prof. Sneha Patel,Consumer,P-FAC-03,Wireless Ergonomic Mouse,Electronics,3,799.00,359.55,2037.45,448.24
+ORD-FAC-00005,2026-08-06,C-FAC-008,Manish Malhotra,Home Office,P-FAC-06,Organic Assam Tea 500g,Groceries,1,399.00,0.00,399.00,99.75
+ORD-FAC-00006,2026-08-07,C-FAC-005,Prof. Sneha Patel,Consumer,P-FAC-06,Organic Assam Tea 500g,Groceries,1,399.00,19.95,379.05,94.76
+ORD-FAC-00007,2026-08-08,C-FAC-006,Rohan Bhattacharya,Corporate,P-FAC-02,Block Print Cotton Kurta,Ethnic Wear,-2,999.00,0.00,1998.00,559.44
+ORD-FAC-00008,2026-08-09,C-FAC-004,Meera Sundaram,Home Office,P-FAC-08,Ceramic Artisan Coffee Mug,Home & Kitchen,2,349.00,34.90,663.10,198.93
+ORD-FAC-00009,2026-08-10,C-FAC-007,Ananya Kulkarni,Consumer,P-FAC-03,Wireless Ergonomic Mouse,Electronics,1,799.00,0.00,799.00,175.78
+ORD-FAC-00010,2026-08-11,C-FAC-001,Dr. Alok Verma,Consumer,P-FAC-03,Wireless Ergonomic Mouse,Electronics,2,799.00,239.70,1358.30,298.83
+ORD-FAC-00011,2026-08-12,C-FAC-006,Rohan Bhattacharya,Corporate,P-FAC-08,Ceramic Artisan Coffee Mug,Home & Kitchen,-5,349.00,157.05,889.95,266.99
+ORD-FAC-00012,2026-08-13,C-FAC-001,Dr. Alok Verma,Consumer,P-FAC-08,Ceramic Artisan Coffee Mug,Home & Kitchen,2,349.00,0.00,698.00,209.40
+ORD-FAC-00013,2026-08-14,C-FAC-005,Prof. Sneha Patel,Consumer,P-FAC-08,Ceramic Artisan Coffee Mug,Home & Kitchen,2,349.00,69.80,628.20,188.46
+ORD-FAC-00014,2026-08-15,C-FAC-007,Ananya Kulkarni,Consumer,P-FAC-05,Hardcover Research Journal,Stationery,2,299.00,0.00,598.00,209.30
+ORD-FAC-00015,2026-08-16,C-FAC-005,Prof. Sneha Patel,Consumer,P-FAC-08,Ceramic Artisan Coffee Mug,Home & Kitchen,1,349.00,34.90,314.10,94.23

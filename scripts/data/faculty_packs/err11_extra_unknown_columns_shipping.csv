@@ -1,0 +1,16 @@
+order_id,shipping_mode,delivery_status,scheduled_date,actual_date,shipping_days
+ORD-FAC-00001,First Class,On Time,2026-08-04,2026-08-04,2
+ORD-FAC-00002,First Class,On Time,2026-08-05,2026-08-05,2
+ORD-FAC-00003,First Class,On Time,2026-08-06,2026-08-06,2
+ORD-FAC-00004,First Class,On Time,2026-08-07,2026-08-07,2
+ORD-FAC-00005,Standard Class,On Time,2026-08-11,2026-08-11,5
+ORD-FAC-00006,Standard Class,On Time,2026-08-12,2026-08-12,5
+ORD-FAC-00007,Second Class,On Time,2026-08-11,2026-08-11,3
+ORD-FAC-00008,Standard Class,On Time,2026-08-14,2026-08-14,5
+ORD-FAC-00009,Same Day,On Time,2026-08-10,2026-08-10,0
+ORD-FAC-00010,Same Day,Late,2026-08-11,2026-08-13,2
+ORD-FAC-00011,Standard Class,On Time,2026-08-17,2026-08-17,5
+ORD-FAC-00012,Standard Class,On Time,2026-08-18,2026-08-18,5
+ORD-FAC-00013,Standard Class,On Time,2026-08-19,2026-08-19,5
+ORD-FAC-00014,Second Class,On Time,2026-08-18,2026-08-18,3
+ORD-FAC-00015,Standard Class,On Time,2026-08-21,2026-08-21,5
